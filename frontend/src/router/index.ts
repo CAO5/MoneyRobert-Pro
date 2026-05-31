@@ -1,0 +1,49 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/login', name: 'login', component: () => import('@/pages/LoginPage.vue'), meta: { guest: true } },
+    { path: '/register', name: 'register', component: () => import('@/pages/RegisterPage.vue'), meta: { guest: true } },
+    { path: '/', component: () => import('@/layouts/DashboardLayout.vue'), meta: { auth: true }, children: [
+      { path: '', redirect: '/dashboard' },
+      { path: 'dashboard', name: 'dashboard', component: () => import('@/pages/DashboardPage.vue') },
+      { path: 'market', name: 'market', component: () => import('@/pages/MarketPage.vue') },
+      { path: 'ai', name: 'ai', component: () => import('@/pages/AiAnalysisPage.vue') },
+      { path: 'ai/chat', name: 'ai-chat', component: () => import('@/pages/AiChatPage.vue') },
+      { path: 'ai/predictions', name: 'ai-predictions', component: () => import('@/pages/AiPredictionsPage.vue') },
+      { path: 'trading', name: 'trading', component: () => import('@/pages/TradingPage.vue') },
+      { path: 'strategies', name: 'strategies', component: () => import('@/pages/StrategiesPage.vue') },
+      { path: 'auto-trading', name: 'auto-trading', component: () => import('@/pages/AutoTradingPage.vue') },
+      { path: 'paper-trading', name: 'paper-trading', component: () => import('@/pages/PaperTradingPage.vue') },
+      { path: 'news', name: 'news', component: () => import('@/pages/NewsPage.vue') },
+      { path: 'reports', name: 'reports', component: () => import('@/pages/ReportsPage.vue') },
+      { path: 'notifications', name: 'notifications', component: () => import('@/pages/NotificationsPage.vue') },
+      { path: 'settings', name: 'settings', component: () => import('@/pages/SettingsPage.vue') },
+      { path: 'admin', name: 'admin', component: () => import('@/pages/AdminPage.vue'), meta: { admin: true } },
+      { path: 'agent', name: 'agent', component: () => import('@/pages/AgentDashboardPage.vue') },
+      { path: 'agent/debate', name: 'agent-debate', component: () => import('@/pages/AgentDebateViewer.vue') },
+      { path: 'agent/history', name: 'agent-history', component: () => import('@/pages/AgentTradingHistory.vue') },
+    ]},
+  ],
+})
+
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+  if (to.meta.auth && !auth.isAuthenticated) {
+    return next('/login')
+  }
+  if (to.meta.guest && auth.isAuthenticated) {
+    return next('/dashboard')
+  }
+  if (to.meta.admin && !auth.isAdmin) {
+    return next('/dashboard')
+  }
+  if (auth.isAuthenticated && !auth.user) {
+    await auth.fetchUser()
+  }
+  next()
+})
+
+export default router

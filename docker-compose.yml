@@ -1,0 +1,107 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: moneyrobert-pro-backend
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8001:8001"
+    environment:
+      - APP_SERVER__HOST=0.0.0.0
+      - APP_SERVER__PORT=8001
+      - APP_SERVER__DEBUG=true
+      - APP_SERVER__ENVIRONMENT=development
+      - APP_DATABASE__URL=postgresql://postgres:postgres@db:5432/moneyrobert
+      - APP_DATABASE__POOL_SIZE=5
+      - APP_REDIS__URL=redis://redis:6379/0
+      - APP_SECURITY__SECRET_KEY=dev-secret-key-change-in-production
+      - APP_SECURITY__ALGORITHM=HS256
+      - APP_SECURITY__ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - APP_SECURITY__REFRESH_TOKEN_EXPIRE_DAYS=7
+      - APP_CORS__ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost:80"]
+      - APP_CORS__ALLOW_CREDENTIALS=true
+      - APP_RATE_LIMIT__ENABLED=true
+      - APP_RATE_LIMIT__REQUESTS_PER_MINUTE=100
+      - APP_RATE_LIMIT__REQUESTS_PER_HOUR=1000
+      - HTTP_PROXY=socks5://host.docker.internal:10808
+      - HTTPS_PROXY=socks5://host.docker.internal:10808
+      - ALL_PROXY=socks5://host.docker.internal:10808
+      - NO_PROXY=localhost,127.0.0.1,backend,db,redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - moneyrobert-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend.dev
+    container_name: moneyrobert-pro-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DOCKER_ENV=true
+      - VITE_API_URL=/api/v1
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/.env.development:/app/.env.development
+    networks:
+      - moneyrobert-network
+
+  db:
+    image: docker.1ms.run/library/postgres:15-alpine
+    container_name: moneyrobert-pro-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=moneyrobert
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - moneyrobert-network
+
+  redis:
+    image: docker.1ms.run/library/redis:7-alpine
+    container_name: moneyrobert-pro-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - moneyrobert-network
+
+networks:
+  moneyrobert-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
