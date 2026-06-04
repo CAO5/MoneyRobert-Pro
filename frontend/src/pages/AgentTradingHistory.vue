@@ -188,14 +188,14 @@ onMounted(() => {
     <!-- 页面标题 -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">
+        <h1 class="font-sans text-2xl font-bold" style="color: var(--text-primary)">
           交易历史
         </h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary)">
           查看 AI Agent 的历史交易记录和表现分析
         </p>
       </div>
-      <button class="btn-secondary flex items-center gap-2">
+      <button class="btn btn-secondary flex items-center gap-2">
         <Download class="w-4 h-4" />
         导出
       </button>
@@ -203,38 +203,38 @@ onMounted(() => {
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="card">
+      <div class="stat-card">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm" style="color: var(--text-secondary)">总交易</span>
+          <span class="stat-label">总交易</span>
           <Activity class="w-4 h-4" style="color: var(--text-muted)" />
         </div>
-        <div class="text-2xl font-bold" style="color: var(--text-primary)">{{ stats.totalTrades }}</div>
+        <div class="stat-value">{{ stats.totalTrades }}</div>
       </div>
       
-      <div class="card">
+      <div class="stat-card">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm" style="color: var(--text-secondary)">胜率</span>
+          <span class="stat-label">胜率</span>
           <Target class="w-4 h-4" style="color: var(--profit)" />
         </div>
-        <div class="text-2xl font-bold" style="color: var(--profit)">{{ stats.winRate }}%</div>
+        <div class="stat-value" style="color: var(--profit)">{{ stats.winRate }}%</div>
       </div>
       
-      <div class="card">
+      <div class="stat-card">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm" style="color: var(--text-secondary)">总盈亏</span>
+          <span class="stat-label">总盈亏</span>
           <TrendingUp class="w-4 h-4" style="color: var(--profit)" />
         </div>
-        <div class="text-2xl font-bold" :style="{ color: stats.totalPnl >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+        <div class="stat-value" :style="{ color: stats.totalPnl >= 0 ? 'var(--profit)' : 'var(--loss)' }">
           {{ stats.totalPnl >= 0 ? '+' : '' }}{{ stats.totalPnl.toFixed(2) }}
         </div>
       </div>
       
-      <div class="card">
+      <div class="stat-card">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm" style="color: var(--text-secondary)">平均盈亏</span>
-          <TrendingDown class="w-4 h-4" style="color: parseFloat(stats.avgPnlPercent) >= 0 ? 'var(--profit)' : 'var(--loss)'" />
+          <span class="stat-label">平均盈亏</span>
+          <TrendingDown class="w-4 h-4" :style="{ color: parseFloat(stats.avgPnlPercent) >= 0 ? 'var(--profit)' : 'var(--loss)' }" />
         </div>
-        <div class="text-2xl font-bold" :style="{ color: parseFloat(stats.avgPnlPercent) >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+        <div class="stat-value" :style="{ color: parseFloat(stats.avgPnlPercent) >= 0 ? 'var(--profit)' : 'var(--loss)' }">
           {{ parseFloat(stats.avgPnlPercent) >= 0 ? '+' : '' }}{{ stats.avgPnlPercent }}%
         </div>
       </div>
@@ -258,8 +258,8 @@ onMounted(() => {
               @click="timeRange = range.value as any"
               class="px-3 py-1.5 rounded-lg text-sm transition-all"
               :style="timeRange === range.value
-                ? 'background: var(--gold-glow); color: var(--gold)'
-                : 'background: var(--bg-card-secondary); color: var(--text-secondary)'"
+                ? 'background: var(--primary-bg); color: var(--primary)'
+                : 'background: var(--surface-tertiary); color: var(--text-secondary)'"
             >
               {{ range.label }}
             </button>
@@ -280,8 +280,8 @@ onMounted(() => {
               @click="tradeType = type.value as any"
               class="px-3 py-1.5 rounded-lg text-sm transition-all"
               :style="tradeType === type.value
-                ? 'background: var(--gold-glow); color: var(--gold)'
-                : 'background: var(--bg-card-secondary); color: var(--text-secondary)'"
+                ? 'background: var(--primary-bg); color: var(--primary)'
+                : 'background: var(--surface-tertiary); color: var(--text-secondary)'"
             >
               {{ type.label }}
             </button>
@@ -301,8 +301,8 @@ onMounted(() => {
               @click="status = s.value as any"
               class="px-3 py-1.5 rounded-lg text-sm transition-all"
               :style="status === s.value
-                ? 'background: var(--gold-glow); color: var(--gold)'
-                : 'background: var(--bg-card-secondary); color: var(--text-secondary)'"
+                ? 'background: var(--primary-bg); color: var(--primary)'
+                : 'background: var(--surface-tertiary); color: var(--text-secondary)'"
             >
               {{ s.label }}
             </button>
@@ -327,7 +327,7 @@ onMounted(() => {
       <h3 class="font-medium mb-4" style="color: var(--text-primary)">交易记录</h3>
       
       <div v-if="loading" class="space-y-3">
-        <div v-for="i in 3" :key="i" class="h-16 rounded-lg animate-pulse" style="background: var(--bg-card-secondary)" />
+        <div v-for="i in 3" :key="i" class="h-16 rounded-lg animate-pulse" style="background: var(--surface-tertiary)" />
       </div>
       
       <div v-else-if="filteredTrades.length === 0" class="py-12 text-center" style="color: var(--text-muted)">
@@ -339,17 +339,15 @@ onMounted(() => {
         <div
           v-for="trade in filteredTrades"
           :key="trade.id"
-          class="p-4 rounded-xl border transition-all hover:bg-opacity-50 cursor-pointer"
+          class="p-4 rounded-xl border transition-all cursor-pointer hover:shadow-card-hover"
           style="border-color: var(--border);"
-          @mouseenter="($event.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'"
-          @mouseleave="($event.currentTarget as HTMLElement).style.borderColor = 'var(--border)'"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div
                 class="w-10 h-10 rounded-xl flex items-center justify-center"
                 :style="{
-                  background: trade.type === 'long' ? 'var(--profit-glow)' : 'var(--loss-glow)'
+                  background: trade.type === 'long' ? 'var(--profit-light)' : 'var(--loss-light)'
                 }"
               >
                 <ArrowLeftRight
@@ -362,20 +360,10 @@ onMounted(() => {
               <div>
                 <div class="flex items-center gap-2">
                   <span class="font-medium" style="color: var(--text-primary)">{{ trade.symbol }}</span>
-                  <span
-                    class="px-2 py-0.5 rounded text-xs font-medium"
-                    :style="{
-                      background: trade.type === 'long' ? 'var(--profit-glow)' : 'var(--loss-glow)',
-                      color: trade.type === 'long' ? 'var(--profit)' : 'var(--loss)'
-                    }"
-                  >
+                  <span class="badge" :class="trade.type === 'long' ? 'badge-profit' : 'badge-loss'">
                     {{ trade.type === 'long' ? '做多' : '做空' }}
                   </span>
-                  <span
-                    v-if="trade.status === 'open'"
-                    class="px-2 py-0.5 rounded text-xs font-medium"
-                    style="background: var(--gold-glow); color: var(--gold)"
-                  >
+                  <span v-if="trade.status === 'open'" class="badge badge-primary">
                     进行中
                   </span>
                 </div>

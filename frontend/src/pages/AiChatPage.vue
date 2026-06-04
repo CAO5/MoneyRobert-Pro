@@ -74,8 +74,8 @@ onMounted(() => { loadSessions() })
 <template>
   <div class="space-y-6 h-[calc(100vh-8rem)]">
     <div class="flex items-center gap-3">
-      <MessageSquare class="w-6 h-6" style="color: var(--gold)" />
-      <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">AI 对话</h1>
+      <MessageSquare class="w-6 h-6" style="color: var(--primary)" />
+      <h1 class="text-2xl font-bold" style="color: var(--text-primary)">AI 对话</h1>
     </div>
 
     <div class="flex gap-4 h-[calc(100%-3.5rem)]">
@@ -89,8 +89,8 @@ onMounted(() => { loadSessions() })
           </div>
           <button v-for="s in sessions" :key="s.id" @click="loadMessages(s.id)"
             class="w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors"
-            :style="activeSession === s.id ? 'background: var(--gold-glow); color: var(--gold)' : 'color: var(--text-secondary)'"
-            :class="activeSession !== s.id ? 'hover:bg-[#222839]' : ''">
+            :style="activeSession === s.id ? 'background: var(--primary-bg); color: var(--primary)' : 'color: var(--text-secondary)'"
+            :class="activeSession !== s.id ? 'hover:bg-[var(--surface-tertiary)]' : ''">
             {{ s.title || '对话 ' + s.id.slice(0, 8) }}
           </button>
         </div>
@@ -104,7 +104,7 @@ onMounted(() => { loadSessions() })
           <div ref="messagesEl" class="flex-1 overflow-y-auto space-y-3 p-2">
             <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
               <div class="max-w-[70%] rounded-lg px-4 py-2.5 text-sm"
-                :style="m.role === 'user' ? 'background: var(--bg-card); border: 1px solid var(--gold); color: var(--text-primary)' : 'background: var(--border); color: var(--text-secondary)'">
+                :style="m.role === 'user' ? 'background: var(--surface); border: 1px solid var(--primary); color: var(--text-primary)' : 'background: var(--border); color: var(--text-secondary)'">
                 {{ m.content }}
               </div>
             </div>
@@ -113,7 +113,7 @@ onMounted(() => { loadSessions() })
             </div>
           </div>
           <div class="flex gap-2 pt-3 border-t" style="border-color: var(--border)">
-            <input v-model="input" @keyup.enter="sendMessage" class="input-field flex-1" placeholder="输入消息..." :disabled="sending" />
+            <input v-model="input" @keyup.enter="sendMessage" class="input flex-1" placeholder="输入消息..." :disabled="sending" />
             <button @click="sendMessage" class="btn-primary flex items-center gap-2" :disabled="sending || !input.trim()">
               <Send class="w-4 h-4" />
             </button>

@@ -30,55 +30,289 @@ async function handleRegister() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center relative overflow-hidden" style="background: var(--bg-primary)">
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-5" style="background: var(--gold); filter: blur(120px)"></div>
+  <div class="register-container">
+    <!-- 背景装饰 -->
+    <div class="background-effects">
+      <div class="deco-circle deco-circle-1"></div>
+      <div class="deco-circle deco-circle-2"></div>
     </div>
 
-    <div class="relative w-full max-w-md px-6">
-      <div class="card-gold">
-        <div class="flex flex-col items-center mb-8">
-          <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, var(--gold), var(--gold-dim))">
-            <Zap class="w-7 h-7" style="color: var(--bg-primary)" />
-          </div>
-          <h1 class="font-display text-2xl font-bold" style="color: var(--gold)">创建账户</h1>
-          <p class="text-sm mt-1" style="color: var(--text-secondary)">开始您的专业投资之旅</p>
+    <!-- 注册卡片 -->
+    <div class="register-card card animate-fade-in-up">
+      <!-- Logo 和标题 -->
+      <div class="logo-section">
+        <div class="logo-icon">
+          <Zap class="w-7 h-7" />
+        </div>
+        <h1 class="logo-title">创建账户</h1>
+        <p class="logo-subtitle">开始您的专业投资之旅</p>
+      </div>
+
+      <!-- 注册表单 -->
+      <form @submit.prevent="handleRegister" class="register-form">
+        <!-- 用户名输入 -->
+        <div class="form-group">
+          <label class="label">用户名</label>
+          <input
+            v-model="username"
+            type="text"
+            class="input"
+            placeholder="3-50个字符"
+            required
+          />
         </div>
 
-        <form @submit.prevent="handleRegister" class="space-y-5">
-          <div>
-            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">用户名</label>
-            <input v-model="username" type="text" class="input-field" placeholder="3-50个字符" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">邮箱</label>
-            <input v-model="email" type="email" class="input-field" placeholder="your@email.com" required />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary)">密码</label>
-            <div class="relative">
-              <input v-model="password" :type="showPassword ? 'text' : 'password'" class="input-field pr-10" placeholder="至少6个字符" required />
-              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2" style="color: var(--text-muted)">
-                <Eye v-if="!showPassword" class="w-4 h-4" />
-                <EyeOff v-else class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div v-if="error" class="p-3 rounded-lg text-sm" style="background: rgba(248,113,113,0.1); color: var(--loss)">
-            {{ error }}
-          </div>
-
-          <button type="submit" class="btn-primary w-full py-3" :disabled="loading">
-            {{ loading ? '注册中...' : '注册' }}
-          </button>
-        </form>
-
-        <div class="mt-6 text-center">
-          <span class="text-sm" style="color: var(--text-muted)">已有账户？</span>
-          <router-link to="/login" class="text-sm font-medium ml-1" style="color: var(--gold)">立即登录</router-link>
+        <!-- 邮箱输入 -->
+        <div class="form-group">
+          <label class="label">邮箱</label>
+          <input
+            v-model="email"
+            type="email"
+            class="input"
+            placeholder="your@email.com"
+            required
+          />
         </div>
+
+        <!-- 密码输入 -->
+        <div class="form-group">
+          <label class="label">密码</label>
+          <div class="password-input-wrapper">
+            <input
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              class="input password-input"
+              placeholder="至少6个字符"
+              required
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              @click="showPassword = !showPassword"
+              tabindex="-1"
+            >
+              <Eye v-if="!showPassword" class="w-4 h-4" />
+              <EyeOff v-else class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 错误提示 -->
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
+
+        <!-- 注册按钮 -->
+        <button
+          type="submit"
+          class="btn btn-primary register-button"
+          :disabled="loading"
+        >
+          <span v-if="!loading">注册</span>
+          <span v-else class="loading-content">
+            <span class="spinner"></span>
+            注册中...
+          </span>
+        </button>
+      </form>
+
+      <!-- 登录链接 -->
+      <div class="login-link">
+        <span class="text-muted">已有账户？</span>
+        <router-link to="/login" class="link-primary">立即登录</router-link>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-secondary);
+  padding: 40px 20px;
+}
+
+/* 背景装饰 */
+.background-effects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+}
+
+.deco-circle-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--primary);
+  top: -150px;
+  right: -150px;
+  filter: blur(100px);
+  animation: float 20s ease-in-out infinite;
+}
+
+.deco-circle-2 {
+  width: 400px;
+  height: 400px;
+  background: var(--info);
+  bottom: -100px;
+  left: -100px;
+  filter: blur(100px);
+  animation: float 25s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
+}
+
+/* 注册卡片 */
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 48px 40px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Logo 部分 */
+.logo-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  color: var(--text-inverse);
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+}
+
+.logo-title {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.logo-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* 表单样式 */
+.register-form {
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast) ease;
+}
+
+.password-toggle:hover {
+  color: var(--primary);
+}
+
+/* 错误消息 */
+.error-message {
+  padding: 12px 16px;
+  background: var(--loss-light);
+  border: 1px solid var(--loss);
+  border-radius: var(--radius-md);
+  color: var(--loss);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* 注册按钮 */
+.register-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 登录链接 */
+.login-link {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.link-primary {
+  color: var(--primary);
+  font-weight: 500;
+  margin-left: 8px;
+  transition: all var(--transition-fast) ease;
+}
+
+.link-primary:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 32px 24px;
+  }
+}
+</style>

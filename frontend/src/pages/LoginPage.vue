@@ -18,10 +18,10 @@ async function handleLogin() {
     error.value = '请输入用户名和密码'
     return
   }
-  
+
   error.value = ''
   loading.value = true
-  
+
   try {
     await auth.login(username.value, password.value)
     router.push('/dashboard')
@@ -35,15 +35,14 @@ async function handleLogin() {
 
 <template>
   <div class="login-container">
-    <!-- 背景效果 -->
+    <!-- 背景装饰 -->
     <div class="background-effects">
-      <div class="grid-pattern"></div>
-      <div class="glow-orb glow-orb-1"></div>
-      <div class="glow-orb glow-orb-2"></div>
+      <div class="deco-circle deco-circle-1"></div>
+      <div class="deco-circle deco-circle-2"></div>
     </div>
-    
+
     <!-- 登录卡片 -->
-    <div class="login-card animate-fade-in-up">
+    <div class="login-card card animate-fade-in-up">
       <!-- Logo 和标题 -->
       <div class="logo-section">
         <div class="logo-icon">
@@ -52,30 +51,30 @@ async function handleLogin() {
         <h1 class="logo-title">MoneyRobert</h1>
         <p class="logo-subtitle">Professional Trading Platform</p>
       </div>
-      
+
       <!-- 登录表单 -->
       <form @submit.prevent="handleLogin" class="login-form">
         <!-- 用户名输入 -->
         <div class="form-group">
-          <label class="label-professional">用户名</label>
+          <label class="label">用户名</label>
           <input
             v-model="username"
             type="text"
-            class="input-professional"
+            class="input"
             placeholder="请输入用户名或邮箱"
             required
             autocomplete="username"
           />
         </div>
-        
+
         <!-- 密码输入 -->
         <div class="form-group">
-          <label class="label-professional">密码</label>
+          <label class="label">密码</label>
           <div class="password-input-wrapper">
             <input
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
-              class="input-professional password-input"
+              class="input password-input"
               placeholder="请输入密码"
               required
               autocomplete="current-password"
@@ -91,33 +90,33 @@ async function handleLogin() {
             </button>
           </div>
         </div>
-        
+
         <!-- 错误提示 -->
         <div v-if="error" class="error-message animate-shake">
           {{ error }}
         </div>
-        
+
         <!-- 登录按钮 -->
         <button
           type="submit"
-          class="btn-primary login-button"
+          class="btn btn-primary login-button"
           :disabled="loading"
         >
           <span v-if="!loading">登 录</span>
           <span v-else class="loading-content">
-            <span class="loading-spinner"></span>
+            <span class="spinner"></span>
             登录中...
           </span>
         </button>
       </form>
-      
+
       <!-- 注册链接 -->
       <div class="register-link">
         <span class="text-muted">还没有账户？</span>
-        <router-link to="/register" class="link-gold">立即注册</router-link>
+        <router-link to="/register" class="link-primary">立即注册</router-link>
       </div>
     </div>
-    
+
     <!-- 底部信息 -->
     <div class="footer-info animate-fade-in-up delay-500">
       <p class="copyright">© 2026 MoneyRobert Pro. All rights reserved.</p>
@@ -140,10 +139,10 @@ async function handleLogin() {
   padding: 40px 20px;
   position: relative;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: var(--surface-secondary);
 }
 
-/* 背景效果 */
+/* 背景装饰 */
 .background-effects {
   position: absolute;
   inset: 0;
@@ -151,38 +150,29 @@ async function handleLogin() {
   overflow: hidden;
 }
 
-.grid-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  opacity: 0.5;
-}
-
-.glow-orb {
+.deco-circle {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.15;
+  opacity: 0.08;
 }
 
-.glow-orb-1 {
+.deco-circle-1 {
   width: 600px;
   height: 600px;
-  background: var(--accent-gold);
+  background: var(--primary);
   top: -200px;
   left: -200px;
+  filter: blur(100px);
   animation: float 20s ease-in-out infinite;
 }
 
-.glow-orb-2 {
+.deco-circle-2 {
   width: 500px;
   height: 500px;
   background: var(--info);
   bottom: -150px;
   right: -150px;
+  filter: blur(100px);
   animation: float 25s ease-in-out infinite reverse;
 }
 
@@ -200,40 +190,8 @@ async function handleLogin() {
   width: 100%;
   max-width: 420px;
   padding: 48px 40px;
-  background: linear-gradient(
-    135deg,
-    rgba(26, 31, 46, 0.9) 0%,
-    rgba(17, 22, 34, 0.95) 100%
-  );
-  border: 1px solid var(--border-accent);
-  border-radius: 20px;
-  box-shadow: 
-    0 0 40px var(--accent-gold-glow),
-    0 20px 60px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(20px);
   position: relative;
   z-index: 1;
-}
-
-.login-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 20px;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    var(--accent-gold) 0%,
-    transparent 50%,
-    var(--accent-gold) 100%
-  );
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.3;
-  pointer-events: none;
 }
 
 /* Logo 部分 */
@@ -248,20 +206,18 @@ async function handleLogin() {
   justify-content: center;
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, var(--accent-gold) 0%, #B8941F 100%);
-  border-radius: 16px;
-  color: var(--bg-primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  color: var(--text-inverse);
   margin-bottom: 20px;
-  box-shadow: 
-    0 8px 24px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
 }
 
 .logo-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 36px;
   font-weight: 700;
-  color: var(--accent-gold);
+  color: var(--text-primary);
   margin-bottom: 8px;
   letter-spacing: 1px;
 }
@@ -308,16 +264,16 @@ async function handleLogin() {
 }
 
 .password-toggle:hover {
-  color: var(--accent-gold);
+  color: var(--primary);
 }
 
 /* 错误消息 */
 .error-message {
   padding: 12px 16px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--loss-light);
+  border: 1px solid var(--loss);
   border-radius: var(--radius-md);
-  color: var(--error);
+  color: var(--loss);
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -338,20 +294,11 @@ async function handleLogin() {
   gap: 10px;
 }
 
-.loading-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(11, 15, 25, 0.3);
-  border-top-color: var(--bg-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
 /* 注册链接 */
 .register-link {
   text-align: center;
   padding-top: 24px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
 }
 
 .text-muted {
@@ -359,15 +306,15 @@ async function handleLogin() {
   font-size: 14px;
 }
 
-.link-gold {
-  color: var(--accent-gold);
+.link-primary {
+  color: var(--primary);
   font-weight: 500;
   margin-left: 8px;
   transition: all var(--transition-fast) ease;
 }
 
-.link-gold:hover {
-  color: var(--accent-gold-hover);
+.link-primary:hover {
+  color: var(--primary-dark);
   text-decoration: underline;
 }
 
@@ -396,9 +343,9 @@ async function handleLogin() {
   font-size: 12px;
   color: var(--text-secondary);
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
   border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
 }
 
 /* 响应式设计 */
@@ -406,11 +353,11 @@ async function handleLogin() {
   .login-card {
     padding: 32px 24px;
   }
-  
+
   .logo-title {
     font-size: 28px;
   }
-  
+
   .security-badges {
     flex-direction: column;
     gap: 12px;

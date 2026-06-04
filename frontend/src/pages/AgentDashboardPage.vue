@@ -199,7 +199,7 @@ onMounted(() => {
     <!-- 页面标题 -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">
+        <h1 class="text-2xl font-bold" style="color: var(--text-primary)">
           Agent 仪表盘
         </h1>
         <p class="text-sm mt-1" style="color: var(--text-secondary)">
@@ -224,11 +224,11 @@ onMounted(() => {
                 Agent 等级
               </h2>
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--gold), var(--gold-dim))">
-                  <Trophy class="w-6 h-6" style="color: var(--bg-primary)" />
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark))">
+                  <Trophy class="w-6 h-6" style="color: var(--surface-secondary)" />
                 </div>
                 <div>
-                  <div class="text-2xl font-bold" style="color: var(--gold)">
+                  <div class="text-2xl font-bold" style="color: var(--primary)">
                     Lv.{{ agentLevel.level }}
                   </div>
                   <div class="text-sm" style="color: var(--text-secondary)">
@@ -251,12 +251,12 @@ onMounted(() => {
           <div class="mb-6">
             <div class="flex justify-between text-sm mb-2">
               <span style="color: var(--text-secondary)">升级进度</span>
-              <span style="color: var(--gold)">{{ agentLevel.progress }}%</span>
+              <span style="color: var(--primary)">{{ agentLevel.progress }}%</span>
             </div>
             <div class="h-3 rounded-full overflow-hidden" style="background: var(--border)">
               <div
                 class="h-full rounded-full transition-all duration-500"
-                style="background: linear-gradient(90deg, var(--gold-dim), var(--gold)); width: {{ agentLevel.progress }}%"
+                style="background: linear-gradient(90deg, var(--primary-dark), var(--primary)); width: {{ agentLevel.progress }}%"
               ></div>
             </div>
           </div>
@@ -287,7 +287,7 @@ onMounted(() => {
                 <div
                   class="px-6 py-3 rounded-xl text-center"
                   :style="{
-                    background: promotionStatus.eligible ? 'var(--profit-glow)' : 'var(--border)',
+                    background: promotionStatus.eligible ? 'var(--profit-light)' : 'var(--border)',
                     color: promotionStatus.eligible ? 'var(--profit)' : 'var(--text-muted)'
                   }"
                 >
@@ -305,7 +305,7 @@ onMounted(() => {
           </h2>
           <div class="space-y-4">
             <!-- 模拟交易 -->
-            <div class="p-4 rounded-xl" style="background: var(--bg-card-secondary)">
+            <div class="p-4 rounded-xl" style="background: var(--surface-secondary)">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <Bot class="w-5 h-5" style="color: var(--text-primary)" />
@@ -314,7 +314,7 @@ onMounted(() => {
                 <div
                   class="flex items-center gap-1 text-xs px-2 py-1 rounded-full"
                   :style="{
-                    background: agentStatus.simulationRunning ? 'var(--profit-glow)' : 'var(--text-muted-glow)',
+                    background: agentStatus.simulationRunning ? 'var(--profit-light)' : 'var(--surface-tertiary)',
                     color: agentStatus.simulationRunning ? 'var(--profit)' : 'var(--text-muted)'
                   }"
                 >
@@ -332,7 +332,7 @@ onMounted(() => {
                 @click="toggleSimulation"
                 :disabled="starting || stopping"
                 class="btn-primary w-full flex items-center justify-center gap-2"
-                :class="agentStatus.simulationRunning ? '!bg-red-600 !hover:bg-red-700' : ''"
+                :class="agentStatus.simulationRunning ? 'btn-danger' : ''"
               >
                 <component :is="agentStatus.simulationRunning ? Square : Play" class="w-4 h-4" />
                 {{ starting || stopping ? '处理中...' : (agentStatus.simulationRunning ? '停止模拟' : '启动模拟') }}
@@ -340,7 +340,7 @@ onMounted(() => {
             </div>
 
             <!-- 自主交易 -->
-            <div class="p-4 rounded-xl" style="background: var(--bg-card-secondary)">
+            <div class="p-4 rounded-xl" style="background: var(--surface-secondary)">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <Target class="w-5 h-5" style="color: var(--text-primary)" />
@@ -349,7 +349,7 @@ onMounted(() => {
                 <div
                   class="flex items-center gap-1 text-xs px-2 py-1 rounded-full"
                   :style="{
-                    background: agentStatus.autonomousTrading ? 'var(--profit-glow)' : 'var(--text-muted-glow)',
+                    background: agentStatus.autonomousTrading ? 'var(--profit-light)' : 'var(--surface-tertiary)',
                     color: agentStatus.autonomousTrading ? 'var(--profit)' : 'var(--text-muted)'
                   }"
                 >
@@ -367,7 +367,7 @@ onMounted(() => {
                 @click="toggleAutonomousTrading"
                 :disabled="starting || stopping"
                 class="btn-secondary w-full flex items-center justify-center gap-2"
-                :class="agentStatus.autonomousTrading ? '!border-red-600 !text-red-400' : ''"
+                :class="agentStatus.autonomousTrading ? 'btn-danger' : ''"
               >
                 <component :is="agentStatus.autonomousTrading ? Square : Play" class="w-4 h-4" />
                 {{ starting || stopping ? '处理中...' : (agentStatus.autonomousTrading ? '停止自主' : '启动自主') }}
@@ -400,7 +400,7 @@ onMounted(() => {
         <div class="card group cursor-default">
           <div class="flex items-center justify-between mb-3">
             <span class="text-sm" style="color: var(--text-secondary)">总交易次数</span>
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--text-primary-glow)">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--primary-bg)">
               <Activity class="w-4 h-4" style="color: var(--text-primary)" />
             </div>
           </div>
@@ -412,7 +412,7 @@ onMounted(() => {
         <div class="card group cursor-default">
           <div class="flex items-center justify-between mb-3">
             <span class="text-sm" style="color: var(--text-secondary)">胜率</span>
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--profit-glow)">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--profit-light)">
               <CheckCircle2 class="w-4 h-4" style="color: var(--profit)" />
             </div>
           </div>
@@ -424,7 +424,7 @@ onMounted(() => {
         <div class="card group cursor-default">
           <div class="flex items-center justify-between mb-3">
             <span class="text-sm" style="color: var(--text-secondary)">总盈亏</span>
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--profit-glow)">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--profit-light)">
               <TrendingUp class="w-4 h-4" style="color: var(--profit)" />
             </div>
           </div>
@@ -436,11 +436,11 @@ onMounted(() => {
         <div class="card group cursor-default">
           <div class="flex items-center justify-between mb-3">
             <span class="text-sm" style="color: var(--text-secondary)">当前连胜</span>
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--gold-glow)">
-              <Trophy class="w-4 h-4" style="color: var(--gold)" />
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--primary-bg)">
+              <Trophy class="w-4 h-4" style="color: var(--primary)" />
             </div>
           </div>
-          <div class="text-2xl font-bold" style="color: var(--gold)">
+          <div class="text-2xl font-bold" style="color: var(--primary)">
             {{ tradingStats.currentStreak }} 连胜
           </div>
         </div>

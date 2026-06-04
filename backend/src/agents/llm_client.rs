@@ -120,6 +120,7 @@ impl LlmClient {
     pub fn new(config: LlmConfig) -> Self {
         let http = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(120))
+            .no_proxy()
             .build()
             .expect("Failed to create HTTP client");
 

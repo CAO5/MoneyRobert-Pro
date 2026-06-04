@@ -31,11 +31,11 @@ onMounted(() => { loadNews() })
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <Newspaper class="w-6 h-6" style="color: var(--gold)" />
-        <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">新闻资讯</h1>
+        <Newspaper class="w-6 h-6" style="color: var(--primary)" />
+        <h1 class="text-2xl font-bold" style="color: var(--text-primary)">新闻资讯</h1>
       </div>
       <div class="flex gap-2">
-        <input v-model="filter" @keyup.enter="loadNews" class="input-field w-48" placeholder="按交易对筛选" />
+        <input v-model="filter" @keyup.enter="loadNews" class="input w-48" placeholder="按交易对筛选" />
         <button @click="loadNews" class="btn-secondary">刷新</button>
       </div>
     </div>
@@ -56,7 +56,7 @@ onMounted(() => { loadNews() })
             <span class="badge" :class="sentimentBadge(n.sentiment)">{{ n.sentiment }}</span>
           </div>
         </div>
-        <a v-if="n.url" :href="n.url" target="_blank" class="p-2 rounded-lg transition-colors hover:bg-[#222839] flex-shrink-0" style="color: var(--text-secondary)">
+        <a v-if="n.url" :href="n.url" target="_blank" class="p-2 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)] flex-shrink-0" style="color: var(--text-secondary)">
           <ExternalLink class="w-4 h-4" />
         </a>
       </div>

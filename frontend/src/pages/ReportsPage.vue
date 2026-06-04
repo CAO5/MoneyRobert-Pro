@@ -36,7 +36,7 @@ async function exportReport(id: string) {
 function statusBadge(s: string) {
   if (s === 'completed') return 'badge-profit'
   if (s === 'failed') return 'badge-loss'
-  if (s === 'processing') return 'badge-gold'
+  if (s === 'processing') return 'badge-primary'
   return 'badge-neutral'
 }
 
@@ -46,8 +46,8 @@ onMounted(() => { loadReports() })
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <FileText class="w-6 h-6" style="color: var(--gold)" />
-      <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">报告中心</h1>
+      <FileText class="w-6 h-6" style="color: var(--primary)" />
+      <h1 class="text-2xl font-bold" style="color: var(--text-primary)">报告中心</h1>
     </div>
 
     <div v-if="loading" class="space-y-3">

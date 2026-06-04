@@ -50,7 +50,7 @@ async function remove(id: string) {
 
 function statusBadge(s: string) {
   if (s === 'running') return 'badge-profit'
-  if (s === 'paused') return 'badge-gold'
+  if (s === 'paused') return 'badge-primary'
   if (s === 'cancelled') return 'badge-loss'
   return 'badge-neutral'
 }
@@ -62,8 +62,8 @@ onMounted(() => { loadStrategies() })
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <TrendingUp class="w-6 h-6" style="color: var(--gold)" />
-        <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">策略管理</h1>
+        <TrendingUp class="w-6 h-6" style="color: var(--primary)" />
+        <h1 class="text-2xl font-bold" style="color: var(--text-primary)">策略管理</h1>
       </div>
       <button @click="showForm = !showForm" class="btn-primary flex items-center gap-2">
         <Play class="w-4 h-4" /> 创建策略
@@ -74,19 +74,19 @@ onMounted(() => { loadStrategies() })
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="text-sm mb-1 block" style="color: var(--text-secondary)">名称</label>
-          <input v-model="form.name" class="input-field" />
+          <input v-model="form.name" class="input" />
         </div>
         <div>
           <label class="text-sm mb-1 block" style="color: var(--text-secondary)">交易对</label>
-          <input v-model="form.symbol" class="input-field" placeholder="BTCUSDT" />
+          <input v-model="form.symbol" class="input" placeholder="BTCUSDT" />
         </div>
         <div>
           <label class="text-sm mb-1 block" style="color: var(--text-secondary)">类型</label>
-          <input v-model="form.type" class="input-field" placeholder="grid, dca..." />
+          <input v-model="form.type" class="input" placeholder="grid, dca..." />
         </div>
         <div>
           <label class="text-sm mb-1 block" style="color: var(--text-secondary)">参数 (JSON)</label>
-          <input v-model="form.params" class="input-field font-mono text-sm" />
+          <input v-model="form.params" class="input font-mono text-sm" />
         </div>
       </div>
       <div class="flex gap-2">
@@ -113,11 +113,11 @@ onMounted(() => { loadStrategies() })
           <div class="flex justify-between"><span style="color: var(--text-muted)">创建时间</span><span class="font-mono text-xs" style="color: var(--text-secondary)">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
         </div>
         <div class="flex gap-1 pt-2 border-t" style="border-color: var(--border)">
-          <button v-if="s.status !== 'running'" @click="action(s.id, 'execute')" class="p-1.5 rounded hover:bg-[#222839]" style="color: var(--profit)"><Play class="w-4 h-4" /></button>
-          <button v-if="s.status === 'running'" @click="action(s.id, 'pause')" class="p-1.5 rounded hover:bg-[#222839]" style="color: var(--gold)"><Pause class="w-4 h-4" /></button>
-          <button v-if="s.status === 'paused'" @click="action(s.id, 'resume')" class="p-1.5 rounded hover:bg-[#222839]" style="color: var(--profit)"><Play class="w-4 h-4" /></button>
-          <button v-if="s.status === 'running'" @click="action(s.id, 'cancel')" class="p-1.5 rounded hover:bg-[#222839]" style="color: var(--loss)"><Square class="w-4 h-4" /></button>
-          <button @click="remove(s.id)" class="p-1.5 rounded hover:bg-[#222839] ml-auto" style="color: var(--loss)"><Trash2 class="w-4 h-4" /></button>
+          <button v-if="s.status !== 'running'" @click="action(s.id, 'execute')" class="p-1.5 rounded hover:bg-[var(--surface-tertiary)]" style="color: var(--profit)"><Play class="w-4 h-4" /></button>
+          <button v-if="s.status === 'running'" @click="action(s.id, 'pause')" class="p-1.5 rounded hover:bg-[var(--surface-tertiary)]" style="color: var(--primary)"><Pause class="w-4 h-4" /></button>
+          <button v-if="s.status === 'paused'" @click="action(s.id, 'resume')" class="p-1.5 rounded hover:bg-[var(--surface-tertiary)]" style="color: var(--profit)"><Play class="w-4 h-4" /></button>
+          <button v-if="s.status === 'running'" @click="action(s.id, 'cancel')" class="p-1.5 rounded hover:bg-[var(--surface-tertiary)]" style="color: var(--loss)"><Square class="w-4 h-4" /></button>
+          <button @click="remove(s.id)" class="p-1.5 rounded hover:bg-[var(--surface-tertiary)] ml-auto" style="color: var(--loss)"><Trash2 class="w-4 h-4" /></button>
         </div>
       </div>
     </div>

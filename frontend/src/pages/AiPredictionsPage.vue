@@ -28,15 +28,15 @@ function statusIcon(s: string) {
 function statusColor(s: string) {
   if (s === 'correct' || s === 'hit') return 'var(--profit)'
   if (s === 'incorrect' || s === 'miss') return 'var(--loss)'
-  return 'var(--gold)'
+  return 'var(--primary)'
 }
 </script>
 
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <Target class="w-6 h-6" style="color: var(--gold)" />
-      <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">AI 预测</h1>
+      <Target class="w-6 h-6" style="color: var(--primary)" />
+      <h1 class="text-2xl font-bold" style="color: var(--text-primary)">AI 预测</h1>
     </div>
 
     <div v-if="loading" class="grid grid-cols-3 gap-4">
@@ -55,7 +55,7 @@ function statusColor(s: string) {
         </div>
         <div class="card">
           <div class="text-sm mb-2" style="color: var(--text-secondary)">胜率</div>
-          <div class="stat-value" style="color: var(--gold)">{{ stats.win_rate?.toFixed(1) }}%</div>
+          <div class="stat-value" style="color: var(--primary)">{{ stats.win_rate?.toFixed(1) }}%</div>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ function statusColor(s: string) {
         <h2 class="text-lg font-semibold mb-4" style="color: var(--text-primary)">预测列表</h2>
         <div v-if="predictions.length === 0" class="py-12 text-center" style="color: var(--text-muted)">暂无预测</div>
         <div v-else class="space-y-3">
-          <div v-for="p in predictions" :key="p.id" class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-primary)">
+          <div v-for="p in predictions" :key="p.id" class="flex items-center justify-between p-3 rounded-lg" style="background: var(--surface-secondary)">
             <div class="flex items-center gap-3">
               <component :is="statusIcon(p.status)" class="w-5 h-5" :style="{ color: statusColor(p.status) }" />
               <div>
@@ -73,9 +73,9 @@ function statusColor(s: string) {
             </div>
             <div class="flex items-center gap-4 text-sm">
               <span class="badge" :class="p.direction === 'long' ? 'badge-profit' : 'badge-loss'">{{ p.direction === 'long' ? '多' : '空' }}</span>
-              <span class="font-mono" style="color: var(--gold)">{{ p.confidence }}%</span>
+              <span class="font-mono" style="color: var(--primary)">{{ p.confidence }}%</span>
               <span class="badge badge-neutral">{{ p.risk_level }}</span>
-              <span class="badge" :class="statusColor(p.status) === 'var(--profit)' ? 'badge-profit' : statusColor(p.status) === 'var(--loss)' ? 'badge-loss' : 'badge-gold'">{{ p.status }}</span>
+              <span class="badge" :class="statusColor(p.status) === 'var(--profit)' ? 'badge-profit' : statusColor(p.status) === 'var(--loss)' ? 'badge-loss' : 'badge-primary'">{{ p.status }}</span>
             </div>
           </div>
         </div>

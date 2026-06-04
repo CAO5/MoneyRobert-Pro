@@ -44,8 +44,8 @@ onMounted(() => { loadData() })
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <BookOpen class="w-6 h-6" style="color: var(--gold)" />
-      <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">模拟交易</h1>
+      <BookOpen class="w-6 h-6" style="color: var(--primary)" />
+      <h1 class="text-2xl font-bold" style="color: var(--text-primary)">模拟交易</h1>
     </div>
 
     <div v-if="loading" class="grid grid-cols-3 gap-4">
@@ -55,7 +55,7 @@ onMounted(() => { loadData() })
     <template v-else>
       <div class="grid grid-cols-3 gap-4">
         <div class="card">
-          <div class="flex items-center gap-2 mb-2"><DollarSign class="w-4 h-4" style="color: var(--gold)" /><span class="text-sm" style="color: var(--text-secondary)">余额</span></div>
+          <div class="flex items-center gap-2 mb-2"><DollarSign class="w-4 h-4" style="color: var(--primary)" /><span class="text-sm" style="color: var(--text-secondary)">余额</span></div>
           <div class="stat-value" style="color: var(--text-primary)">${{ account.balance?.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</div>
         </div>
         <div class="card">
@@ -75,7 +75,7 @@ onMounted(() => { loadData() })
           <h2 class="text-lg font-semibold" style="color: var(--text-primary)">模拟下单</h2>
           <div>
             <label class="text-sm mb-1 block" style="color: var(--text-secondary)">交易对</label>
-            <input v-model="form.symbol" class="input-field" />
+            <input v-model="form.symbol" class="input" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <button @click="form.side = 'long'" class="py-2 rounded-lg text-sm font-medium"
@@ -86,18 +86,18 @@ onMounted(() => { loadData() })
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-sm mb-1 block" style="color: var(--text-secondary)">数量</label>
-              <input v-model.number="form.quantity" type="number" step="0.001" class="input-field" />
+              <input v-model.number="form.quantity" type="number" step="0.001" class="input" />
             </div>
             <div>
               <label class="text-sm mb-1 block" style="color: var(--text-secondary)">价格</label>
-              <input v-model.number="form.price" type="number" class="input-field" />
+              <input v-model.number="form.price" type="number" class="input" />
             </div>
           </div>
           <div>
             <label class="text-sm mb-1 flex justify-between" style="color: var(--text-secondary)">
-              <span>杠杆</span><span class="font-mono" style="color: var(--gold)">{{ form.leverage }}x</span>
+              <span>杠杆</span><span class="font-mono" style="color: var(--primary)">{{ form.leverage }}x</span>
             </label>
-            <input v-model.number="form.leverage" type="range" min="1" max="125" class="w-full accent-[#D4A843]" />
+            <input v-model.number="form.leverage" type="range" min="1" max="125" class="w-full accent-[var(--primary)]" />
           </div>
           <button @click="submitOrder" class="btn-primary w-full" :disabled="submitting">{{ submitting ? '提交中...' : '下单' }}</button>
         </div>
@@ -130,7 +130,7 @@ onMounted(() => { loadData() })
             <h2 class="text-lg font-semibold mb-4" style="color: var(--text-primary)">交易历史</h2>
             <div v-if="trades.length === 0" class="py-8 text-center" style="color: var(--text-muted)">暂无交易</div>
             <div v-else class="space-y-2">
-              <div v-for="t in trades" :key="t.id" class="flex items-center justify-between p-2 rounded" style="background: var(--bg-primary)">
+              <div v-for="t in trades" :key="t.id" class="flex items-center justify-between p-2 rounded" style="background: var(--surface-secondary)">
                 <div class="flex items-center gap-2">
                   <span class="font-medium text-sm" style="color: var(--text-primary)">{{ t.symbol }}</span>
                   <span class="badge" :class="t.side === 'long' ? 'badge-profit' : 'badge-loss'">{{ t.side === 'long' ? '多' : '空' }}</span>

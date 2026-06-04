@@ -1,18 +1,22 @@
 use axum::{
     extract::{Path, State},
+    response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
     Json, Router,
 };
 use chrono::{DateTime, Utc};
+use futures::stream::Stream;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::Row;
+use std::convert::Infallible;
 use tracing::{debug, warn};
 use uuid::Uuid;
 
 use crate::agents::config::AgentConfig;
 use crate::agents::llm_client::{LlmClient, LlmConfig, LlmProvider};
 use crate::agents::market::{DatabaseMarketDataProvider, MarketDataProvider};
+use crate::utils::encryption::decrypt;
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
 use crate::routes::trading::get_okx_client;
@@ -34,7 +38,7 @@ pub fn router() -> Router<AppState> {
         .route("/usage", get(get_usage))
         .route("/usage/reset", post(reset_usage))
         .route("/generate-report", post(generate_report))
-        .route("/debate", post(start_debate))
+        .route("/debate", post(start_debate_stream))
         .route("/debate/{session_id}", get(get_debate_session))
         .route("/debates", get(list_debate_sessions))
 }
@@ -359,7 +363,7 @@ async fn analyze_comprehensive(
     .await;
 
     match llm_result {
-        Some(response) => {
+        Ok(response) => {
             let parsed = parse_llm_comprehensive_response(&response, current_price);
 
             let analysis_id = if let Some(strategy_id) = req.strategy_id {
@@ -396,8 +400,8 @@ async fn analyze_comprehensive(
                 "source": "llm",
             })))
         }
-        None => {
-            warn!("LLM unavailable for comprehensive analysis, falling back to rule-based analysis");
+        Err(e) => {
+            warn!("LLM unavailable for comprehensive analysis: {}, falling back to rule-based analysis", e);
 
             let analysis_id = if let Some(strategy_id) = req.strategy_id {
                 let analysis = sqlx::query(
@@ -572,7 +576,8 @@ async fn get_llm_client_from_db(
 
     if let Some(row) = row {
         let provider_str = row.get::<String, _>("provider");
-        let api_key = row.get::<String, _>("api_key_encrypted");
+        let encrypted_key = row.get::<String, _>("api_key_encrypted");
+        let api_key = decrypt(&encrypted_key)?;
         let base_url = row.get::<Option<String>, _>("base_url");
         let model = row.get::<Option<String>, _>("model");
         let max_tokens = row.get::<Option<i32>, _>("max_tokens");
@@ -643,7 +648,7 @@ async fn analyze_with_llm(
     system_prompt: &str,
     user_message: &str,
     agent_name: &str,
-) -> Option<String> {
+) -> Result<String> {
     let client = match get_llm_client_from_db(pool, user_id).await {
         Ok(Some(client)) => {
             debug!("Using LLM client from user DB config for user {}", user_id);
@@ -654,8 +659,9 @@ async fn analyze_with_llm(
             match get_llm_client_from_env() {
                 Some(client) => client,
                 None => {
-                    warn!("No LLM configuration available (neither DB nor env)");
-                    return None;
+                    return Err(AppError::Validation(
+                        "未配置 AI 模型，请在系统设置中配置 API Key（支持 OpenAI/DeepSeek/Anthropic）".to_string()
+                    ));
                 }
             }
         }
@@ -664,8 +670,9 @@ async fn analyze_with_llm(
             match get_llm_client_from_env() {
                 Some(client) => client,
                 None => {
-                    warn!("No LLM configuration available (neither DB nor env)");
-                    return None;
+                    return Err(AppError::Validation(
+                        "未配置 AI 模型，请在系统设置中配置 API Key（支持 OpenAI/DeepSeek/Anthropic）".to_string()
+                    ));
                 }
             }
         }
@@ -674,11 +681,23 @@ async fn analyze_with_llm(
     match client.chat_with_system(system_prompt, user_message).await {
         Ok(response) => {
             record_llm_usage(pool, user_id, agent_name, &client).await;
-            Some(response)
+            Ok(response)
         }
         Err(e) => {
-            warn!("LLM chat failed: {}", e);
-            None
+            warn!("LLM chat failed for agent {}: {}", agent_name, e);
+            let err_msg = format!("{}", e);
+            let user_msg = if err_msg.contains("401") || err_msg.contains("Authentication") || err_msg.contains("invalid") {
+                "AI 模型认证失败，API Key 无效或已过期，请在系统设置中重新配置".to_string()
+            } else if err_msg.contains("403") {
+                "AI 模型访问被拒绝，请检查 API Key 权限".to_string()
+            } else if err_msg.contains("429") {
+                "AI 模型请求过于频繁，请稍后重试".to_string()
+            } else if err_msg.contains("timeout") || err_msg.contains("TimedOut") {
+                "AI 模型请求超时，请检查网络连接".to_string()
+            } else {
+                format!("AI 模型调用失败: {}。请检查 API Key 和网络配置", e)
+            };
+            Err(AppError::Validation(user_msg))
         }
     }
 }
@@ -798,7 +817,7 @@ const AGENTS: &[AgentDef] = &[
     AgentDef { id: "news_bear", name: "新闻分析师B", department: "news", role: "看空新闻分析师", personality: "擅长发现消息面看空信号，关注监管风险、安全事件、市场恐慌情绪" },
 ];
 
-async fn start_debate(
+async fn start_debate_old(
     user: CurrentUser,
     State(state): State<AppState>,
     Json(req): Json<DebateRequest>,
@@ -810,11 +829,27 @@ async fn start_debate(
     let okx_client = get_okx_client(&state, user.user_id).await?;
 
     // 2. Fetch real market data from OKX
-    let ticker = okx_client.get_ticker(&symbol).await
-        .map_err(|e| AppError::Internal(format!("Failed to fetch ticker: {}", e)))?;
+    let ticker = match okx_client.get_ticker(&symbol).await {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::warn!("Failed to fetch ticker for debate: {}", e);
+            return Err(AppError::Validation(format!(
+                "无法连接 OKX 获取行情数据，请检查网络代理配置是否正确。错误详情: {}",
+                e
+            )));
+        }
+    };
 
-    let candles = okx_client.get_candles(&symbol, &interval, Some(100)).await
-        .map_err(|e| AppError::Internal(format!("Failed to fetch candles: {}", e)))?;
+    let candles = match okx_client.get_candles(&symbol, &interval, Some(100)).await {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::warn!("Failed to fetch candles for debate: {}", e);
+            return Err(AppError::Validation(format!(
+                "无法连接 OKX 获取K线数据，请检查网络代理配置是否正确。错误详情: {}",
+                e
+            )));
+        }
+    };
 
     // Fetch funding rate via get_raw (non-blocking, fallback to default)
     let funding_data = match okx_client.get_raw(
@@ -962,7 +997,7 @@ async fn start_debate(
         .await;
 
         let opinion = match llm_result {
-            Some(response) => {
+            Ok(response) => {
                 let parsed = parse_agent_json_response(&response);
                 json!({
                     "agent_id": agent_def.id,
@@ -975,16 +1010,20 @@ async fn start_debate(
                     "source": "llm",
                 })
             }
-            None => {
+            Err(e) => {
+                // First agent failure returns error to user immediately
+                if agent_opinions.is_empty() {
+                    return Err(e);
+                }
                 json!({
                     "agent_id": agent_def.id,
                     "agent_name": agent_def.name,
                     "department": agent_def.department,
                     "sentiment": "neutral",
                     "confidence": 0.3,
-                    "analysis": "LLM不可用，无法生成分析",
+                    "analysis": format!("LLM调用失败: {}", e),
                     "key_factors": [],
-                    "source": "llm_unavailable",
+                    "source": "llm_error",
                 })
             }
         };
@@ -1043,7 +1082,7 @@ async fn start_debate(
         .await;
 
         let report = match llm_result {
-            Some(response) => {
+            Ok(response) => {
                 let parsed = parse_dept_report_response(&response);
                 json!({
                     "department": dept,
@@ -1052,7 +1091,7 @@ async fn start_debate(
                     "bear_summary": parsed.bear_summary,
                 })
             }
-            None => {
+            Err(_) => {
                 // Fallback: derive from agent opinions
                 let sentiments: Vec<&str> = dept_opinions.iter()
                     .filter_map(|o| o.get("sentiment").and_then(|v| v.as_str()))
@@ -1118,7 +1157,7 @@ async fn start_debate(
     .await;
 
     let fund_manager_decision = match fund_manager_result {
-        Some(response) => {
+        Ok(response) => {
             let parsed = parse_fund_manager_response(&response, current_price);
             json!({
                 "action": parsed.action,
@@ -1130,7 +1169,7 @@ async fn start_debate(
                 "reasoning": parsed.reasoning,
             })
         }
-        None => {
+        Err(_) => {
             // Fallback: derive from department reports
             let dept_consensuses: Vec<&str> = department_reports.iter()
                 .filter_map(|r| r.get("consensus").and_then(|v| v.as_str()))
@@ -1182,6 +1221,482 @@ async fn start_debate(
         "department_reports": department_reports,
         "fund_manager_decision": fund_manager_decision,
     })))
+}
+
+async fn start_debate_stream(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Json(req): Json<DebateRequest>,
+) -> Result<Sse<impl Stream<Item = std::result::Result<Event, Infallible>>>> {
+    let symbol = req.symbol.clone();
+    let interval = req.interval.clone().unwrap_or_else(|| "1H".to_string());
+
+    // 1. Get OKX client for real market data (before streaming starts)
+    let okx_client = get_okx_client(&state, user.user_id).await?;
+
+    // 2. Fetch real market data from OKX (before streaming starts)
+    let ticker = match okx_client.get_ticker(&symbol).await {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::warn!("Failed to fetch ticker for debate: {}", e);
+            return Err(AppError::Validation(format!(
+                "无法连接 OKX 获取行情数据，请检查网络代理配置是否正确。错误详情: {}",
+                e
+            )));
+        }
+    };
+
+    let candles = match okx_client.get_candles(&symbol, &interval, Some(100)).await {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::warn!("Failed to fetch candles for debate: {}", e);
+            return Err(AppError::Validation(format!(
+                "无法连接 OKX 获取K线数据，请检查网络代理配置是否正确。错误详情: {}",
+                e
+            )));
+        }
+    };
+
+    let funding_data = match okx_client.get_raw(
+        "/api/v5/public/funding-rate",
+        Some(&[("instId", symbol.clone())]),
+    ).await {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::warn!("Failed to fetch funding rate, using default: {}", e);
+            serde_json::json!({})
+        }
+    };
+
+    let ccy = symbol.split('-').next().unwrap_or(&symbol).to_string();
+    let long_short_data = match okx_client.get_raw(
+        "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+        Some(&[("ccy", ccy), ("period", "5m".to_string())]),
+    ).await {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::warn!("Failed to fetch long-short ratio: {}", e);
+            serde_json::json!({})
+        }
+    };
+
+    // Extract market data values
+    let current_price: f64 = ticker.last.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+    let open_24h: f64 = ticker.open_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+    let high_24h: f64 = ticker.high_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+    let low_24h: f64 = ticker.low_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+    let vol_24h: f64 = ticker.vol_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+
+    let funding_rate = funding_data
+        .get("data")
+        .and_then(|d| d.get(0))
+        .and_then(|item| item.get("fundingRate"))
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse::<f64>().ok())
+        .unwrap_or(0.0);
+
+    let long_short_ratio = long_short_data
+        .get("data")
+        .and_then(|d| d.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|item| item.as_array())
+        .and_then(|pair| pair.get(1))
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse::<f64>().ok())
+        .or_else(|| long_short_data.get("data").and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|item| item.as_array()).and_then(|pair| pair.get(1)).and_then(|v| v.as_f64()))
+        .unwrap_or(1.0);
+
+    let recent_candles: Vec<Value> = candles.iter().take(20).map(|c| json!({
+        "open": c.o,
+        "high": c.h,
+        "low": c.l,
+        "close": c.c,
+        "volume": c.vol,
+    })).collect();
+
+    let market_data_str = format!(
+        "## 实时市场数据 (来源: OKX)\n\n\
+        ### 行情概览\n\
+        交易对: {}\n\
+        当前价格: {:.2}\n\
+        24h开盘: {:.2}\n\
+        24h最高: {:.2}\n\
+        24h最低: {:.2}\n\
+        24h涨跌: {:.2}%\n\
+        24h成交量: {:.2}\n\n\
+        ### 资金费率\n\
+        当前资金费率: {:.6}\n\n\
+        ### 多空比\n\
+        多空账户比: {:.4}\n\n\
+        ### 最近K线数据 (周期: {})\n\
+        {}\n",
+        symbol,
+        current_price,
+        open_24h,
+        high_24h,
+        low_24h,
+        if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
+        vol_24h,
+        funding_rate,
+        long_short_ratio,
+        interval,
+        serde_json::to_string_pretty(&recent_candles).unwrap_or_default(),
+    );
+
+    // 3. Create debate session in DB
+    let session_row = sqlx::query(
+        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, created_at, updated_at)
+        VALUES ($1, $2, 'in_progress', 'fetching_market_data', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, NOW(), NOW())
+        RETURNING id"#,
+    )
+    .bind(user.user_id)
+    .bind(&symbol)
+    .fetch_one(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    let session_id: Uuid = session_row.get::<Uuid, _>("id");
+
+    // Update progress
+    let _ = sqlx::query(
+        r#"UPDATE debate_sessions SET progress = 'analyzing_agents', updated_at = NOW() WHERE id = $1"#,
+    )
+    .bind(session_id)
+    .execute(&state.db_pool)
+    .await;
+
+    // 4. Build SSE stream using mpsc channel
+    let (tx, rx) = tokio::sync::mpsc::channel::<std::result::Result<Event, Infallible>>(32);
+
+    // Clone everything needed for the spawned task
+    let pool = state.db_pool.clone();
+    let user_id = user.user_id;
+    let session_id_str = session_id.to_string();
+    let symbol_for_task = symbol.clone();
+
+    // Send initial events before spawning
+    let market_event = Event::default().data(serde_json::to_string(&json!({
+        "type": "market_data",
+        "price": current_price,
+        "open_24h": open_24h,
+        "high_24h": high_24h,
+        "low_24h": low_24h,
+        "vol_24h": vol_24h,
+        "funding_rate": funding_rate,
+        "long_short_ratio": long_short_ratio,
+        "change_24h": if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
+    })).unwrap_or_default());
+
+    let session_event = Event::default().data(serde_json::to_string(&json!({
+        "type": "session_created",
+        "session_id": session_id_str,
+        "symbol": symbol,
+    })).unwrap_or_default());
+
+    // Send session_created and market_data events
+    let tx_init = tx.clone();
+    tokio::spawn(async move {
+        let _ = tx_init.send(Ok(session_event)).await;
+        let _ = tx_init.send(Ok(market_event)).await;
+    });
+
+    // Spawn the main work task
+    tokio::spawn(async move {
+        // 5. Call LLM for each of 6 agents
+        let mut agent_opinions: Vec<Value> = Vec::new();
+
+        for agent_def in AGENTS {
+            // Send agent_thinking event
+            let thinking_event = Event::default().data(serde_json::to_string(&json!({
+                "type": "agent_thinking",
+                "agent_id": agent_def.id,
+                "agent_name": agent_def.name,
+                "department": agent_def.department,
+            })).unwrap_or_default());
+            let _ = tx.send(Ok(thinking_event)).await;
+
+            let system_prompt = format!(
+                "你是{}的{}，名叫{}。你的性格特点是：{}。\n\
+                你需要基于提供的OKX实时市场数据，从你的专业角度进行分析。\n\
+                你必须以JSON格式回复，格式如下：\n\
+                {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
+                sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
+                confidence必须是0到1之间的数字，表示你的信心程度。\n\
+                只输出JSON，不要输出其他内容。",
+                match agent_def.department {
+                    "technical" => "技术分析部",
+                    "capital" => "资金分析部",
+                    "news" => "新闻分析部",
+                    _ => "分析部",
+                },
+                agent_def.role,
+                agent_def.name,
+                agent_def.personality,
+            );
+
+            let llm_result = analyze_with_llm(
+                &pool,
+                user_id,
+                &system_prompt,
+                &market_data_str,
+                agent_def.id,
+            )
+            .await;
+
+            let opinion = match llm_result {
+                Ok(response) => {
+                    let parsed = parse_agent_json_response(&response);
+                    json!({
+                        "agent_id": agent_def.id,
+                        "agent_name": agent_def.name,
+                        "department": agent_def.department,
+                        "sentiment": parsed.sentiment,
+                        "confidence": parsed.confidence,
+                        "analysis": parsed.analysis,
+                        "key_factors": parsed.key_factors,
+                        "source": "llm",
+                    })
+                }
+                Err(e) => {
+                    json!({
+                        "agent_id": agent_def.id,
+                        "agent_name": agent_def.name,
+                        "department": agent_def.department,
+                        "sentiment": "neutral",
+                        "confidence": 0.3,
+                        "analysis": format!("LLM调用失败: {}", e),
+                        "key_factors": [],
+                        "source": "llm_error",
+                    })
+                }
+            };
+
+            // Send agent_opinion event
+            let opinion_event = Event::default().data(serde_json::to_string(&json!({
+                "type": "agent_opinion",
+                "agent_id": agent_def.id,
+                "agent_name": agent_def.name,
+                "department": agent_def.department,
+                "sentiment": opinion.get("sentiment"),
+                "confidence": opinion.get("confidence"),
+                "analysis": opinion.get("analysis"),
+                "key_factors": opinion.get("key_factors"),
+            })).unwrap_or_default());
+            let _ = tx.send(Ok(opinion_event)).await;
+
+            agent_opinions.push(opinion);
+        }
+
+        // Update progress: agents done
+        let _ = sqlx::query(
+            r#"UPDATE debate_sessions SET progress = 'generating_reports', agent_opinions = $2, updated_at = NOW() WHERE id = $1"#,
+        )
+        .bind(session_id)
+        .bind(serde_json::to_value(&agent_opinions).unwrap_or(json!([])))
+        .execute(&pool)
+        .await;
+
+        // 6. Call LLM for each department report
+        let mut department_reports: Vec<Value> = Vec::new();
+
+        for dept in &["technical", "capital", "news"] {
+            let dept_name = match *dept {
+                "technical" => "技术分析部",
+                "capital" => "资金分析部",
+                "news" => "新闻分析部",
+                _ => "分析部",
+            };
+
+            let dept_opinions: Vec<&Value> = agent_opinions.iter()
+                .filter(|o| o.get("department").and_then(|v| v.as_str()) == Some(*dept))
+                .collect();
+
+            let opinions_str = serde_json::to_string_pretty(&dept_opinions)
+                .unwrap_or_default();
+
+            let system_prompt = format!(
+                "你是{}的部门汇总分析师。你需要综合部门内各分析师的意见，给出部门汇总报告。\n\
+                你必须以JSON格式回复，格式如下：\n\
+                {{\"consensus\": \"bullish\"|\"bearish\"|\"neutral\", \"bull_summary\": \"看多理由汇总\", \"bear_summary\": \"看空理由汇总\"}}\n\
+                只输出JSON，不要输出其他内容。",
+                dept_name,
+            );
+
+            let user_message = format!(
+                "## {} 分析师意见\n\n{}\n\n\
+                请综合以上分析师意见，给出部门汇总报告。",
+                dept_name, opinions_str,
+            );
+
+            let llm_result = analyze_with_llm(
+                &pool,
+                user_id,
+                &system_prompt,
+                &user_message,
+                &format!("{}_dept_report", dept),
+            )
+            .await;
+
+            let report = match llm_result {
+                Ok(response) => {
+                    let parsed = parse_dept_report_response(&response);
+                    json!({
+                        "department": dept,
+                        "consensus": parsed.consensus,
+                        "bull_summary": parsed.bull_summary,
+                        "bear_summary": parsed.bear_summary,
+                    })
+                }
+                Err(_) => {
+                    let sentiments: Vec<&str> = dept_opinions.iter()
+                        .filter_map(|o| o.get("sentiment").and_then(|v| v.as_str()))
+                        .collect();
+                    let bull_count = sentiments.iter().filter(|&&s| s == "bullish").count();
+                    let bear_count = sentiments.iter().filter(|&&s| s == "bearish").count();
+                    let consensus = if bull_count > bear_count { "bullish" }
+                        else if bear_count > bull_count { "bearish" }
+                        else { "neutral" };
+
+                    json!({
+                        "department": dept,
+                        "consensus": consensus,
+                        "bull_summary": "LLM不可用，基于分析师多数意见汇总",
+                        "bear_summary": "LLM不可用，基于分析师多数意见汇总",
+                    })
+                }
+            };
+
+            // Send dept_report event
+            let dept_event = Event::default().data(serde_json::to_string(&json!({
+                "type": "dept_report",
+                "department": dept,
+                "consensus": report.get("consensus"),
+                "bull_summary": report.get("bull_summary"),
+                "bear_summary": report.get("bear_summary"),
+            })).unwrap_or_default());
+            let _ = tx.send(Ok(dept_event)).await;
+
+            department_reports.push(report);
+        }
+
+        // Update progress: department reports done
+        let _ = sqlx::query(
+            r#"UPDATE debate_sessions SET progress = 'fund_manager_deciding', department_reports = $2, updated_at = NOW() WHERE id = $1"#,
+        )
+        .bind(session_id)
+        .bind(serde_json::to_value(&department_reports).unwrap_or(json!([])))
+        .execute(&pool)
+        .await;
+
+        // 7. Call LLM for fund manager decision
+        let all_opinions_str = serde_json::to_string_pretty(&agent_opinions).unwrap_or_default();
+        let all_reports_str = serde_json::to_string_pretty(&department_reports).unwrap_or_default();
+
+        let fund_manager_system_prompt = format!(
+            "你是基金经理，负责综合各部门的分析报告，做出最终交易决策。\n\
+            你需要基于以下信息做出决策：\n\
+            1. 各分析师的意见和信心度\n\
+            2. 各部门的汇总报告\n\
+            3. 当前市场价格: {:.2}\n\n\
+            你必须以JSON格式回复，格式如下：\n\
+            {{\"action\": \"long\"|\"short\"|\"hold\", \"confidence\": 0.0-1.0, \"entry_range\": {{\"low\": 价格, \"high\": 价格}}, \"stop_loss\": 价格, \"take_profit\": [价格1, 价格2], \"leverage\": 1-10, \"reasoning\": \"决策理由\"}}\n\
+            只输出JSON，不要输出其他内容。",
+            current_price,
+        );
+
+        let fund_manager_message = format!(
+            "## 交易对: {}\n\n\
+            ## 各分析师意见\n{}\n\n\
+            ## 各部门汇总报告\n{}\n\n\
+            请综合以上信息，做出最终交易决策。",
+            symbol_for_task, all_opinions_str, all_reports_str,
+        );
+
+        let fund_manager_result = analyze_with_llm(
+            &pool,
+            user_id,
+            &fund_manager_system_prompt,
+            &fund_manager_message,
+            "fund_manager",
+        )
+        .await;
+
+        let fund_manager_decision = match fund_manager_result {
+            Ok(response) => {
+                let parsed = parse_fund_manager_response(&response, current_price);
+                json!({
+                    "action": parsed.action,
+                    "confidence": parsed.confidence,
+                    "entry_range": parsed.entry_range,
+                    "stop_loss": parsed.stop_loss,
+                    "take_profit": parsed.take_profit,
+                    "leverage": parsed.leverage,
+                    "reasoning": parsed.reasoning,
+                })
+            }
+            Err(_) => {
+                let dept_consensuses: Vec<&str> = department_reports.iter()
+                    .filter_map(|r| r.get("consensus").and_then(|v| v.as_str()))
+                    .collect();
+                let bull_count = dept_consensuses.iter().filter(|&&c| c == "bullish").count();
+                let bear_count = dept_consensuses.iter().filter(|&&c| c == "bearish").count();
+                let action = if bull_count > bear_count { "long" }
+                    else if bear_count > bull_count { "short" }
+                    else { "hold" };
+
+                json!({
+                    "action": action,
+                    "confidence": 0.4,
+                    "entry_range": {"low": current_price * 0.99, "high": current_price * 1.01},
+                    "stop_loss": current_price * 0.97,
+                    "take_profit": [current_price * 1.03, current_price * 1.05],
+                    "leverage": 2,
+                    "reasoning": "LLM不可用，基于部门多数意见决策",
+                })
+            }
+        };
+
+        // Send fund_manager event
+        let fm_event = Event::default().data(serde_json::to_string(&json!({
+            "type": "fund_manager",
+            "action": fund_manager_decision.get("action"),
+            "confidence": fund_manager_decision.get("confidence"),
+            "entry_range": fund_manager_decision.get("entry_range"),
+            "stop_loss": fund_manager_decision.get("stop_loss"),
+            "take_profit": fund_manager_decision.get("take_profit"),
+            "leverage": fund_manager_decision.get("leverage"),
+            "reasoning": fund_manager_decision.get("reasoning"),
+        })).unwrap_or_default());
+        let _ = tx.send(Ok(fm_event)).await;
+
+        // 8. Update the debate session with all results
+        let _ = sqlx::query(
+            r#"UPDATE debate_sessions SET
+                status = 'completed',
+                progress = 'completed',
+                agent_opinions = $2,
+                department_reports = $3,
+                fund_manager_decision = $4,
+                updated_at = NOW()
+            WHERE id = $1"#,
+        )
+        .bind(session_id)
+        .bind(serde_json::to_value(&agent_opinions).unwrap_or(json!([])))
+        .bind(serde_json::to_value(&department_reports).unwrap_or(json!([])))
+        .bind(&fund_manager_decision)
+        .execute(&pool)
+        .await;
+
+        // 9. Send debate_complete event
+        let complete_event = Event::default().data(serde_json::to_string(&json!({
+            "type": "debate_complete",
+            "session_id": session_id.to_string(),
+        })).unwrap_or_default());
+        let _ = tx.send(Ok(complete_event)).await;
+    });
+
+    let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
+    Ok(Sse::new(stream).keep_alive(KeepAlive::default()))
 }
 
 struct AgentParsedResponse {

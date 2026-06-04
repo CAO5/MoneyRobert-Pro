@@ -30,7 +30,7 @@ async function toggleActive(id: string) {
 }
 
 function roleBadge(r: string) {
-  if (r === 'admin') return 'badge-gold'
+  if (r === 'admin') return 'badge-primary'
   return 'badge-neutral'
 }
 </script>
@@ -38,8 +38,8 @@ function roleBadge(r: string) {
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <Shield class="w-6 h-6" style="color: var(--gold)" />
-      <h1 class="font-display text-2xl font-bold" style="color: var(--text-primary)">管理后台</h1>
+      <Shield class="w-6 h-6" style="color: var(--primary)" />
+      <h1 class="text-2xl font-bold" style="color: var(--text-primary)">管理后台</h1>
     </div>
 
     <div v-if="loading" class="grid grid-cols-4 gap-4">
@@ -49,7 +49,7 @@ function roleBadge(r: string) {
     <template v-else>
       <div class="grid grid-cols-4 gap-4">
         <div class="card">
-          <div class="flex items-center gap-2 mb-2"><Users class="w-4 h-4" style="color: var(--gold)" /><span class="text-sm" style="color: var(--text-secondary)">总用户</span></div>
+          <div class="flex items-center gap-2 mb-2"><Users class="w-4 h-4" style="color: var(--primary)" /><span class="text-sm" style="color: var(--text-secondary)">总用户</span></div>
           <div class="stat-value" style="color: var(--text-primary)">{{ stats.total_users }}</div>
         </div>
         <div class="card">
@@ -68,7 +68,7 @@ function roleBadge(r: string) {
 
       <div class="card">
         <div class="flex items-center gap-2 mb-4">
-          <UserCog class="w-5 h-5" style="color: var(--gold)" />
+          <UserCog class="w-5 h-5" style="color: var(--primary)" />
           <h2 class="text-lg font-semibold" style="color: var(--text-primary)">用户管理</h2>
         </div>
         <div v-if="users.length === 0" class="py-8 text-center" style="color: var(--text-muted)">暂无用户</div>

@@ -1,137 +1,392 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useAppStore } from '@/stores/app'
 import {
-  LayoutDashboard, BarChart3, Brain, MessageSquare, Target,
-  ArrowLeftRight, Settings, Bell, LogOut, ChevronLeft,
-  TrendingUp, Newspaper, FileText, Bot, Shield, Zap, BookOpen,
-  Cpu, Users, History
+  LayoutDashboard, TrendingUp, LineChart, Bot, Settings, LogOut,
+  Menu, X, ChevronDown, User, Bell, Wallet, Brain, MessageSquare,
+  BookOpen, Newspaper, FileText, BarChart3, Shield, Target,
+  ChevronRight
 } from 'lucide-vue-next'
 
-const router = useRouter()
 const route = useRoute()
-const auth = useAuthStore()
-const app = useAppStore()
+const router = useRouter()
+const authStore = useAuthStore()
+const sidebarCollapsed = ref(false)
+const mobileMenuOpen = ref(false)
+const userMenuOpen = ref(false)
 
-const navItems = [
-  { icon: LayoutDashboard, label: '仪表盘', path: '/dashboard' },
-  { icon: BarChart3, label: '市场数据', path: '/market' },
-  { icon: Brain, label: 'AI 分析', path: '/ai' },
-  { icon: MessageSquare, label: 'AI 对话', path: '/ai/chat' },
-  { icon: Target, label: 'AI 预测', path: '/ai/predictions' },
-  { icon: Cpu, label: 'Agent 系统', path: '/agent' },
-  { icon: Users, label: '辩论分析', path: '/agent/debate' },
-  { icon: History, label: '交易历史', path: '/agent/history' },
-  { icon: ArrowLeftRight, label: '交易中心', path: '/trading' },
-  { icon: TrendingUp, label: '策略管理', path: '/strategies' },
-  { icon: Bot, label: '自动交易', path: '/auto-trading' },
-  { icon: BookOpen, label: '模拟交易', path: '/paper-trading' },
-  { icon: Newspaper, label: '新闻资讯', path: '/news' },
-  { icon: FileText, label: '报告中心', path: '/reports' },
-  { icon: Settings, label: '系统设置', path: '/settings' },
+const navigation = [
+  {
+    group: '概览',
+    items: [
+      { name: '仪表盘', path: '/dashboard', icon: LayoutDashboard },
+    ]
+  },
+  {
+    group: '交易',
+    items: [
+      { name: '交易中心', path: '/trading', icon: TrendingUp },
+      { name: '模拟交易', path: '/paper-trading', icon: BookOpen },
+      { name: '策略管理', path: '/strategies', icon: Target },
+      { name: '自动交易', path: '/auto-trading', icon: BarChart3 },
+    ]
+  },
+  {
+    group: '行情',
+    items: [
+      { name: '行情分析', path: '/market', icon: LineChart },
+      { name: '新闻资讯', path: '/news', icon: Newspaper },
+    ]
+  },
+  {
+    group: 'AI',
+    items: [
+      { name: 'AI 辩论', path: '/agent/debate', icon: Bot },
+      { name: 'AI 分析', path: '/ai', icon: Brain },
+      { name: 'AI 对话', path: '/ai/chat', icon: MessageSquare },
+      { name: 'AI 预测', path: '/ai/predictions', icon: Wallet },
+    ]
+  },
+  {
+    group: 'Agent',
+    items: [
+      { name: 'Agent 仪表盘', path: '/agent', icon: Bot },
+      { name: '交易历史', path: '/agent/history', icon: FileText },
+    ]
+  },
+  {
+    group: '系统',
+    items: [
+      { name: '通知中心', path: '/notifications', icon: Bell },
+      { name: '报告中心', path: '/reports', icon: FileText },
+      { name: '系统设置', path: '/settings', icon: Settings },
+    ]
+  },
 ]
 
-const adminItems = [
-  { icon: Shield, label: '管理后台', path: '/admin' },
-]
+// Flatten for active check
+const allNavItems = navigation.flatMap(g => g.items)
 
 const isActive = (path: string) => {
-  if (path === '/agent') {
-    return route.path === '/agent' || route.path.startsWith('/agent/')
-  }
-  return route.path === path
+  if (path === '/dashboard') return route.path === '/' || route.path === '/dashboard'
+  return route.path.startsWith(path)
 }
 
-function handleLogout() {
-  auth.logout()
+const currentGroupName = computed(() => {
+  const item = allNavItems.find(n => isActive(n.path))
+  if (!item) return ''
+  const group = navigation.find(g => g.items.includes(item))
+  return group ? group.group : ''
+})
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
   router.push('/login')
 }
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden" style="background: var(--bg-primary)">
+  <div class="min-h-screen flex" style="background: var(--surface-secondary)">
+    <!-- Sidebar -->
     <aside
-      class="flex flex-col border-r transition-all duration-300"
-      :class="app.sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'"
-      style="background: var(--bg-card); border-color: var(--border)"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 overflow-hidden"
+      :class="sidebarCollapsed ? 'w-[68px]' : 'w-60'"
+      style="background: var(--surface); border-right: 1px solid var(--border)"
     >
-      <div class="flex items-center h-16 px-4 border-b" style="border-color: var(--border)">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, var(--gold), var(--gold-dim))">
-            <Zap class="w-4 h-4" style="color: var(--bg-primary)" />
+      <!-- Logo -->
+      <div class="h-14 flex items-center px-4 flex-shrink-0" style="border-bottom: 1px solid var(--border)">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: var(--primary)">
+            <Wallet class="w-4 h-4" style="color: var(--text-inverse)" />
           </div>
-          <span v-if="!app.sidebarCollapsed" class="font-display text-lg font-bold" style="color: var(--gold)">MoneyRobert</span>
+          <span v-if="!sidebarCollapsed" class="font-bold text-base truncate" style="color: var(--text-primary)">
+            MoneyRobert
+          </span>
         </div>
       </div>
 
-      <nav class="flex-1 overflow-y-auto py-4 px-3">
-        <div class="space-y-1">
-          <router-link
-            v-for="item in navItems"
-            :key="item.path"
-            :to="item.path"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group"
-            :class="isActive(item.path) ? '' : 'hover:bg-[#222839]'"
-            :style="isActive(item.path) ? 'background: var(--gold-glow); color: var(--gold)' : 'color: var(--text-secondary)'"
-          >
-            <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
-            <span v-if="!app.sidebarCollapsed">{{ item.label }}</span>
-          </router-link>
-        </div>
-
-        <div v-if="auth.isAdmin" class="mt-6 pt-4 border-t" style="border-color: var(--border)">
-          <div v-if="!app.sidebarCollapsed" class="px-3 mb-2 text-xs font-medium uppercase tracking-wider" style="color: var(--text-muted)">管理</div>
-          <router-link
-            v-for="item in adminItems"
-            :key="item.path"
-            :to="item.path"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
-            :class="isActive(item.path) ? '' : 'hover:bg-[#222839]'"
-            :style="isActive(item.path) ? 'background: var(--gold-glow); color: var(--gold)' : 'color: var(--text-secondary)'"
-          >
-            <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
-            <span v-if="!app.sidebarCollapsed">{{ item.label }}</span>
-          </router-link>
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto py-3 px-2.5 space-y-4">
+        <div v-for="group in navigation" :key="group.group">
+          <div v-if="!sidebarCollapsed" class="px-3 mb-1.5">
+            <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted)">{{ group.group }}</span>
+          </div>
+          <div v-else class="flex justify-center mb-1">
+            <div class="w-5 h-px" style="background: var(--border)"></div>
+          </div>
+          <div class="space-y-0.5">
+            <router-link
+              v-for="item in group.items"
+              :key="item.path"
+              :to="item.path"
+              class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 group relative"
+              :class="isActive(item.path) ? 'nav-item-active' : 'nav-item'"
+            >
+              <component
+                :is="item.icon"
+                class="w-[18px] h-[18px] flex-shrink-0"
+                :style="{ color: isActive(item.path) ? 'var(--primary)' : 'var(--text-muted)' }"
+              />
+              <span
+                v-if="!sidebarCollapsed"
+                class="text-[13px] font-medium truncate"
+                :style="{ color: isActive(item.path) ? 'var(--primary)' : 'var(--text-secondary)' }"
+              >
+                {{ item.name }}
+              </span>
+              <!-- Tooltip for collapsed sidebar -->
+              <div
+                v-if="sidebarCollapsed"
+                class="absolute left-full ml-2 px-2 py-1 rounded text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+                style="background: var(--text-primary); color: var(--text-inverse)"
+              >
+                {{ item.name }}
+              </div>
+            </router-link>
+          </div>
         </div>
       </nav>
 
-      <div class="border-t p-3" style="border-color: var(--border)">
+      <!-- Collapse Toggle -->
+      <div class="p-2.5 flex-shrink-0" style="border-top: 1px solid var(--border)">
         <button
-          @click="handleLogout"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm w-full transition-all duration-200 hover:bg-[#222839]"
-          style="color: var(--text-secondary)"
+          @click="toggleSidebar"
+          class="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)]"
+          style="color: var(--text-muted)"
         >
-          <LogOut class="w-5 h-5 flex-shrink-0" />
-          <span v-if="!app.sidebarCollapsed">退出登录</span>
+          <Menu class="w-[18px] h-[18px]" />
+          <span v-if="!sidebarCollapsed" class="text-[13px]">收起</span>
         </button>
       </div>
     </aside>
 
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <header class="flex items-center justify-between h-16 px-6 border-b" style="background: var(--bg-card); border-color: var(--border)">
-        <button @click="app.toggleSidebar" class="p-2 rounded-lg transition-colors hover:bg-[#222839]" style="color: var(--text-secondary)">
-          <ChevronLeft class="w-5 h-5" :class="{ 'rotate-180': app.sidebarCollapsed }" />
+    <!-- Main Content -->
+    <div
+      class="flex-1 flex flex-col transition-all duration-300 min-w-0"
+      :class="sidebarCollapsed ? 'ml-[68px]' : 'ml-60'"
+    >
+      <!-- Top Header -->
+      <header
+        class="h-14 flex items-center justify-between px-5 sticky top-0 z-40 flex-shrink-0"
+        style="background: var(--surface); border-bottom: 1px solid var(--border)"
+      >
+        <!-- Mobile Menu Button -->
+        <button
+          class="lg:hidden p-2 rounded-lg hover:bg-[var(--surface-tertiary)]"
+          style="color: var(--text-secondary)"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <Menu class="w-5 h-5" />
         </button>
 
-        <div class="flex items-center gap-4">
-          <router-link to="/notifications" class="relative p-2 rounded-lg transition-colors hover:bg-[#222839]" style="color: var(--text-secondary)">
-            <Bell class="w-5 h-5" />
-            <span v-if="app.notifications > 0" class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold" style="background: var(--loss); color: white">{{ app.notifications }}</span>
+        <!-- Breadcrumb -->
+        <div class="hidden lg:flex items-center gap-2 text-sm">
+          <span v-if="currentGroupName" style="color: var(--text-muted)">{{ currentGroupName }}</span>
+          <ChevronRight v-if="currentGroupName" class="w-3.5 h-3.5" style="color: var(--border)" />
+          <span class="font-medium" style="color: var(--text-primary)">
+            {{ allNavItems.find(n => isActive(n.path))?.name || '仪表盘' }}
+          </span>
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Notifications -->
+          <router-link
+            to="/notifications"
+            class="relative p-2 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)]"
+            style="color: var(--text-secondary)"
+          >
+            <Bell class="w-[18px] h-[18px]" />
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style="background: var(--loss)"></span>
           </router-link>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style="background: var(--gold-glow); color: var(--gold)">
-              {{ auth.user?.username?.charAt(0).toUpperCase() || 'U' }}
-            </div>
-            <span class="text-sm" style="color: var(--text-secondary)">{{ auth.user?.username }}</span>
+
+          <!-- User Menu -->
+          <div class="relative">
+            <button
+              @click="userMenuOpen = !userMenuOpen"
+              class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)]"
+              :style="userMenuOpen ? 'background: var(--surface-tertiary)' : ''"
+            >
+              <div class="w-7 h-7 rounded-full flex items-center justify-center" style="background: var(--primary-bg); color: var(--primary)">
+                <User class="w-3.5 h-3.5" />
+              </div>
+              <span class="hidden sm:block text-[13px] font-medium" style="color: var(--text-primary)">
+                {{ authStore.user?.username || '用户' }}
+              </span>
+              <ChevronDown class="w-3.5 h-3.5" style="color: var(--text-muted)" />
+            </button>
+
+            <!-- Dropdown -->
+            <Transition name="dropdown">
+              <div
+                v-if="userMenuOpen"
+                class="absolute right-0 mt-1.5 w-48 py-1.5 rounded-lg shadow-lg z-50"
+                style="background: var(--surface); border: 1px solid var(--border)"
+                @click="userMenuOpen = false"
+              >
+                <div class="px-3 py-2" style="border-bottom: 1px solid var(--border)">
+                  <div class="text-sm font-medium" style="color: var(--text-primary)">{{ authStore.user?.username || '用户' }}</div>
+                  <div class="text-xs" style="color: var(--text-muted)">{{ authStore.user?.email || '' }}</div>
+                </div>
+                <div class="py-1">
+                  <router-link
+                    to="/settings"
+                    class="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-tertiary)]"
+                    style="color: var(--text-secondary)"
+                  >
+                    <Settings class="w-4 h-4" />
+                    系统设置
+                  </router-link>
+                  <router-link
+                    v-if="authStore.isAdmin"
+                    to="/admin"
+                    class="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-tertiary)]"
+                    style="color: var(--text-secondary)"
+                  >
+                    <Shield class="w-4 h-4" />
+                    管理后台
+                  </router-link>
+                </div>
+                <div style="border-top: 1px solid var(--border)" class="py-1">
+                  <button
+                    @click="handleLogout"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--loss-light)]"
+                    style="color: var(--loss)"
+                  >
+                    <LogOut class="w-4 h-4" />
+                    退出登录
+                  </button>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </header>
 
-      <main class="flex-1 overflow-y-auto p-6">
-        <router-view />
+      <!-- Page Content -->
+      <main class="flex-1 p-5 overflow-auto">
+        <router-view v-slot="{ Component }">
+          <Transition name="page" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </router-view>
       </main>
     </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <Transition name="fade">
+      <div
+        v-if="mobileMenuOpen"
+        class="fixed inset-0 z-40 lg:hidden"
+        style="background: rgba(0, 0, 0, 0.5)"
+        @click="mobileMenuOpen = false"
+      ></div>
+    </Transition>
+
+    <!-- Mobile Sidebar -->
+    <Transition name="slide">
+      <aside
+        v-if="mobileMenuOpen"
+        class="fixed inset-y-0 left-0 z-50 w-60 lg:hidden overflow-y-auto"
+        style="background: var(--surface); border-right: 1px solid var(--border)"
+      >
+        <div class="h-14 flex items-center justify-between px-4" style="border-bottom: 1px solid var(--border)">
+          <span class="font-bold text-base" style="color: var(--text-primary)">MoneyRobert</span>
+          <button @click="mobileMenuOpen = false" style="color: var(--text-muted)">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+        <nav class="p-3 space-y-4">
+          <div v-for="group in navigation" :key="group.group">
+            <div class="px-2.5 mb-1.5">
+              <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--text-muted)">{{ group.group }}</span>
+            </div>
+            <div class="space-y-0.5">
+              <router-link
+                v-for="item in group.items"
+                :key="item.path"
+                :to="item.path"
+                class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg"
+                :class="isActive(item.path) ? 'nav-item-active' : 'nav-item'"
+                @click="mobileMenuOpen = false"
+              >
+                <component :is="item.icon" class="w-[18px] h-[18px]" />
+                <span class="text-[13px] font-medium">{{ item.name }}</span>
+              </router-link>
+            </div>
+          </div>
+        </nav>
+      </aside>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.nav-item {
+  color: var(--text-secondary);
+}
+.nav-item:hover {
+  background: var(--surface-tertiary);
+  color: var(--text-primary);
+}
+.nav-item-active {
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+
+/* Page Transition */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Dropdown Transition */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Fade Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Slide Transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.25s ease;
+}
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+/* Scrollbar */
+nav::-webkit-scrollbar { width: 4px; }
+nav::-webkit-scrollbar-track { background: transparent; }
+nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+nav::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+</style>
