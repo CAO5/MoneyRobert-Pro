@@ -4,7 +4,7 @@ use crate::agents::llm_client::LlmClient;
 use crate::agents::models::*;
 use chrono::Utc;
 use futures::future::join_all;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::warn;
@@ -66,8 +66,8 @@ async fn try_llm_analysis(
         .await?;
 
     Ok(AgentAnalysis {
-        agent_name: result.agent_name,
-        department: result.department,
+        agent_name: result.agent_name.clone(),
+        department: result.department.clone(),
         sentiment: result.to_agent_sentiment(),
         confidence: result.confidence,
         content: result.analysis,
@@ -1471,6 +1471,7 @@ impl DebateEngine {
             risk_reward_ratio: 2.0,
             volatility_rating: "normal".to_string(),
             alerts: Vec::new(),
+            passed: true,
         };
 
         Ok(FundManagerDecision {
@@ -1662,12 +1663,12 @@ impl DebateEngine {
                 id: msg_row.get("id"),
                 session_id: msg_row.get("session_id"),
                 agent_name: msg_row.get("agent_name"),
-                agent_department: parse_agent_department(&msg_row.get::<_, String>("agent_department")),
+                agent_department: parse_agent_department(&msg_row.get::<String, _>("agent_department")),
                 role: msg_row.get("role"),
                 content: msg_row.get("content"),
                 analysis_data: msg_row.get("analysis_data"),
                 confidence: msg_row.get("confidence"),
-                sentiment: msg_row.get::<_, Option<String>>("sentiment").map(|s| parse_agent_sentiment(&s)),
+                sentiment: msg_row.get::<Option<String>, _>("sentiment").map(|s| parse_agent_sentiment(&s)),
                 message_order: msg_row.get("message_order"),
                 created_at: msg_row.get("created_at"),
             });
@@ -1676,7 +1677,7 @@ impl DebateEngine {
         let final_decision = decision.map(|d_row| -> AgentResult<FundManagerDecision> {
             Ok(FundManagerDecision {
                 session_id: d_row.get("id"),
-                action: parse_decision_action(&d_row.get::<_, String>("action")),
+                action: parse_decision_action(&d_row.get::<String, _>("action")),
                 symbol: d_row.get("symbol"),
                 confidence: d_row.get("confidence"),
                 position_size_percent: d_row.get("position_size_percent"),
@@ -1695,7 +1696,7 @@ impl DebateEngine {
             config_id: session_row.get("config_id"),
             user_id: session_row.get("user_id"),
             symbol: session_row.get("symbol"),
-            status: parse_debate_status(&session_row.get::<_, String>("status")),
+            status: parse_debate_status(&session_row.get::<String, _>("status")),
             messages: debate_messages,
             final_decision,
             created_at: session_row.get("created_at"),

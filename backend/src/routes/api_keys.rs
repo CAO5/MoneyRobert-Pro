@@ -457,7 +457,7 @@ async fn test_exchange_key(
         Ok(accounts) => {
             let total_eq = accounts
                 .first()
-                .map(|a| a.total_eq.clone())
+                .and_then(|a| a.total_eq.clone())
                 .unwrap_or_else(|| "0".to_string());
 
             Ok(Json(serde_json::json!({

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { createChart, LineSeries, HistogramSeries, ColorType } from 'lightweight-charts'
-import type { IChartApi, ISeriesApi } from 'lightweight-charts'
+import type { IChartApi } from 'lightweight-charts'
 
 const props = defineProps<{
   data: Array<{ time: number; value: number; color?: string }>
@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const chartContainer = ref<HTMLDivElement>()
 let chart: IChartApi | null = null
-let series: ISeriesApi<typeof LineSeries> | ISeriesApi<typeof HistogramSeries> | null = null
+let series: any = null
 
 function initChart() {
   if (!chartContainer.value) return
@@ -42,6 +42,17 @@ function initChart() {
       timeVisible: true,
       secondsVisible: false,
     },
+    localization: {
+      timeFormatter: (time: number) => {
+        const date = new Date(time * 1000)
+        const y = date.getFullYear()
+        const m = String(date.getMonth() + 1).padStart(2, '0')
+        const d = String(date.getDate()).padStart(2, '0')
+        const h = String(date.getHours()).padStart(2, '0')
+        const min = String(date.getMinutes()).padStart(2, '0')
+        return `${y}-${m}-${d} ${h}:${min}`
+      },
+    },
   })
 
   const color = props.lineColor || '#3B82F6'
@@ -64,20 +75,20 @@ function initChart() {
 function updateData() {
   if (!series || !props.data.length) return
 
-  const sortedData = [...props.data].sort((a, b) =>
-    a.time - b.time
-  )
+  // Sort by time and deduplicate (lightweight-charts requires strictly ascending time)
+  const sortedData = [...props.data].sort((a, b) => a.time - b.time)
+  const dedupedData = sortedData.filter((d, i) => i === 0 || d.time !== sortedData[i - 1].time)
 
   if (props.type === 'histogram') {
-    const histSeries = series as ISeriesApi<typeof HistogramSeries>
-    histSeries.setData(sortedData.map(d => ({
+    const histSeries = series
+    histSeries.setData(dedupedData.map(d => ({
       time: d.time,
       value: d.value,
       color: d.color || (d.value >= 0 ? 'rgba(0, 200, 83, 0.5)' : 'rgba(255, 23, 68, 0.5)'),
     })))
   } else {
-    const lineSeries = series as ISeriesApi<typeof LineSeries>
-    lineSeries.setData(sortedData.map(d => ({
+    const lineSeries = series
+    lineSeries.setData(dedupedData.map(d => ({
       time: d.time,
       value: d.value,
     })))

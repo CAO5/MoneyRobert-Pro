@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -10,7 +10,7 @@ pub enum ExecutionMode {
     Live,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum AgentDepartment {
     Technical,
     Capital,
@@ -26,7 +26,7 @@ pub enum AgentSentiment {
     Cautious,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum DecisionAction {
     Long,
     Short,
@@ -96,6 +96,7 @@ pub struct RiskAssessment {
     pub risk_reward_ratio: f64,
     pub volatility_rating: String,
     pub alerts: Vec<String>,
+    pub passed: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]

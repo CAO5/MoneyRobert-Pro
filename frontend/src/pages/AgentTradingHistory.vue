@@ -341,8 +341,8 @@ onMounted(() => {
           :key="trade.id"
           class="p-4 rounded-xl border transition-all hover:bg-opacity-50 cursor-pointer"
           style="border-color: var(--border);"
-          @mouseenter="$event.currentTarget.style.borderColor = 'var(--gold)'"
-          @mouseleave="$event.currentTarget.style.borderColor = 'var(--border)'"
+          @mouseenter="($event.currentTarget as HTMLElement).style.borderColor = 'var(--gold)'"
+          @mouseleave="($event.currentTarget as HTMLElement).style.borderColor = 'var(--border)'"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">

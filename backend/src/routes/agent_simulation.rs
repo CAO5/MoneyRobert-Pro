@@ -5,6 +5,7 @@ use axum::{
 };
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -23,7 +24,7 @@ pub fn router() -> Router<AppState> {
         .route("/simulation/stats", get(get_stats))
         .route("/simulation/level", get(get_level))
         .route("/debate/start", post(start_debate))
-        .route("/debate/:id", get(get_debate_session))
+        .route("/debate/{id}", get(get_debate_session))
         .route("/promotion/approve", post(approve_promotion))
         .route("/risk/confirmation/sign", post(sign_risk_confirmation))
         .route("/autonomous/start", post(start_autonomous))
@@ -131,8 +132,7 @@ async fn start_simulation(
 ) -> Result<Json<StartSimulationResponse>> {
     let initial_balance = req.initial_balance.unwrap_or(10000.0);
 
-    let config = sqlx::query_as!(
-        AiSimulationConfig,
+    let config = sqlx::query_as::<_, AiSimulationConfig>(
         r#"
         INSERT INTO ai_simulation_configs (
             id, user_id, symbol, mode, level, status,
@@ -156,12 +156,12 @@ async fn start_simulation(
                 0.0, 0.0, 0.0, 0.0, 0, 0,
                 false, false, NOW(), NOW())
         RETURNING *
-        "#,
-        Uuid::new_v4(),
-        user.user_id,
-        req.symbol,
-        initial_balance
+        "#
     )
+    .bind(Uuid::new_v4())
+    .bind(user.user_id)
+    .bind(&req.symbol)
+    .bind(initial_balance)
     .fetch_one(&state.db_pool)
     .await?;
 
@@ -187,20 +187,19 @@ async fn stop_simulation(
         .and_then(|s| Uuid::parse_str(s).ok())
         .ok_or_else(|| AppError::Validation("config_id is required".to_string()))?;
 
-    let _config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2",
-        config_id,
-        user.user_id
+    let _config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2"
     )
+    .bind(config_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("Simulation config not found".to_string()))?;
 
-    sqlx::query!(
-        "UPDATE ai_simulation_configs SET status = 'stopped', updated_at = NOW() WHERE id = $1",
-        config_id
+    sqlx::query(
+        "UPDATE ai_simulation_configs SET status = 'stopped', updated_at = NOW() WHERE id = $1"
     )
+    .bind(config_id)
     .execute(&state.db_pool)
     .await?;
 
@@ -215,11 +214,10 @@ async fn get_simulation_status(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<SimulationStatusResponse>> {
-    let config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
-        user.user_id
+    let config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1"
     )
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("No simulation config found".to_string()))?;
@@ -234,20 +232,18 @@ async fn get_trades(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<TradesResponse>> {
-    let config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
-        user.user_id
+    let config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1"
     )
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("No simulation config found".to_string()))?;
 
-    let trades = sqlx::query_as!(
-        AiSimulationTrade,
-        "SELECT * FROM ai_simulation_trades WHERE config_id = $1 ORDER BY opened_at DESC LIMIT 100",
-        config.id
+    let trades = sqlx::query_as::<_, AiSimulationTrade>(
+        "SELECT * FROM ai_simulation_trades WHERE config_id = $1 ORDER BY opened_at DESC LIMIT 100"
     )
+    .bind(config.id)
     .fetch_all(&state.db_pool)
     .await?;
 
@@ -258,11 +254,10 @@ async fn get_stats(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<StatsResponse>> {
-    let config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
-        user.user_id
+    let config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1"
     )
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("No simulation config found".to_string()))?;
@@ -274,11 +269,10 @@ async fn get_level(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<LevelResponse>> {
-    let config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1",
-        user.user_id
+    let config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1"
     )
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("No simulation config found".to_string()))?;
@@ -343,15 +337,23 @@ async fn get_debate_session(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<DebateSession>> {
-    let session_row = sqlx::query!(
-        "SELECT id, config_id, user_id, symbol, status, created_at, updated_at FROM debate_sessions WHERE id = $1",
-        id
+    let session_row = sqlx::query(
+        "SELECT id, config_id, user_id, symbol, status, created_at, updated_at FROM debate_sessions WHERE id = $1"
     )
+    .bind(id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("Debate session not found".to_string()))?;
 
-    let messages = sqlx::query!(
+    let session_id: Uuid = session_row.get("id");
+    let config_id: Option<Uuid> = session_row.get("config_id");
+    let user_id: Option<i64> = session_row.get("user_id");
+    let symbol: String = session_row.get("symbol");
+    let status: String = session_row.get("status");
+    let created_at: chrono::DateTime<Utc> = session_row.get("created_at");
+    let updated_at: chrono::DateTime<Utc> = session_row.get("updated_at");
+
+    let message_rows = sqlx::query(
         r#"SELECT
             id,
             session_id,
@@ -359,50 +361,50 @@ async fn get_debate_session(
             agent_department,
             role,
             content,
-            analysis_data as "analysis_data: serde_json::Value",
+            analysis_data,
             confidence,
             sentiment,
             message_order,
             created_at
-        FROM debate_messages WHERE session_id = $1 ORDER BY message_order"#,
-        id
+        FROM debate_messages WHERE session_id = $1 ORDER BY message_order"#
     )
+    .bind(id)
     .fetch_all(&state.db_pool)
     .await?;
 
-    let debate_messages: Vec<DebateMessage> = messages
+    let debate_messages: Vec<DebateMessage> = message_rows
         .iter()
         .map(|m| DebateMessage {
-            id: m.id,
-            session_id: m.session_id,
-            agent_name: m.agent_name.clone(),
-            agent_department: parse_agent_department(&m.agent_department),
-            role: m.role.clone(),
-            content: m.content.clone(),
-            analysis_data: m.analysis_data.clone(),
-            confidence: m.confidence,
-            sentiment: m.sentiment.as_deref().and_then(parse_agent_sentiment),
-            message_order: m.message_order,
-            created_at: m.created_at,
+            id: m.get("id"),
+            session_id: m.get("session_id"),
+            agent_name: m.get("agent_name"),
+            agent_department: parse_agent_department(m.get::<String, _>("agent_department").as_str()),
+            role: m.get("role"),
+            content: m.get("content"),
+            analysis_data: m.get("analysis_data"),
+            confidence: m.get("confidence"),
+            sentiment: m.get::<Option<String>, _>("sentiment").as_deref().and_then(parse_agent_sentiment),
+            message_order: m.get("message_order"),
+            created_at: m.get("created_at"),
         })
         .collect();
 
     let session = DebateSession {
-        id: session_row.id,
-        config_id: session_row.config_id,
-        user_id: session_row.user_id,
-        symbol: session_row.symbol,
-        status: if session_row.status == "completed" {
+        id: session_id,
+        config_id,
+        user_id,
+        symbol,
+        status: if status == "completed" {
             DebateStatus::Completed
-        } else if session_row.status == "failed" {
+        } else if status == "failed" {
             DebateStatus::Failed
         } else {
             DebateStatus::InProgress
         },
         messages: debate_messages,
         final_decision: None,
-        created_at: session_row.created_at,
-        updated_at: session_row.updated_at,
+        created_at,
+        updated_at,
     };
 
     Ok(Json(session))
@@ -463,20 +465,19 @@ async fn start_autonomous(
         .and_then(|s| Uuid::parse_str(s).ok())
         .ok_or_else(|| AppError::Validation("config_id is required".to_string()))?;
 
-    let _config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2",
-        config_id,
-        user.user_id
+    let _config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2"
     )
+    .bind(config_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("Simulation config not found".to_string()))?;
 
-    sqlx::query!(
-        "UPDATE ai_simulation_configs SET autonomous_mode_enabled = true, status = 'running', updated_at = NOW() WHERE id = $1",
-        config_id
+    sqlx::query(
+        "UPDATE ai_simulation_configs SET autonomous_mode_enabled = true, status = 'running', updated_at = NOW() WHERE id = $1"
     )
+    .bind(config_id)
     .execute(&state.db_pool)
     .await?;
 
@@ -498,20 +499,19 @@ async fn stop_autonomous(
         .and_then(|s| Uuid::parse_str(s).ok())
         .ok_or_else(|| AppError::Validation("config_id is required".to_string()))?;
 
-    let _config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2",
-        config_id,
-        user.user_id
+    let _config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2"
     )
+    .bind(config_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("Simulation config not found".to_string()))?;
 
-    sqlx::query!(
-        "UPDATE ai_simulation_configs SET autonomous_mode_enabled = false, updated_at = NOW() WHERE id = $1",
-        config_id
+    sqlx::query(
+        "UPDATE ai_simulation_configs SET autonomous_mode_enabled = false, updated_at = NOW() WHERE id = $1"
     )
+    .bind(config_id)
     .execute(&state.db_pool)
     .await?;
 
@@ -533,20 +533,19 @@ async fn emergency_stop(
         .and_then(|s| Uuid::parse_str(s).ok())
         .ok_or_else(|| AppError::Validation("config_id is required".to_string()))?;
 
-    let _config = sqlx::query_as!(
-        AiSimulationConfig,
-        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2",
-        config_id,
-        user.user_id
+    let _config = sqlx::query_as::<_, AiSimulationConfig>(
+        "SELECT * FROM ai_simulation_configs WHERE id = $1 AND user_id = $2"
     )
+    .bind(config_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await?
     .ok_or_else(|| AppError::NotFound("Simulation config not found".to_string()))?;
 
-    sqlx::query!(
-        "UPDATE ai_simulation_configs SET status = 'emergency_stopped', autonomous_mode_enabled = false, updated_at = NOW() WHERE id = $1",
-        config_id
+    sqlx::query(
+        "UPDATE ai_simulation_configs SET status = 'emergency_stopped', autonomous_mode_enabled = false, updated_at = NOW() WHERE id = $1"
     )
+    .bind(config_id)
     .execute(&state.db_pool)
     .await?;
 

@@ -360,11 +360,11 @@ impl OkxMarketDataProvider {
             .await
             .map_err(|e| AgentError::ExternalApiError(e.to_string()))?;
 
-        let current_price = ticker.last.parse::<f64>().unwrap_or(0.0);
-        let open_24h = ticker.open_24h.parse::<f64>().unwrap_or(0.0);
-        let high_24h = ticker.high_24h.parse::<f64>().unwrap_or(0.0);
-        let low_24h = ticker.low_24h.parse::<f64>().unwrap_or(0.0);
-        let volume_24h = ticker.vol_24h.parse::<f64>().unwrap_or(0.0);
+        let current_price = ticker.last.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+        let open_24h = ticker.open_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+        let high_24h = ticker.high_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+        let low_24h = ticker.low_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+        let volume_24h = ticker.vol_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
 
         let price_change_percent_24h = if open_24h > 0.0 {
             (current_price - open_24h) / open_24h * 100.0
@@ -412,16 +412,16 @@ impl OkxMarketDataProvider {
 
         let mut klines = Vec::with_capacity(candles.len());
         for candle in &candles {
-            let ts_millis = candle.ts.parse::<i64>().unwrap_or(0);
+            let ts_millis = candle.ts.as_deref().unwrap_or("0").parse::<i64>().unwrap_or(0);
             let open_time = Utc.timestamp_millis_opt(ts_millis).single().unwrap_or(Utc::now());
 
             klines.push(KlineData {
                 open_time,
-                open: candle.o.parse::<f64>().unwrap_or(0.0),
-                high: candle.h.parse::<f64>().unwrap_or(0.0),
-                low: candle.l.parse::<f64>().unwrap_or(0.0),
-                close: candle.c.parse::<f64>().unwrap_or(0.0),
-                volume: candle.vol.parse::<f64>().unwrap_or(0.0),
+                open: candle.o.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0),
+                high: candle.h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0),
+                low: candle.l.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0),
+                close: candle.c.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0),
+                volume: candle.vol.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0),
             });
         }
 

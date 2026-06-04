@@ -28,7 +28,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data } = await api.get('/auth/me')
       user.value = data
     } catch {
-      logout()
+      // Don't auto-logout on fetchUser failure - let the router guard handle it
+      // The API interceptor already handles 401 by redirecting to login
     }
   }
 

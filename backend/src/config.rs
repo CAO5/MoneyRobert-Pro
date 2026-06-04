@@ -165,6 +165,26 @@ pub struct ServerConfig {
     pub environment: String,
 }
 
+fn default_okx_api_key() -> String {
+    String::new()
+}
+
+fn default_okx_is_demo() -> bool {
+    true
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct OkxConfig {
+    #[serde(default = "default_okx_api_key")]
+    pub api_key: String,
+    #[serde(default = "default_okx_api_key")]
+    pub secret_key: String,
+    #[serde(default = "default_okx_api_key")]
+    pub passphrase: String,
+    #[serde(default = "default_okx_is_demo")]
+    pub is_demo: bool,
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AppConfig {
     pub database: DatabaseConfig,
@@ -178,6 +198,8 @@ pub struct AppConfig {
     pub websocket: WebSocketConfig,
     #[serde(default)]
     pub server: ServerConfig,
+    #[serde(default)]
+    pub okx: OkxConfig,
 }
 
 impl AppConfig {

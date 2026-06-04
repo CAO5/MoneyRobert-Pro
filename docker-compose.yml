@@ -18,6 +18,7 @@ services:
       - APP_DATABASE__POOL_SIZE=5
       - APP_REDIS__URL=redis://redis:6379/0
       - APP_SECURITY__SECRET_KEY=dev-secret-key-change-in-production
+      - ENCRYPTION_KEY=Y2hhbmdlLXRoaXMtaW4tcHJvZHVjdGlvbi0zMmJ5dGVz
       - APP_SECURITY__ALGORITHM=HS256
       - APP_SECURITY__ACCESS_TOKEN_EXPIRE_MINUTES=30
       - APP_SECURITY__REFRESH_TOKEN_EXPIRE_DAYS=7
@@ -26,9 +27,9 @@ services:
       - APP_RATE_LIMIT__ENABLED=true
       - APP_RATE_LIMIT__REQUESTS_PER_MINUTE=100
       - APP_RATE_LIMIT__REQUESTS_PER_HOUR=1000
-      - HTTP_PROXY=socks5://host.docker.internal:10808
-      - HTTPS_PROXY=socks5://host.docker.internal:10808
-      - ALL_PROXY=socks5://host.docker.internal:10808
+      - HTTP_PROXY=socks5://host.docker.internal:10809
+      - HTTPS_PROXY=socks5://host.docker.internal:10809
+      - ALL_PROXY=socks5://host.docker.internal:10809
       - NO_PROXY=localhost,127.0.0.1,backend,db,redis
     depends_on:
       db:

@@ -4,7 +4,7 @@ use axum::{
     Router,
     Json,
 };
-use chrono::{NaiveDateTime, FixedOffset, Utc, TimeZone};
+use chrono::{NaiveDateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Row};
 
@@ -19,6 +19,10 @@ fn to_cst(nd: NaiveDateTime) -> String {
     let utc_dt = nd.and_utc();
     let cst_dt = utc_dt.with_timezone(&CST);
     cst_dt.format("%Y-%m-%d %H:%M:%S").to_string()
+}
+
+fn to_utc_ts(nd: NaiveDateTime) -> i64 {
+    nd.and_utc().timestamp()
 }
 
 fn now_cst() -> String {
@@ -78,65 +82,87 @@ async fn get_klines_by_symbol(
     Path(symbol): Path<String>,
     Query(query): Query<KlineSymbolQuery>,
 ) -> Result<Json<serde_json::Value>> {
-    let limit = query.limit.unwrap_or(100).min(2000);
-    let offset = query.offset.unwrap_or(0);
+    let limit = query.limit.unwrap_or(100).min(2000) as usize;
     let interval = query.interval.unwrap_or_else(|| "1H".to_string());
 
-    let total: i64 = sqlx::query_scalar(
-        r#"SELECT COUNT(*) FROM klines WHERE symbol = $1 AND "interval" = $2"#,
-    )
-    .bind(&symbol)
-    .bind(&interval)
-    .fetch_one(&state.db_pool)
-    .await
-    .map_err(|e| AppError::Database(e))?;
+    // Try to fetch from OKX API first for real-time data
+    let okx_data = match crate::routes::trading::get_okx_client(&state, user.user_id).await {
+        Ok(client) => {
+            match client.get_candles(&symbol, &interval, Some(limit)).await {
+                Ok(candles) => {
+                    let klines: Vec<serde_json::Value> = candles.iter().map(|c| {
+                        let ts: i64 = c.ts.as_deref().unwrap_or("0").parse().unwrap_or(0) / 1000;
+                        let open: f64 = c.o.as_deref().unwrap_or("0").parse().unwrap_or(0.0);
+                        let high: f64 = c.h.as_deref().unwrap_or("0").parse().unwrap_or(0.0);
+                        let low: f64 = c.l.as_deref().unwrap_or("0").parse().unwrap_or(0.0);
+                        let close: f64 = c.c.as_deref().unwrap_or("0").parse().unwrap_or(0.0);
+                        let vol: f64 = c.vol.as_deref().unwrap_or("0").parse().unwrap_or(0.0);
+                        serde_json::json!({
+                            "open_time": ts,
+                            "open": open,
+                            "high": high,
+                            "low": low,
+                            "close": close,
+                            "volume": vol,
+                        })
+                    }).collect();
+                    Some(klines)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to fetch klines from OKX for {}: {}, falling back to DB", symbol, e);
+                    None
+                }
+            }
+        }
+        Err(_) => None,
+    };
 
+    if let Some(klines) = okx_data {
+        return Ok(Json(serde_json::json!({
+            "success": true,
+            "message": "OKX real-time data",
+            "data": klines,
+            "total": klines.len(),
+            "source": "okx",
+        })));
+    }
+
+    // Fallback to database
     let rows = sqlx::query(
         r#"
-        SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8, created_at
+        SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8
         FROM klines
         WHERE symbol = $1 AND "interval" = $2
         ORDER BY open_time DESC
-        LIMIT $3 OFFSET $4
+        LIMIT $3
         "#,
     )
     .bind(&symbol)
     .bind(&interval)
-    .bind(limit)
-    .bind(offset)
+    .bind(limit as i64)
     .fetch_all(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     let klines: Vec<serde_json::Value> = rows.iter().map(|row| {
+        let open_time: NaiveDateTime = row.get::<NaiveDateTime, _>("open_time");
+        let open_time_ts = open_time.and_utc().timestamp();
         serde_json::json!({
-            "id": row.get::<i64, _>("id"),
-            "symbol": row.get::<String, _>("symbol"),
-            "interval": row.get::<String, _>("interval"),
-            "open_time": to_cst(row.get::<NaiveDateTime, _>("open_time")),
+            "open_time": open_time_ts,
             "open": row.get::<f64, _>("open"),
             "high": row.get::<f64, _>("high"),
             "low": row.get::<f64, _>("low"),
             "close": row.get::<f64, _>("close"),
             "volume": row.get::<f64, _>("volume"),
-            "is_closed": true,
-            "created_at": to_cst(row.get::<NaiveDateTime, _>("created_at")),
-            "updated_at": to_cst(row.get::<NaiveDateTime, _>("created_at")),
         })
     }).collect();
 
-    let page = (offset / limit.max(1)) as i32 + 1;
-    let total_pages = ((total as f64) / (limit as f64)).ceil() as i32;
-
     Ok(Json(serde_json::json!({
         "success": true,
-        "message": "Success",
+        "message": "Database cached data",
         "data": klines,
-        "total": total,
-        "page": page,
-        "page_size": limit,
-        "total_pages": total_pages,
-        "timestamp": now_cst()
+        "total": klines.len(),
+        "source": "database",
     })))
 }
 
@@ -177,19 +203,18 @@ async fn get_klines(
     .map_err(|e| AppError::Database(e))?;
 
     let klines: Vec<serde_json::Value> = rows.iter().map(|row| {
+        let open_time: NaiveDateTime = row.get::<NaiveDateTime, _>("open_time");
         serde_json::json!({
             "id": row.get::<i64, _>("id"),
             "symbol": row.get::<String, _>("symbol"),
             "interval": row.get::<String, _>("interval"),
-            "open_time": to_cst(row.get::<NaiveDateTime, _>("open_time")),
+            "open_time": to_utc_ts(open_time),
             "open": row.get::<f64, _>("open"),
             "high": row.get::<f64, _>("high"),
             "low": row.get::<f64, _>("low"),
             "close": row.get::<f64, _>("close"),
             "volume": row.get::<f64, _>("volume"),
             "is_closed": true,
-            "created_at": to_cst(row.get::<NaiveDateTime, _>("created_at")),
-            "updated_at": to_cst(row.get::<NaiveDateTime, _>("created_at")),
         })
     }).collect();
 
@@ -316,7 +341,7 @@ async fn get_funding_rate_by_symbol(
 
     let rates = sqlx::query(
         r#"
-        SELECT
+        SELECT DISTINCT ON (funding_time)
             symbol,
             funding_rate::float8,
             funding_time,
@@ -325,7 +350,7 @@ async fn get_funding_rate_by_symbol(
             created_at
         FROM funding_rate_history
         WHERE symbol = $1
-        ORDER BY created_at DESC
+        ORDER BY funding_time DESC, created_at DESC
         LIMIT $2 OFFSET $3
         "#,
     )
@@ -340,10 +365,9 @@ async fn get_funding_rate_by_symbol(
         serde_json::json!({
             "symbol": row.get::<String, _>("symbol"),
             "funding_rate": row.get::<f64, _>("funding_rate"),
-            "funding_time": to_cst(row.get::<NaiveDateTime, _>("funding_time")),
+            "funding_time": to_utc_ts(row.get::<NaiveDateTime, _>("funding_time")),
             "realized_rate": row.get::<Option<f64>, _>("realized_rate"),
             "avg_premium_index": row.get::<Option<f64>, _>("avg_premium_index"),
-            "created_at": to_cst(row.get::<NaiveDateTime, _>("created_at")),
         })
     }).collect();
 
@@ -394,7 +418,7 @@ async fn get_funding_rates(
         serde_json::json!({
             "symbol": row.get::<String, _>("symbol"),
             "funding_rate": row.get::<f64, _>("funding_rate"),
-            "funding_time": to_cst(row.get::<NaiveDateTime, _>("funding_time")),
+            "funding_time": to_utc_ts(row.get::<NaiveDateTime, _>("funding_time")),
             "next_funding_time": null,
             "mark_price": null,
         })
@@ -467,7 +491,7 @@ async fn get_open_interest_by_symbol(
             "symbol": row.get::<String, _>("symbol"),
             "open_interest": row.get::<f64, _>("open_interest"),
             "open_interest_value": row.get::<Option<f64>, _>("open_interest_value"),
-            "timestamp": to_cst(row.get::<NaiveDateTime, _>("timestamp")),
+            "timestamp": to_utc_ts(row.get::<NaiveDateTime, _>("timestamp")),
         })
     }).collect();
 
@@ -511,7 +535,7 @@ async fn get_open_interests(
             "symbol": row.get::<String, _>("symbol"),
             "open_interest": row.get::<f64, _>("open_interest"),
             "open_interest_value": row.get::<Option<f64>, _>("open_interest_value"),
-            "timestamp": to_cst(row.get::<NaiveDateTime, _>("timestamp")),
+            "timestamp": to_utc_ts(row.get::<NaiveDateTime, _>("timestamp")),
         })
     }).collect();
 
@@ -591,7 +615,8 @@ async fn get_long_short_ratio_by_symbol(
 
     let data = sqlx::query(
         r#"
-        SELECT symbol, long_ratio::float8, short_ratio::float8, long_short_ratio::float8, timestamp
+        SELECT DISTINCT ON (timestamp)
+            symbol, long_ratio::float8, short_ratio::float8, long_short_ratio::float8, timestamp
         FROM long_short_ratio_history
         WHERE symbol = $1
         ORDER BY timestamp DESC
@@ -611,7 +636,7 @@ async fn get_long_short_ratio_by_symbol(
             "long_ratio": row.get::<f64, _>("long_ratio"),
             "short_ratio": row.get::<f64, _>("short_ratio"),
             "long_short_ratio": row.get::<Option<f64>, _>("long_short_ratio"),
-            "timestamp": to_cst(row.get::<NaiveDateTime, _>("timestamp")),
+            "timestamp": to_utc_ts(row.get::<NaiveDateTime, _>("timestamp")),
         })
     }).collect();
 
@@ -658,7 +683,7 @@ async fn get_long_short_ratio(
             "ratio": row.get::<Option<f64>, _>("long_short_ratio"),
             "long_ratio": row.get::<f64, _>("long_ratio"),
             "short_ratio": row.get::<f64, _>("short_ratio"),
-            "timestamp": to_cst(row.get::<NaiveDateTime, _>("timestamp")),
+            "timestamp": to_utc_ts(row.get::<NaiveDateTime, _>("timestamp")),
         })
     }).collect();
 
@@ -772,7 +797,7 @@ async fn get_ticker_by_symbol(
         "volume_24h": ticker.get::<f64, _>("volume_24h"),
         "change_24h": change_24h,
         "change_percent_24h": change_percent_24h,
-        "timestamp": ticker.get::<Option<NaiveDateTime>, _>("timestamp").map(|t| to_cst(t)).unwrap_or_default(),
+        "timestamp": ticker.get::<Option<NaiveDateTime>, _>("timestamp").map(|t| to_utc_ts(t)).unwrap_or_default(),
     })))
 }
 

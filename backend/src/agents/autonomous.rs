@@ -1,5 +1,6 @@
 use crate::agents::errors::*;
 use crate::agents::models::*;
+use crate::exchanges::okx::OkxClient;
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
@@ -188,6 +189,7 @@ pub struct DecisionOutcome {
 
 pub struct MarketWatcher {
     config: AutonomousConfig,
+    okx_client_provider: Option<Arc<dyn Fn() -> AgentResult<Arc<OkxClient>> + Send + Sync>>,
     market_events_tx: broadcast::Sender<MarketEvent>,
     market_events_rx: broadcast::Receiver<MarketEvent>,
     last_prices: Arc<DashMap<String, f64>>,
@@ -199,11 +201,19 @@ impl MarketWatcher {
         let (tx, rx) = broadcast::channel(1000);
         Self {
             config,
+            okx_client_provider: None,
             market_events_tx: tx,
             market_events_rx: rx,
             last_prices: Arc::new(DashMap::new()),
             snapshots: Arc::new(DashMap::new()),
         }
+    }
+
+    pub fn set_okx_client_provider<F>(&mut self, provider: F)
+    where
+        F: Fn() -> AgentResult<Arc<OkxClient>> + Send + Sync + 'static,
+    {
+        self.okx_client_provider = Some(Arc::new(provider));
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<MarketEvent> {
@@ -227,7 +237,13 @@ impl MarketWatcher {
     }
 
     async fn fetch_market_data(&self, symbol: &str) -> AgentResult<()> {
-        let snapshot = self.generate_sample_snapshot(symbol);
+        let snapshot = match self.fetch_snapshot_from_okx(symbol).await {
+            Ok(snapshot) => snapshot,
+            Err(e) => {
+                debug!("OKX API failed for {}: {}, using fallback", symbol, e);
+                self.generate_sample_snapshot(symbol)
+            }
+        };
         
         if let Some(prev_price) = self.last_prices.get(symbol) {
             if (snapshot.current_price - *prev_price).abs() > *prev_price * 0.001 {
@@ -250,6 +266,46 @@ impl MarketWatcher {
         self.snapshots.insert(symbol.to_string(), snapshot);
         
         Ok(())
+    }
+
+    async fn fetch_snapshot_from_okx(&self, symbol: &str) -> AgentResult<MarketSnapshot> {
+        let okx_client = match &self.okx_client_provider {
+            Some(provider) => provider()?,
+            None => return Err(AgentError::ExternalApiError("OKX client provider not set".to_string())),
+        };
+
+        let ticker = okx_client.get_ticker(symbol).await
+            .map_err(|e| AgentError::ExternalApiError(e.to_string()))?;
+        
+        let current_price = ticker.last.as_deref().unwrap_or("0").parse::<f64>()
+            .map_err(|e| AgentError::ExternalApiError(format!("Failed to parse price: {}", e)))?;
+        let open_24h = ticker.open_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
+        let high_24h = ticker.high_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
+        let low_24h = ticker.low_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
+        let volume_24h = ticker.vol_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+        
+        let price_change_percent_24h = if open_24h > 0.0 {
+            (current_price - open_24h) / open_24h * 100.0
+        } else {
+            0.0
+        };
+        
+        Ok(MarketSnapshot {
+            symbol: symbol.to_string(),
+            current_price,
+            open_24h,
+            high_24h,
+            low_24h,
+            close_24h: current_price,
+            volume_24h,
+            price_change_percent_24h,
+            funding_rate: None,
+            open_interest: None,
+            long_short_ratio: None,
+            rsi_14: None,
+            macd_signal: None,
+            timestamp: Utc::now(),
+        })
     }
 
     fn generate_sample_snapshot(&self, symbol: &str) -> MarketSnapshot {
@@ -281,7 +337,7 @@ impl MarketWatcher {
 
 pub struct OpportunityScanner {
     config: AutonomousConfig,
-    market_events_rx: broadcast::Receiver<MarketEvent>,
+    market_events_rx: tokio::sync::Mutex<broadcast::Receiver<MarketEvent>>,
     opportunities_tx: mpsc::Sender<Opportunity>,
     opportunities: Arc<DashMap<String, Vec<Opportunity>>>,
 }
@@ -294,7 +350,7 @@ impl OpportunityScanner {
     ) -> Self {
         Self {
             config,
-            market_events_rx,
+            market_events_rx: tokio::sync::Mutex::new(market_events_rx),
             opportunities_tx,
             opportunities: Arc::new(DashMap::new()),
         }
@@ -304,7 +360,7 @@ impl OpportunityScanner {
         info!("OpportunityScanner starting");
         
         loop {
-            match self.market_events_rx.recv().await {
+            match self.market_events_rx.lock().await.recv().await {
                 Ok(event) => {
                     if let Err(e) = self.analyze_event(&event).await {
                         warn!("Failed to analyze event: {}", e);
@@ -680,6 +736,15 @@ impl AutonomousEngine {
         }
     }
 
+    pub fn set_okx_client_provider<F>(&mut self, provider: F)
+    where
+        F: Fn() -> AgentResult<Arc<OkxClient>> + Send + Sync + 'static,
+    {
+        if let Some(market_watcher) = Arc::get_mut(&mut self.market_watcher) {
+            market_watcher.set_okx_client_provider(provider);
+        }
+    }
+
     pub async fn start(&self) -> AgentResult<()> {
         info!("Starting autonomous engine");
         
@@ -981,7 +1046,15 @@ mod tests {
     async fn test_engine_lifecycle() {
         let config = AutonomousConfig::default();
         let cb_config = CircuitBreakerConfig::default();
-        let engine = AutonomousEngine::new(config, cb_config);
+        let mut engine = AutonomousEngine::new(config, cb_config);
+        
+        let okx_client = Arc::new(OkxClient::new(
+            "test_key".to_string(),
+            "test_secret".to_string(),
+            "test_passphrase".to_string(),
+            true,
+        ));
+        engine.set_okx_client_provider(move || Ok(okx_client.clone()));
         
         assert_eq!(engine.get_state().await, EngineState::Stopped);
     }

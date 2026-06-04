@@ -2,6 +2,7 @@ pub mod admin;
 pub mod ai_analysis;
 pub mod ai_chat;
 pub mod ai_predictions;
+pub mod ai_providers;
 pub mod agent_simulation;
 pub mod api_keys;
 pub mod auth;
@@ -40,6 +41,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/ai", ai_analysis::router())
         .nest("/chat", ai_chat::router())
         .nest("/ai/prediction", ai_predictions::router())
+        .nest("/ai/providers", ai_providers::router())
         .nest("/auto-trading", auto_trading::router())
         .nest("/api-keys", api_keys::router())
         .nest("/papers", paper_trading::router())

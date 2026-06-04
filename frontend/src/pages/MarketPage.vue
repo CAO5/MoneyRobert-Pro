@@ -50,7 +50,7 @@ const { connected: wsConnected, connect: wsConnect, disconnect: wsDisconnect, on
 function toUTCTimestamp(t: string | number): number {
   if (typeof t === 'number') return t
   const str = String(t)
-  const isoStr = str.includes('T') ? str : str.replace(' ', 'T') + '+08:00'
+  const isoStr = str.includes('T') ? str : str.replace(' ', 'T') + 'Z'
   return Math.floor(new Date(isoStr).getTime() / 1000) as unknown as number
 }
 
@@ -79,16 +79,24 @@ const openInterestChartData = computed(() =>
 async function loadMarketData() {
   loading.value = true
   try {
-    const [tickersRes, fundingRes, ratioRes, symbolsRes] = await Promise.all([
+    const [tickersRes, fundingRes, ratioRes, symbolsRes] = await Promise.allSettled([
       api.get('/market/tickers'),
       api.get('/market/funding-rates'),
       api.get('/market/long-short-ratio'),
       api.get('/market/popular-symbols'),
     ])
-    tickers.value = tickersRes.data.tickers || tickersRes.data || []
-    fundingRates.value = fundingRes.data.rates || fundingRes.data || []
-    longShortRatio.value = ratioRes.data.ratios || ratioRes.data || []
-    popularSymbols.value = symbolsRes.data.symbols || symbolsRes.data || []
+    if (tickersRes.status === 'fulfilled') {
+      tickers.value = tickersRes.value.data.tickers || tickersRes.value.data || []
+    }
+    if (fundingRes.status === 'fulfilled') {
+      fundingRates.value = fundingRes.value.data.rates || fundingRes.value.data || []
+    }
+    if (ratioRes.status === 'fulfilled') {
+      longShortRatio.value = ratioRes.value.data.ratios || ratioRes.value.data || []
+    }
+    if (symbolsRes.status === 'fulfilled') {
+      popularSymbols.value = symbolsRes.value.data.symbols || symbolsRes.value.data || []
+    }
     if (popularSymbols.value.length && !popularSymbols.value.includes(selectedSymbol.value)) {
       selectedSymbol.value = popularSymbols.value[0]
     }
@@ -104,24 +112,48 @@ async function loadChartData() {
   try {
     const symbol = selectedSymbol.value
     const interval = selectedInterval.value
-    const [klinesRes, fundingRes, ratioRes, oiRes] = await Promise.all([
+
+    // Use Promise.allSettled so one API failure doesn't block others
+    const [klinesRes, fundingRes, ratioRes, oiRes] = await Promise.allSettled([
       api.get(`/market/klines/${symbol}`, { params: { interval, limit: 200 } }),
       api.get(`/market/funding-rate/${symbol}`, { params: { limit: 100 } }),
       api.get(`/market/long-short-ratio/${symbol}`, { params: { limit: 100 } }),
       api.get(`/market/open-interest/${symbol}`, { params: { limit: 100 } }),
     ])
-    const rawKlines = klinesRes.data.data || klinesRes.data || []
-    klineData.value = rawKlines.map((k: any) => ({
-      time: toUTCTimestamp(k.open_time || k.created_at),
-      open: Number(k.open),
-      high: Number(k.high),
-      low: Number(k.low),
-      close: Number(k.close),
-      volume: Number(k.volume),
-    }))
-    fundingRateHistory.value = fundingRes.data.data || fundingRes.data || []
-    longShortHistory.value = ratioRes.data.data || ratioRes.data || []
-    openInterestHistory.value = oiRes.data.data || oiRes.data || []
+
+    if (klinesRes.status === 'fulfilled') {
+      const rawKlines = klinesRes.value.data.data || klinesRes.value.data || []
+      klineData.value = rawKlines.map((k: any) => ({
+        time: toUTCTimestamp(k.open_time || k.created_at),
+        open: Number(k.open),
+        high: Number(k.high),
+        low: Number(k.low),
+        close: Number(k.close),
+        volume: Number(k.volume),
+      }))
+    } else {
+      console.error('Failed to load klines:', klinesRes.reason)
+      klineData.value = []
+    }
+
+    if (fundingRes.status === 'fulfilled') {
+      fundingRateHistory.value = fundingRes.value.data.data || fundingRes.value.data || []
+    } else {
+      fundingRateHistory.value = []
+    }
+
+    if (ratioRes.status === 'fulfilled') {
+      longShortHistory.value = ratioRes.value.data.data || ratioRes.value.data || []
+    } else {
+      longShortHistory.value = []
+    }
+
+    if (oiRes.status === 'fulfilled') {
+      openInterestHistory.value = oiRes.value.data.data || oiRes.value.data || []
+    } else {
+      openInterestHistory.value = []
+    }
+
     lastUpdateTime.value = new Date()
   } catch (e) {
     console.error('Failed to load chart data', e)

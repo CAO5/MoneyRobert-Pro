@@ -4,11 +4,11 @@ use crate::agents::{
 };
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-use tracing::{debug, info, warn};
+use sqlx::{FromRow, PgPool};
+use tracing::{info, warn};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct LevelRequirements {
     pub level: i32,
     pub min_trades: i32,
@@ -20,7 +20,7 @@ pub struct LevelRequirements {
     pub max_consecutive_losses: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct PromotionAudit {
     pub id: Uuid,
     pub config_id: Uuid,
@@ -41,7 +41,7 @@ pub struct PromotionAudit {
     pub created_at: chrono::DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct RiskConfirmation {
     pub id: Uuid,
     pub user_id: i64,
@@ -209,11 +209,10 @@ impl PromotionSystem {
         &self,
         config_id: Uuid,
     ) -> AgentResult<PromotionAudit> {
-        let config = sqlx::query_as!(
-            AiSimulationConfig,
+        let config = sqlx::query_as::<_, AiSimulationConfig>(
             "SELECT * FROM ai_simulation_configs WHERE id = $1",
-            config_id
         )
+        .bind(config_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -230,8 +229,7 @@ impl PromotionSystem {
 
         let stats_snapshot = serde_json::to_value(&eligibility.stats)?;
 
-        let audit = sqlx::query_as!(
-            PromotionAudit,
+        let audit = sqlx::query_as::<_, PromotionAudit>(
             r#"
             INSERT INTO promotion_audits (
                 config_id, from_level, to_level, from_mode, to_mode,
@@ -241,13 +239,13 @@ impl PromotionSystem {
             VALUES ($1, $2, $3, $4, $5, $6, 'pending', 1, 14, NOW(), NOW())
             RETURNING *
             "#,
-            config_id,
-            config.level,
-            next_level,
-            from_mode,
-            to_mode,
-            stats_snapshot
         )
+        .bind(config_id)
+        .bind(config.level)
+        .bind(next_level)
+        .bind(from_mode)
+        .bind(to_mode)
+        .bind(stats_snapshot)
         .fetch_one(&self.pool)
         .await?;
 
@@ -263,11 +261,10 @@ impl PromotionSystem {
         &self,
         audit_id: Uuid,
     ) -> AgentResult<bool> {
-        let audit = sqlx::query_as!(
-            PromotionAudit,
+        let audit = sqlx::query_as::<_, PromotionAudit>(
             "SELECT * FROM promotion_audits WHERE id = $1",
-            audit_id
         )
+        .bind(audit_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -286,7 +283,7 @@ impl PromotionSystem {
         if Utc::now() >= observation_end {
             let mut tx = self.pool.begin().await?;
 
-            sqlx::query!(
+            sqlx::query(
                 r#"
                 UPDATE promotion_audits
                 SET status = 'reviewing',
@@ -295,8 +292,8 @@ impl PromotionSystem {
                     updated_at = NOW()
                 WHERE id = $1
                 "#,
-                audit_id
             )
+            .bind(audit_id)
             .execute(&mut *tx)
             .await?;
 
@@ -315,17 +312,16 @@ impl PromotionSystem {
         reviewed_by: Option<String>,
         review_comment: Option<String>,
     ) -> AgentResult<AiSimulationConfig> {
-        let audit = sqlx::query_as!(
-            PromotionAudit,
+        let audit = sqlx::query_as::<_, PromotionAudit>(
             "SELECT * FROM promotion_audits WHERE id = $1",
-            audit_id
         )
+        .bind(audit_id)
         .fetch_one(&self.pool)
         .await?;
 
         let mut tx = self.pool.begin().await?;
 
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE promotion_audits
             SET status = 'approved',
@@ -336,15 +332,14 @@ impl PromotionSystem {
                 updated_at = NOW()
             WHERE id = $3
             "#,
-            reviewed_by,
-            review_comment,
-            audit_id
         )
+        .bind(reviewed_by)
+        .bind(review_comment)
+        .bind(audit_id)
         .execute(&mut *tx)
         .await?;
 
-        let updated_config = sqlx::query_as!(
-            AiSimulationConfig,
+        let updated_config = sqlx::query_as::<_, AiSimulationConfig>(
             r#"
             UPDATE ai_simulation_configs
             SET level = $1,
@@ -354,10 +349,10 @@ impl PromotionSystem {
             WHERE id = $3
             RETURNING *
             "#,
-            audit.to_level,
-            audit.to_mode,
-            audit.config_id
         )
+        .bind(audit.to_level)
+        .bind(audit.to_mode)
+        .bind(audit.config_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -377,7 +372,7 @@ impl PromotionSystem {
         reviewed_by: Option<String>,
         review_comment: Option<String>,
     ) -> AgentResult<()> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE promotion_audits
             SET status = 'rejected',
@@ -387,10 +382,10 @@ impl PromotionSystem {
                 updated_at = NOW()
             WHERE id = $3
             "#,
-            reviewed_by,
-            review_comment,
-            audit_id
         )
+        .bind(reviewed_by)
+        .bind(review_comment)
+        .bind(audit_id)
         .execute(&self.pool)
         .await?;
 
@@ -437,7 +432,6 @@ impl PromotionSystem {
 
         if let Some(reason) = reason {
             let to_level = config.level - 1;
-            let (from_mode, to_mode) = Self::get_mode_for_level(config.level, to_level);
 
             return Ok(Some(DemotionTrigger {
                 from_level: config.level,
@@ -454,11 +448,10 @@ impl PromotionSystem {
         config_id: Uuid,
         reason: String,
     ) -> AgentResult<AiSimulationConfig> {
-        let config = sqlx::query_as!(
-            AiSimulationConfig,
+        let config = sqlx::query_as::<_, AiSimulationConfig>(
             "SELECT * FROM ai_simulation_configs WHERE id = $1",
-            config_id
         )
+        .bind(config_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -481,7 +474,7 @@ impl PromotionSystem {
 
         let mut tx = self.pool.begin().await?;
 
-        sqlx::query!(
+        sqlx::query(
             r#"
             INSERT INTO demotion_records (
                 config_id, from_level, to_level, from_mode, to_mode,
@@ -489,19 +482,18 @@ impl PromotionSystem {
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
             "#,
-            config_id,
-            config.level,
-            to_level,
-            from_mode,
-            to_mode,
-            reason,
-            stats_snapshot
         )
+        .bind(config_id)
+        .bind(config.level)
+        .bind(to_level)
+        .bind(&from_mode)
+        .bind(&to_mode)
+        .bind(&reason)
+        .bind(stats_snapshot)
         .execute(&mut *tx)
         .await?;
 
-        let updated_config = sqlx::query_as!(
-            AiSimulationConfig,
+        let updated_config = sqlx::query_as::<_, AiSimulationConfig>(
             r#"
             UPDATE ai_simulation_configs
             SET level = $1,
@@ -511,10 +503,10 @@ impl PromotionSystem {
             WHERE id = $3
             RETURNING *
             "#,
-            to_level,
-            to_mode,
-            config_id
         )
+        .bind(to_level)
+        .bind(to_mode)
+        .bind(config_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -538,8 +530,7 @@ impl PromotionSystem {
         ip_address: Option<String>,
         user_agent: Option<String>,
     ) -> AgentResult<RiskConfirmation> {
-        let confirmation = sqlx::query_as!(
-            RiskConfirmation,
+        let confirmation = sqlx::query_as::<_, RiskConfirmation>(
             r#"
             INSERT INTO risk_confirmations (
                 user_id, config_id, version, accepted, accept_reason,
@@ -548,19 +539,19 @@ impl PromotionSystem {
             VALUES ($1, $2, $3, true, $4, $5, NOW(), $6, $7, NOW())
             RETURNING *
             "#,
-            user_id,
-            config_id,
-            version,
-            accept_reason,
-            max_acceptable_loss,
-            ip_address,
-            user_agent
         )
+        .bind(user_id)
+        .bind(config_id)
+        .bind(version)
+        .bind(accept_reason)
+        .bind(max_acceptable_loss)
+        .bind(ip_address)
+        .bind(user_agent)
         .fetch_one(&self.pool)
         .await?;
 
         if let Some(cfg_id) = config_id {
-            sqlx::query!(
+            sqlx::query(
                 r#"
                 UPDATE ai_simulation_configs
                 SET risk_confirmation_signed = true,
@@ -569,9 +560,9 @@ impl PromotionSystem {
                     updated_at = NOW()
                 WHERE id = $2
                 "#,
-                max_acceptable_loss,
-                cfg_id
             )
+            .bind(max_acceptable_loss)
+            .bind(cfg_id)
             .execute(&self.pool)
             .await?;
         }
@@ -585,16 +576,15 @@ impl PromotionSystem {
         &self,
         user_id: i64,
     ) -> AgentResult<Option<RiskConfirmation>> {
-        let confirmation = sqlx::query_as!(
-            RiskConfirmation,
+        let confirmation = sqlx::query_as::<_, RiskConfirmation>(
             r#"
             SELECT * FROM risk_confirmations
             WHERE user_id = $1 AND accepted = true
             ORDER BY signed_at DESC
             LIMIT 1
             "#,
-            user_id
         )
+        .bind(user_id)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -606,17 +596,16 @@ impl PromotionSystem {
         config_id: Uuid,
         limit: i64,
     ) -> AgentResult<Vec<PromotionAudit>> {
-        let audits = sqlx::query_as!(
-            PromotionAudit,
+        let audits = sqlx::query_as::<_, PromotionAudit>(
             r#"
             SELECT * FROM promotion_audits
             WHERE config_id = $1
             ORDER BY created_at DESC
             LIMIT $2
             "#,
-            config_id,
-            limit
         )
+        .bind(config_id)
+        .bind(limit)
         .fetch_all(&self.pool)
         .await?;
 

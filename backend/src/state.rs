@@ -1,10 +1,12 @@
 use redis::aio::ConnectionManager;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use std::sync::Arc;
 
 use crate::config::AppConfig;
 use crate::error::{AppError, Result};
+use crate::exchanges::okx::OkxClient;
 use crate::middleware::RateLimitEntry;
+use crate::utils::encryption::decrypt;
 use crate::websocket::WebSocketManager;
 use dashmap::DashMap;
 
@@ -36,6 +38,39 @@ impl AppState {
             ws_manager: Arc::new(WebSocketManager::new()),
             rate_limit_map: Arc::new(DashMap::new()),
         })
+    }
+
+    pub async fn get_user_okx_client(&self, user_id: i64) -> Result<Arc<OkxClient>> {
+        let row = sqlx::query(
+            r#"SELECT key, secret, passphrase, metadata 
+               FROM api_keys 
+               WHERE user_id = $1 AND key_type = 'exchange' AND is_active = true 
+               ORDER BY created_at DESC 
+               LIMIT 1"#,
+        )
+        .bind(user_id)
+        .fetch_optional(&self.db_pool)
+        .await
+        .map_err(|e| AppError::Database(e))?;
+
+        let row = row.ok_or_else(|| {
+            AppError::Validation("No active OKX API key found".to_string())
+        })?;
+
+        let encrypted_key = row.try_get::<String, _>("key").unwrap_or_default();
+        let encrypted_secret = row.try_get::<String, _>("secret").unwrap_or_default();
+        let encrypted_passphrase = row.try_get::<String, _>("passphrase").unwrap_or_default();
+
+        let api_key = decrypt(&encrypted_key)?;
+        let api_secret = decrypt(&encrypted_secret)?;
+        let passphrase = decrypt(&encrypted_passphrase).unwrap_or_default();
+
+        let metadata: serde_json::Value = row
+            .try_get::<serde_json::Value, _>("metadata")
+            .unwrap_or(serde_json::json!({}));
+        let is_demo = metadata.get("is_demo").and_then(|v| v.as_bool()).unwrap_or(true);
+
+        Ok(Arc::new(OkxClient::new(api_key, api_secret, passphrase, is_demo)))
     }
 }
 

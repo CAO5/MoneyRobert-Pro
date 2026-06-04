@@ -3,7 +3,7 @@ use crate::agents::errors::*;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,17 +43,6 @@ pub struct CredibilityWeights {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RiskAssessment {
-    pub overall_risk_level: String,
-    pub max_position_risk: f64,
-    pub margin_requirement: f64,
-    pub risk_reward_ratio: f64,
-    pub volatility_rating: String,
-    pub alerts: Vec<String>,
-    pub passed: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionParameters {
     pub position_size_percent: f64,
     pub leverage: i32,
@@ -74,6 +63,7 @@ pub struct DecisionMemoryEntry {
     pub actual_outcome: Option<serde_json::Value>,
     pub reflection: Option<String>,
     pub success: Option<bool>,
+    pub agent_contributions: Vec<AgentContribution>,
 }
 
 #[derive(Debug, Clone)]
@@ -155,7 +145,7 @@ impl FundManagerAgent {
             position_size_percent: position_params.position_size_percent,
             leverage: position_params.leverage,
             stop_loss_percent: Some(position_params.stop_loss_percent),
-            take_profit_percent: Some(position_params.take_profit_percent),
+            take_profit_percent: position_params.take_profit_percent.first().copied(),
             reasoning,
             agent_contributions,
             risk_assessment,
@@ -384,10 +374,10 @@ impl FundManagerAgent {
                 }.max(1);
 
                 let stop_loss_percent = match risk_assessment.volatility_rating.as_str() {
-                    "extreme" => 5.0,
-                    "high" => 3.5,
-                    "medium" => 2.5,
-                    _ => 2.0,
+                    "extreme" => 5.0_f64,
+                    "high" => 3.5_f64,
+                    "medium" => 2.5_f64,
+                    _ => 2.0_f64,
                 }.min(self.config.max_single_trade_loss_percent);
 
                 let take_profit_percent = vec![
@@ -600,6 +590,7 @@ impl FundManagerAgent {
             actual_outcome: Some(actual_outcome),
             reflection,
             success: Some(success),
+            agent_contributions: decision.agent_contributions.clone(),
         };
 
         self.decision_history.push(entry);

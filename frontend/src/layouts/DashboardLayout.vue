@@ -30,6 +30,7 @@ const navItems = [
   { icon: BookOpen, label: '模拟交易', path: '/paper-trading' },
   { icon: Newspaper, label: '新闻资讯', path: '/news' },
   { icon: FileText, label: '报告中心', path: '/reports' },
+  { icon: Settings, label: '系统设置', path: '/settings' },
 ]
 
 const adminItems = [

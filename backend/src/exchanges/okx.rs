@@ -18,69 +18,142 @@ pub struct OkxClient {
     client: reqwest::Client,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct OkxAccount {
-    pub utd_type: String,
-    pub adj_eq: String,
-    pub imr: String,
-    pub iso_eq: String,
-    pub mgn_ratio: String,
-    pub mmr: String,
-    pub notional_usd: String,
-    pub ord_froz: String,
-    pub total_eq: String,
-    pub u_time: String,
+    #[serde(default)]
+    pub utd_type: Option<String>,
+    #[serde(default)]
+    pub adj_eq: Option<String>,
+    #[serde(default)]
+    pub imr: Option<String>,
+    #[serde(default)]
+    pub iso_eq: Option<String>,
+    #[serde(default)]
+    pub mgn_ratio: Option<String>,
+    #[serde(default)]
+    pub mmr: Option<String>,
+    #[serde(default)]
+    pub notional_usd: Option<String>,
+    #[serde(default)]
+    pub ord_froz: Option<String>,
+    #[serde(default)]
+    pub total_eq: Option<String>,
+    #[serde(default)]
+    pub u_time: Option<String>,
+    #[serde(default)]
+    pub total_bal: Option<String>,
+    #[serde(default)]
+    pub iso_bal: Option<String>,
+    #[serde(default)]
+    pub eq: Option<String>,
+    #[serde(default)]
+    pub cash_bal: Option<String>,
+    #[serde(default)]
+    pub upl: Option<String>,
+    #[serde(default)]
+    pub upl_liab: Option<String>,
+    #[serde(default)]
+    pub cross_liab: Option<String>,
+    #[serde(default)]
+    pub iso_liab: Option<String>,
+    #[serde(default)]
+    pub bal: Option<String>,
+    #[serde(default)]
+    pub avail_bal: Option<String>,
+    #[serde(default)]
+    pub frozen_bal: Option<String>,
+    #[serde(default)]
+    pub spot_in_use_amt: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct OkxPosition {
-    pub inst_type: String,
-    pub mgn_mode: String,
-    pub pos: String,
-    pub pos_ccy: String,
-    pub avail_pos: String,
-    pub avg_px: String,
-    pub upl: String,
-    pub upl_ratio: String,
-    pub inst_id: String,
-    pub lever: String,
-    pub liq_px: String,
-    pub mark_px: String,
-    pub imr: String,
-    pub margin: String,
-    pub mmr: String,
-    pub notional_usd: String,
+    #[serde(default)]
+    pub inst_type: Option<String>,
+    #[serde(default)]
+    pub mgn_mode: Option<String>,
+    #[serde(default)]
+    pub pos: Option<String>,
+    #[serde(default)]
+    pub pos_ccy: Option<String>,
+    #[serde(default)]
+    pub avail_pos: Option<String>,
+    #[serde(default)]
+    pub avg_px: Option<String>,
+    #[serde(default)]
+    pub upl: Option<String>,
+    #[serde(default)]
+    pub upl_ratio: Option<String>,
+    #[serde(default)]
+    pub inst_id: Option<String>,
+    #[serde(default)]
+    pub lever: Option<String>,
+    #[serde(default)]
+    pub liq_px: Option<String>,
+    #[serde(default)]
+    pub mark_px: Option<String>,
+    #[serde(default)]
+    pub imr: Option<String>,
+    #[serde(default)]
+    pub margin: Option<String>,
+    #[serde(default)]
+    pub mmr: Option<String>,
+    #[serde(default)]
+    pub notional_usd: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct OkxTicker {
-    pub inst_type: String,
-    pub inst_id: String,
-    pub last: String,
-    pub last_sz: String,
-    pub ask_px: String,
-    pub ask_sz: String,
-    pub bid_px: String,
-    pub bid_sz: String,
-    pub open_24h: String,
-    pub high_24h: String,
-    pub low_24h: String,
-    pub vol_ccy_24h: String,
-    pub vol_24h: String,
-    pub ts: String,
+    #[serde(default)]
+    pub inst_type: Option<String>,
+    #[serde(default)]
+    pub inst_id: Option<String>,
+    #[serde(default)]
+    pub last: Option<String>,
+    #[serde(default)]
+    pub last_sz: Option<String>,
+    #[serde(default)]
+    pub ask_px: Option<String>,
+    #[serde(default)]
+    pub ask_sz: Option<String>,
+    #[serde(default)]
+    pub bid_px: Option<String>,
+    #[serde(default)]
+    pub bid_sz: Option<String>,
+    #[serde(default)]
+    pub open_24h: Option<String>,
+    #[serde(default)]
+    pub high_24h: Option<String>,
+    #[serde(default)]
+    pub low_24h: Option<String>,
+    #[serde(default)]
+    pub vol_ccy_24h: Option<String>,
+    #[serde(default)]
+    pub vol_24h: Option<String>,
+    #[serde(default)]
+    pub ts: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct OkxCandle {
-    pub ts: String,
-    pub o: String,
-    pub h: String,
-    pub l: String,
-    pub c: String,
-    pub vol: String,
-    pub vol_ccy: String,
-    pub vol_ccy_quote: String,
-    pub confirm: String,
+    #[serde(default)]
+    pub ts: Option<String>,
+    #[serde(default)]
+    pub o: Option<String>,
+    #[serde(default)]
+    pub h: Option<String>,
+    #[serde(default)]
+    pub l: Option<String>,
+    #[serde(default)]
+    pub c: Option<String>,
+    #[serde(default)]
+    pub vol: Option<String>,
+    #[serde(default)]
+    pub vol_ccy: Option<String>,
+    #[serde(default)]
+    pub vol_ccy_quote: Option<String>,
+    #[serde(default)]
+    pub confirm: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -110,8 +183,24 @@ impl OkxClient {
     pub fn new(api_key: String, secret_key: String, passphrase: String, is_demo: bool) -> Self {
         let base_url = "https://www.okx.com".to_string();
 
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(30))
+        let mut builder = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(30));
+
+        // Configure proxy from environment variables
+        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+            .or_else(|_| std::env::var("HTTP_PROXY"))
+        {
+            // Use socks5 (local DNS) instead of socks5h (remote DNS)
+            // because host.docker.internal can only be resolved inside Docker
+            let proxy_url = proxy_url.replace("socks5h://", "socks5://");
+            if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
+                tracing::info!("OKX client using proxy: {}", proxy_url);
+                builder = builder.proxy(proxy);
+            }
+        }
+
+        let client = builder
             .build()
             .expect("Failed to create HTTP client");
 
@@ -135,7 +224,9 @@ impl OkxClient {
     }
 
     fn generate_timestamp() -> String {
-        Utc::now().format("%Y-%m-%dT%H:%M:%S.%.3fZ").to_string()
+        // OKX requires ISO 8601 format with milliseconds, e.g. "2020-12-08T09:08:57.715Z"
+        // Use to_rfc3339_opts to guarantee millisecond precision
+        Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
     }
 
     async fn get<T: serde::de::DeserializeOwned>(
@@ -145,6 +236,70 @@ impl OkxClient {
     ) -> Result<T> {
         let timestamp = Self::generate_timestamp();
         
+        let query_string = match params {
+            Some(p) => {
+                let mut pairs: Vec<String> = p.iter()
+                    .map(|(k, v)| format!("{}={}", k, v))
+                    .collect();
+                pairs.sort();
+                format!("?{}", pairs.join("&"))
+            }
+            None => String::new(),
+        };
+
+        let request_path = format!("{}{}", path, query_string);
+        let sign = self.sign(&timestamp, "GET", &request_path, "");
+
+        let url = format!("{}{}", self.base_url, request_path);
+
+        tracing::debug!("OKX GET request: timestamp={}, path={}, sign_prefix={}", 
+            timestamp, request_path, format!("{}GET{}", timestamp, request_path));
+
+        let mut req = self.client
+            .get(&url)
+            .header("OK-ACCESS-KEY", &self.api_key)
+            .header("OK-ACCESS-SIGN", &sign)
+            .header("OK-ACCESS-TIMESTAMP", &timestamp)
+            .header("OK-ACCESS-PASSPHRASE", &self.passphrase);
+
+        if self.is_demo {
+            req = req.header("x-simulated-trading", "1");
+        }
+
+        let response = req
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalApi {
+                service: "OKX".to_string(),
+                message: e.to_string(),
+            })?;
+
+        let status = response.status();
+        let body = response.text().await.map_err(|e| AppError::ExternalApi {
+            service: "OKX".to_string(),
+            message: e.to_string(),
+        })?;
+
+        if !status.is_success() {
+            return Err(AppError::ExternalApi {
+                service: "OKX".to_string(),
+                message: format!("HTTP {}: {}", status, body),
+            });
+        }
+
+        let result: T = serde_json::from_str(&body).map_err(|e| AppError::Serialization(e))?;
+
+        Ok(result)
+    }
+
+    /// GET request returning raw serde_json::Value
+    pub async fn get_raw(
+        &self,
+        path: &str,
+        params: Option<&[(&str, String)]>,
+    ) -> Result<serde_json::Value> {
+        let timestamp = Self::generate_timestamp();
+
         let query_string = match params {
             Some(p) => {
                 let mut pairs: Vec<String> = p.iter()
@@ -193,7 +348,7 @@ impl OkxClient {
             });
         }
 
-        let result: T = serde_json::from_str(&body).map_err(|e| AppError::Serialization(e))?;
+        let result: serde_json::Value = serde_json::from_str(&body).map_err(|e| AppError::Serialization(e))?;
 
         Ok(result)
     }

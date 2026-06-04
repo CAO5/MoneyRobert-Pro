@@ -40,8 +40,16 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.admin && !auth.isAdmin) {
     return next('/dashboard')
   }
+  // Only fetch user once on first authenticated navigation
   if (auth.isAuthenticated && !auth.user) {
-    await auth.fetchUser()
+    try {
+      await auth.fetchUser()
+    } catch {
+      // fetchUser failure already handles logout
+      if (!auth.isAuthenticated) {
+        return next('/login')
+      }
+    }
   }
   next()
 })

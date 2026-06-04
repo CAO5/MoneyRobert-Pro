@@ -3,8 +3,7 @@ use crate::agents::models::AgentDepartment;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::env;
-use tracing::{debug, info, warn};
-use uuid::Uuid;
+use tracing::{debug, warn};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LlmConfig {

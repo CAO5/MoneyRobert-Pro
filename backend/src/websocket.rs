@@ -106,7 +106,7 @@ impl WebSocketManager {
     }
 
     pub fn broadcast_to_user(&self, user_id: i64, message: &str) {
-        let msg: serde_json::Value = serde_json::from_str(message).unwrap_or_default();
+        let _msg: serde_json::Value = serde_json::from_str(message).unwrap_or_default();
         let ws_msg = Message::Text(Utf8Bytes::from(message.to_string()));
         if let Some(conn_ids) = self.user_connections.read().get(&user_id) {
             for conn_id in conn_ids {

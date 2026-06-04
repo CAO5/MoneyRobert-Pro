@@ -1,9 +1,8 @@
 use crate::agents::config::AgentConfig;
-use crate::agents::errors::{AgentError, AgentResult};
-use crate::agents::models::{AiSimulationConfig, AiSimulationTrade};
-use chrono::{Duration, Utc};
+use crate::agents::errors::AgentResult;
+use crate::agents::models::AiSimulationConfig;
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RiskCheckResult {
@@ -12,7 +11,7 @@ pub struct RiskCheckResult {
     pub risk_level: RiskLevel,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RiskLevel {
     Low,
     Medium,
@@ -138,7 +137,7 @@ impl RiskChecker {
             };
         }
 
-        if leverage > max_leverage * 0.8 {
+        if (leverage as f64) > (max_leverage as f64) * 0.8 {
             return RiskCheckResult {
                 passed: true,
                 alerts: vec![format!(
@@ -249,7 +248,7 @@ impl RiskChecker {
             });
         }
 
-        if sim_config.total_trades >= max_daily_trades * 0.8 {
+        if (sim_config.total_trades as f64) >= (max_daily_trades as f64) * 0.8 {
             return Ok(RiskCheckResult {
                 passed: true,
                 alerts: vec![format!(
@@ -306,7 +305,7 @@ impl RiskChecker {
 
     async fn check_emergency_stop(&self, config_id: uuid::Uuid) -> AgentResult<RiskCheckResult> {
         let row = sqlx::query(
-            r#"SELECT autonomous_config FROM ai_simulation_config WHERE id = $1"#,
+            r#"SELECT autonomous_config FROM ai_simulation_configs WHERE id = $1"#,
         )
         .bind(config_id)
         .fetch_optional(&self.db)
@@ -341,7 +340,7 @@ impl RiskChecker {
         config_id: uuid::Uuid,
     ) -> AgentResult<AiSimulationConfig> {
         let config = sqlx::query_as::<_, AiSimulationConfig>(
-            r#"SELECT * FROM ai_simulation_config WHERE id = $1"#,
+            r#"SELECT * FROM ai_simulation_configs WHERE id = $1"#,
         )
         .bind(config_id)
         .fetch_one(&self.db)
@@ -352,7 +351,7 @@ impl RiskChecker {
 
     pub async fn trigger_emergency_stop(&self, config_id: uuid::Uuid, reason: &str) -> AgentResult<()> {
         sqlx::query(
-            r#"UPDATE ai_simulation_config
+            r#"UPDATE ai_simulation_configs
                SET autonomous_config = jsonb_set(
                    COALESCE(autonomous_config, '{}'::jsonb),
                    '{emergency_stop}',
@@ -371,7 +370,7 @@ impl RiskChecker {
 
     pub async fn reset_emergency_stop(&self, config_id: uuid::Uuid) -> AgentResult<()> {
         sqlx::query(
-            r#"UPDATE ai_simulation_config
+            r#"UPDATE ai_simulation_configs
                SET autonomous_config = jsonb_set(
                    COALESCE(autonomous_config, '{}'::jsonb),
                    '{emergency_stop}',

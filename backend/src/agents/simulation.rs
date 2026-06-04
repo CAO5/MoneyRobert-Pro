@@ -4,7 +4,7 @@ use crate::agents::{
 };
 use crate::exchanges::okx::OkxClient;
 use chrono::Utc;
-use sqlx::{PgPool, Row};
+use sqlx::PgPool;
 use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -147,8 +147,7 @@ impl SimulationEngine {
             ));
         }
 
-        let trade = sqlx::query_as!(
-            AiSimulationTrade,
+        let trade = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
             INSERT INTO ai_simulation_trades (
                 config_id, symbol, mode, direction, entry_price, quantity, leverage,
@@ -157,25 +156,24 @@ impl SimulationEngine {
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'open', NOW())
             RETURNING *
-            "#,
-            config.id,
-            config.symbol,
-            config.mode,
-            direction,
-            entry_price,
-            quantity,
-            leverage,
-            stop_loss,
-            take_profit,
-            ai_confidence,
-            ai_reasoning,
-            agent_session_id
+            "#
         )
+        .bind(config.id)
+        .bind(&config.symbol)
+        .bind(&config.mode)
+        .bind(direction)
+        .bind(entry_price)
+        .bind(quantity)
+        .bind(leverage)
+        .bind(stop_loss)
+        .bind(take_profit)
+        .bind(ai_confidence)
+        .bind(ai_reasoning)
+        .bind(agent_session_id)
         .fetch_one(&mut *tx)
         .await?;
 
-        let updated_config = sqlx::query_as!(
-            AiSimulationConfig,
+        let updated_config = sqlx::query_as::<_, AiSimulationConfig>(
             r#"
             UPDATE ai_simulation_configs
             SET total_trades = total_trades + 1,
@@ -183,9 +181,9 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
-            "#,
-            config.id
+            "#
         )
+        .bind(config.id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -280,8 +278,7 @@ impl SimulationEngine {
 
         let mode_str = Self::execution_mode_to_string(mode);
 
-        let trade = sqlx::query_as!(
-            AiSimulationTrade,
+        let trade = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
             INSERT INTO ai_simulation_trades (
                 config_id, symbol, mode, direction, entry_price, quantity, leverage,
@@ -290,25 +287,24 @@ impl SimulationEngine {
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'open', NOW())
             RETURNING *
-            "#,
-            config.id,
-            config.symbol,
-            mode_str,
-            direction,
-            entry_price,
-            quantity,
-            leverage,
-            stop_loss,
-            take_profit,
-            ai_confidence,
-            ai_reasoning,
-            agent_session_id
+            "#
         )
+        .bind(config.id)
+        .bind(&config.symbol)
+        .bind(mode_str)
+        .bind(direction)
+        .bind(entry_price)
+        .bind(quantity)
+        .bind(leverage)
+        .bind(stop_loss)
+        .bind(take_profit)
+        .bind(ai_confidence)
+        .bind(ai_reasoning)
+        .bind(agent_session_id)
         .fetch_one(&mut *tx)
         .await?;
 
-        let updated_config = sqlx::query_as!(
-            AiSimulationConfig,
+        let updated_config = sqlx::query_as::<_, AiSimulationConfig>(
             r#"
             UPDATE ai_simulation_configs
             SET total_trades = total_trades + 1,
@@ -316,9 +312,9 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
-            "#,
-            config.id
+            "#
         )
+        .bind(config.id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -345,11 +341,10 @@ impl SimulationEngine {
     ) -> AgentResult<TradeExecutionResult> {
         let mut tx = self.pool.begin().await?;
 
-        let trade = sqlx::query_as!(
-            AiSimulationTrade,
-            "SELECT * FROM ai_simulation_trades WHERE id = $1",
-            trade_id
+        let trade = sqlx::query_as::<_, AiSimulationTrade>(
+            "SELECT * FROM ai_simulation_trades WHERE id = $1"
         )
+        .bind(trade_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -415,8 +410,7 @@ impl SimulationEngine {
         let holding_duration = Utc::now().signed_duration_since(trade.opened_at);
         let holding_duration_minutes = holding_duration.num_minutes() as i32;
 
-        let updated_trade = sqlx::query_as!(
-            AiSimulationTrade,
+        let updated_trade = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
             UPDATE ai_simulation_trades
             SET exit_price = $1,
@@ -429,23 +423,22 @@ impl SimulationEngine {
                 closed_at = NOW()
             WHERE id = $7
             RETURNING *
-            "#,
-            exit_price,
-            pnl,
-            pnl_percent,
-            net_pnl_percent,
-            close_reason,
-            holding_duration_minutes,
-            trade_id
+            "#
         )
+        .bind(exit_price)
+        .bind(pnl)
+        .bind(pnl_percent)
+        .bind(net_pnl_percent)
+        .bind(close_reason)
+        .bind(holding_duration_minutes)
+        .bind(trade_id)
         .fetch_one(&mut *tx)
         .await?;
 
-        let config = sqlx::query_as!(
-            AiSimulationConfig,
-            "SELECT * FROM ai_simulation_configs WHERE id = $1",
-            trade.config_id
+        let config = sqlx::query_as::<_, AiSimulationConfig>(
+            "SELECT * FROM ai_simulation_configs WHERE id = $1"
         )
+        .bind(trade.config_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -463,8 +456,7 @@ impl SimulationEngine {
             0.0
         };
 
-        let updated_config = sqlx::query_as!(
-            AiSimulationConfig,
+        let updated_config = sqlx::query_as::<_, AiSimulationConfig>(
             r#"
             UPDATE ai_simulation_configs
             SET current_balance = $1,
@@ -474,13 +466,13 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $5
             RETURNING *
-            "#,
-            new_balance,
-            winning_trades,
-            losing_trades,
-            win_rate,
-            config.id
+            "#
         )
+        .bind(new_balance)
+        .bind(winning_trades)
+        .bind(losing_trades)
+        .bind(win_rate)
+        .bind(config.id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -506,11 +498,10 @@ impl SimulationEngine {
         config_id: Uuid,
         market_snapshot: &MarketSnapshot,
     ) -> AgentResult<(Vec<StopLossTrigger>, Vec<TakeProfitTrigger>)> {
-        let open_trades = sqlx::query_as!(
-            AiSimulationTrade,
-            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open'",
-            config_id
+        let open_trades = sqlx::query_as::<_, AiSimulationTrade>(
+            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open'"
         )
+        .bind(config_id)
         .fetch_all(&self.pool)
         .await?;
 
@@ -578,11 +569,10 @@ impl SimulationEngine {
     }
 
     pub async fn get_open_trades(&self, config_id: Uuid) -> AgentResult<Vec<AiSimulationTrade>> {
-        let trades = sqlx::query_as!(
-            AiSimulationTrade,
-            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open' ORDER BY opened_at DESC",
-            config_id
+        let trades = sqlx::query_as::<_, AiSimulationTrade>(
+            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open' ORDER BY opened_at DESC"
         )
+        .bind(config_id)
         .fetch_all(&self.pool)
         .await?;
         Ok(trades)
@@ -593,12 +583,11 @@ impl SimulationEngine {
         config_id: Uuid,
         limit: i64,
     ) -> AgentResult<Vec<AiSimulationTrade>> {
-        let trades = sqlx::query_as!(
-            AiSimulationTrade,
-            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 ORDER BY opened_at DESC LIMIT $2",
-            config_id,
-            limit
+        let trades = sqlx::query_as::<_, AiSimulationTrade>(
+            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 ORDER BY opened_at DESC LIMIT $2"
         )
+        .bind(config_id)
+        .bind(limit)
         .fetch_all(&self.pool)
         .await?;
         Ok(trades)
@@ -646,7 +635,7 @@ impl SimulationEngine {
 
         let total_eq: f64 = accounts
             .iter()
-            .filter_map(|a| a.total_eq.parse::<f64>().ok())
+            .filter_map(|a| a.total_eq.as_deref().and_then(|v| v.parse::<f64>().ok()))
             .sum();
 
         Ok(total_eq)
@@ -699,31 +688,30 @@ impl SimulationEngine {
         let mut synced_trades = Vec::new();
 
         for pos in &positions {
-            let direction = if pos.pos.parse::<f64>().unwrap_or(0.0) > 0.0 {
+            let direction = if pos.pos.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0) > 0.0 {
                 "long"
             } else {
                 "short"
             };
 
-            let quantity = pos.pos.parse::<f64>().unwrap_or(0.0).abs();
-            let entry_price = pos.avg_px.parse::<f64>().unwrap_or(0.0);
-            let leverage = pos.lever.parse::<i32>().unwrap_or(1);
+            let quantity = pos.pos.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0).abs();
+            let entry_price = pos.avg_px.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
+            let leverage = pos.lever.as_deref().unwrap_or("1").parse::<i32>().unwrap_or(1);
 
-            let existing = sqlx::query!(
+            let existing = sqlx::query(
                 r#"
                 SELECT id FROM ai_simulation_trades
                 WHERE config_id = $1 AND symbol = $2 AND direction = $3 AND status = 'open'
-                "#,
-                config_id,
-                pos.inst_id,
-                direction
+                "#
             )
+            .bind(config_id)
+            .bind(pos.inst_id.as_deref().unwrap_or(""))
+            .bind(direction)
             .fetch_optional(&self.pool)
             .await?;
 
             if existing.is_none() && quantity > 0.0 {
-                let trade = sqlx::query_as!(
-                    AiSimulationTrade,
+                let trade = sqlx::query_as::<_, AiSimulationTrade>(
                     r#"
                     INSERT INTO ai_simulation_trades (
                         config_id, symbol, mode, direction, entry_price, quantity, leverage,
@@ -731,14 +719,14 @@ impl SimulationEngine {
                     )
                     VALUES ($1, $2, 'live', $3, $4, $5, $6, 'open', NOW())
                     RETURNING *
-                    "#,
-                    config_id,
-                    pos.inst_id,
-                    direction,
-                    entry_price,
-                    quantity,
-                    leverage
+                    "#
                 )
+                .bind(config_id)
+                .bind(pos.inst_id.as_deref().unwrap_or(""))
+                .bind(direction)
+                .bind(entry_price)
+                .bind(quantity)
+                .bind(leverage)
                 .fetch_one(&self.pool)
                 .await?;
 
@@ -788,18 +776,17 @@ impl SimulationEngine {
         }
     }
 
-    async fn update_rolling_stats(&self, tx: &mut sqlx::Transaction<'_, sqlx::Postgres>, config_id: Uuid) -> AgentResult<()> {
-        let trades = sqlx::query_as!(
-            AiSimulationTrade,
+    async fn update_rolling_stats(&self, tx: &mut sqlx::PgConnection, config_id: Uuid) -> AgentResult<()> {
+        let trades = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
             SELECT * FROM ai_simulation_trades
             WHERE config_id = $1 AND status = 'closed'
             ORDER BY opened_at DESC
             LIMIT 50
-            "#,
-            config_id
+            "#
         )
-        .fetch_all(&mut **tx)
+        .bind(config_id)
+        .fetch_all(&mut *tx)
         .await?;
 
         if trades.is_empty() {
@@ -831,19 +818,19 @@ impl SimulationEngine {
             0.0
         };
 
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE ai_simulation_configs
             SET avg_pnl_percent = $1,
                 profit_loss_ratio = $2,
                 updated_at = NOW()
             WHERE id = $3
-            "#,
-            avg_pnl_percent,
-            profit_loss_ratio,
-            config_id
+            "#
         )
-        .execute(&mut **tx)
+        .bind(avg_pnl_percent)
+        .bind(profit_loss_ratio)
+        .bind(config_id)
+        .execute(&mut *tx)
         .await?;
 
         Ok(())

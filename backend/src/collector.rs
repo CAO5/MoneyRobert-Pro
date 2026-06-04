@@ -47,7 +47,7 @@ impl MarketCollector {
             .or_else(|_| std::env::var("HTTPS_PROXY"))
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {
-            let proxy_url = proxy_url.replace("socks5://", "socks5h://");
+            let proxy_url = proxy_url.replace("socks5h://", "socks5://");
             if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
                 tracing::info!("Market collector using proxy: {}", proxy_url);
                 builder = builder.proxy(proxy);
