@@ -10,6 +10,7 @@ use sqlx::{FromRow, Row};
 
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
+use crate::routes::trading::get_okx_client;
 use crate::schemas::success_response;
 use crate::state::AppState;
 
@@ -455,7 +456,62 @@ async fn get_open_interest_by_symbol(
     Path(symbol): Path<String>,
     Query(query): Query<OpenInterestSymbolQuery>,
 ) -> Result<Json<serde_json::Value>> {
-    let limit = query.limit.unwrap_or(100).min(1000);
+    let limit = query.limit.unwrap_or(100).min(1000) as usize;
+
+    // Extract currency code from symbol (e.g. "BTC-USDT-SWAP" -> "BTC")
+    let ccy = symbol.split('-').next().unwrap_or(&symbol).to_string();
+
+    // Try OKX API first for real-time data
+    let okx_data = match get_okx_client(&state, user.user_id).await {
+        Ok(client) => {
+            match client.get_raw(
+                "/api/v5/rubik/stat/contracts/open-interest-volume",
+                Some(&[("ccy", ccy.clone()), ("period", "5m".to_string())]),
+            ).await {
+                Ok(data) => {
+                    if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
+                        let items: Vec<serde_json::Value> = arr.iter()
+                            .take(limit)
+                            .map(|item| {
+                                let parts = item.as_array();
+                                let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
+                                let oi = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                    .or_else(|| parts.and_then(|p| p.get(1)).and_then(|v| v.as_f64()))
+                                    .unwrap_or(0.0);
+                                let vol = parts.and_then(|p| p.get(2)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                    .or_else(|| parts.and_then(|p| p.get(2)).and_then(|v| v.as_f64()));
+                                serde_json::json!({
+                                    "symbol": symbol,
+                                    "open_interest": oi,
+                                    "open_interest_value": vol,
+                                    "timestamp": ts,
+                                })
+                            }).collect();
+                        Some(items)
+                    } else {
+                        None
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to fetch open interest from OKX for {}: {}, falling back to DB", symbol, e);
+                    None
+                }
+            }
+        }
+        Err(_) => None,
+    };
+
+    if let Some(items) = okx_data {
+        return Ok(Json(serde_json::json!({
+            "success": true,
+            "message": "OKX real-time data",
+            "data": items,
+            "total": items.len(),
+            "source": "okx",
+        })));
+    }
+
+    // Fallback to database
     let offset = query.offset.unwrap_or(0);
 
     let total: i64 = sqlx::query_scalar(
@@ -480,7 +536,7 @@ async fn get_open_interest_by_symbol(
         "#,
     )
     .bind(&symbol)
-    .bind(limit)
+    .bind(limit as i64)
     .bind(offset)
     .fetch_all(&state.db_pool)
     .await
@@ -495,17 +551,18 @@ async fn get_open_interest_by_symbol(
         })
     }).collect();
 
-    let page = (offset / limit.max(1)) as i32 + 1;
+    let page = (offset / limit.max(1) as i64) as i32 + 1;
     let total_pages = ((total as f64) / (limit as f64)).ceil() as i32;
 
     Ok(Json(serde_json::json!({
         "success": true,
-        "message": "Success",
+        "message": "Database cached data",
         "data": items,
         "total": total,
         "page": page,
         "page_size": limit,
         "total_pages": total_pages,
+        "source": "database",
         "timestamp": now_cst()
     })))
 }
@@ -602,7 +659,63 @@ async fn get_long_short_ratio_by_symbol(
     Path(symbol): Path<String>,
     Query(query): Query<LongShortRatioSymbolQuery>,
 ) -> Result<Json<serde_json::Value>> {
-    let limit = query.limit.unwrap_or(100).min(1000);
+    let limit = query.limit.unwrap_or(100).min(1000) as usize;
+    let period = query.period.unwrap_or_else(|| "5m".to_string());
+
+    // Extract currency code from symbol (e.g. "BTC-USDT-SWAP" -> "BTC")
+    let ccy = symbol.split('-').next().unwrap_or(&symbol).to_string();
+
+    // Try OKX API first for real-time data
+    let okx_data = match get_okx_client(&state, user.user_id).await {
+        Ok(client) => {
+            match client.get_raw(
+                "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+                Some(&[("ccy", ccy.clone()), ("period", period.clone())]),
+            ).await {
+                Ok(data) => {
+                    if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
+                        let items: Vec<serde_json::Value> = arr.iter()
+                            .take(limit)
+                            .map(|item| {
+                                let parts = item.as_array();
+                                let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
+                                let long_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                                let short_ratio = parts.and_then(|p| p.get(2)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                                let ls_ratio = parts.and_then(|p| p.get(3)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                    .or_else(|| parts.and_then(|p| p.get(3)).and_then(|v| v.as_f64()));
+                                serde_json::json!({
+                                    "symbol": symbol,
+                                    "long_ratio": long_ratio,
+                                    "short_ratio": short_ratio,
+                                    "long_short_ratio": ls_ratio,
+                                    "timestamp": ts,
+                                })
+                            }).collect();
+                        Some(items)
+                    } else {
+                        None
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to fetch long-short ratio from OKX for {}: {}, falling back to DB", symbol, e);
+                    None
+                }
+            }
+        }
+        Err(_) => None,
+    };
+
+    if let Some(items) = okx_data {
+        return Ok(Json(serde_json::json!({
+            "success": true,
+            "message": "OKX real-time data",
+            "data": items,
+            "total": items.len(),
+            "source": "okx",
+        })));
+    }
+
+    // Fallback to database
     let offset = query.offset.unwrap_or(0);
 
     let total: i64 = sqlx::query_scalar(
@@ -624,7 +737,7 @@ async fn get_long_short_ratio_by_symbol(
         "#,
     )
     .bind(&symbol)
-    .bind(limit)
+    .bind(limit as i64)
     .bind(offset)
     .fetch_all(&state.db_pool)
     .await
@@ -640,17 +753,18 @@ async fn get_long_short_ratio_by_symbol(
         })
     }).collect();
 
-    let page = (offset / limit.max(1)) as i32 + 1;
+    let page = (offset / limit.max(1) as i64) as i32 + 1;
     let total_pages = ((total as f64) / (limit as f64)).ceil() as i32;
 
     Ok(Json(serde_json::json!({
         "success": true,
-        "message": "Success",
+        "message": "Database cached data",
         "data": items,
         "total": total,
         "page": page,
         "page_size": limit,
         "total_pages": total_pages,
+        "source": "database",
         "timestamp": now_cst()
     })))
 }
