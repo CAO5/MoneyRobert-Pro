@@ -1923,6 +1923,565 @@ async fn get_debate_session(
     })))
 }
 
+// ==================== Market Analysis Helper Functions ====================
+
+use crate::exchanges::okx::OkxClient;
+ use crate::exchanges::okx::OkxCandle;
+
+/// Analyze market context from candles
+fn analyze_market_context(candles: &[OkxCandle], current_price: f64) -> (String, f64, String, String, (f64, f64, f64)) {
+    if candles.len() < 10 {
+        return ("unknown".to_string(), 0.5, "medium".to_string(), "stable".to_string(),
+                (current_price * 0.95, current_price, current_price * 1.05));
+    }
+
+    // Calculate trend using moving averages
+    let recent_closes: Vec<f64> = candles.iter().rev().take(20)
+        .filter_map(|c| c.c.as_ref().and_then(|s| s.parse::<f64>().ok()))
+        .collect();
+    let ma5: f64 = recent_closes.iter().take(5).sum::<f64>() / 5.0;
+    let ma20: f64 = recent_closes.iter().sum::<f64>() / recent_closes.len() as f64;
+
+    let trend = if ma5 > ma20 * 1.02 {
+        "bull".to_string()
+    } else if ma5 < ma20 * 0.98 {
+        "bear".to_string()
+    } else {
+        "range".to_string()
+    };
+
+    // Trend strength based on distance from MAs
+    let trend_strength = ((ma5 - ma20) / ma20).abs().min(0.1) * 10.0;
+
+    // Calculate volatility (ATR-based)
+    let atr: f64 = candles.iter().rev().take(14)
+        .filter_map(|c| {
+            let h = c.h.as_ref().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+            let l = c.l.as_ref().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+            let o = c.o.as_ref().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+            let close = c.c.as_ref().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+            Some((h - l).max((close - o).abs()))
+        })
+        .sum::<f64>() / 14.0;
+    let volatility_ratio = atr / current_price;
+    let volatility = if volatility_ratio < 0.01 {
+        "low".to_string()
+    } else if volatility_ratio < 0.03 {
+        "medium".to_string()
+    } else {
+        "high".to_string()
+    };
+
+    // Volume profile
+    let recent_vol: Vec<f64> = candles.iter().rev().take(10)
+        .filter_map(|c| c.vol.as_ref().and_then(|s| s.parse::<f64>().ok()))
+        .collect();
+    let avg_vol = recent_vol.iter().sum::<f64>() / recent_vol.len() as f64;
+    let volume_profile = if recent_vol.is_empty() || avg_vol == 0.0 {
+        "stable".to_string()
+    } else if recent_vol[0] > avg_vol * 1.3 {
+        "increasing".to_string()
+    } else if recent_vol[0] < avg_vol * 0.7 {
+        "decreasing".to_string()
+    } else {
+        "stable".to_string()
+    };
+
+    // Key levels (support and resistance)
+    let high = candles.iter()
+        .filter_map(|c| c.h.as_ref().and_then(|s| s.parse::<f64>().ok()))
+        .fold(f64::MIN, f64::max);
+    let low = candles.iter()
+        .filter_map(|c| c.l.as_ref().and_then(|s| s.parse::<f64>().ok()))
+        .fold(f64::MAX, f64::min);
+    let key_levels = (
+        low,
+        (high + low) / 2.0,
+        high,
+    );
+
+    (trend, trend_strength, volatility, volume_profile, key_levels)
+}
+
+/// Multi-timeframe data structure
+#[derive(Debug, Clone)]
+struct MultiTimeframeData {
+    m5_trend: String,
+    m15_trend: String,
+    h1_trend: String,
+    h4_trend: String,
+    d1_trend: String,
+    alignment: f64,
+    alignment_details: String,
+}
+
+/// Fetch and analyze multi-timeframe data
+async fn fetch_multi_timeframe_data(okx_client: &OkxClient, symbol: &str, current_price: f64) -> MultiTimeframeData {
+    let intervals = [("5m", 5), ("15m", 15), ("1H", 60), ("4H", 240), ("1D", 1440)];
+    let mut trends: Vec<(String, String)> = Vec::new();
+
+    for (interval, _mins) in &intervals {
+        let candles = okx_client.get_candles(symbol, interval, Some(20)).await.unwrap_or_default();
+        if candles.len() >= 5 {
+            let (trend, _, _, _, _) = analyze_market_context(&candles, current_price);
+            trends.push((interval.to_string(), trend));
+        } else {
+            trends.push((interval.to_string(), "unknown".to_string()));
+        }
+    }
+
+    let m5_trend = trends.get(0).map(|t| t.1.clone()).unwrap_or_else(|| "unknown".to_string());
+    let m15_trend = trends.get(1).map(|t| t.1.clone()).unwrap_or_else(|| "unknown".to_string());
+    let h1_trend = trends.get(2).map(|t| t.1.clone()).unwrap_or_else(|| "unknown".to_string());
+    let h4_trend = trends.get(3).map(|t| t.1.clone()).unwrap_or_else(|| "unknown".to_string());
+    let d1_trend = trends.get(4).map(|t| t.1.clone()).unwrap_or_else(|| "unknown".to_string());
+
+    // Calculate alignment
+    let aligned_count = trends.iter().filter(|t| t.1 != "unknown" && t.1 == trends[0].1).count();
+    let alignment = aligned_count as f64 / trends.len() as f64;
+
+    let alignment_details = match alignment {
+        a if a >= 0.8 => "强一致性".to_string(),
+        a if a >= 0.6 => "中等一致性".to_string(),
+        a if a >= 0.4 => "存在分歧".to_string(),
+        _ => "方向不明".to_string(),
+    };
+
+    MultiTimeframeData {
+        m5_trend,
+        m15_trend,
+        h1_trend,
+        h4_trend,
+        d1_trend,
+        alignment,
+        alignment_details,
+    }
+}
+
+/// Calculate enhanced confidence with market context calibration
+fn calculate_enhanced_confidence(
+    base_confidence: f64,
+    agent_opinions: &[Value],
+    volatility: &str,
+    mtf_alignment: f64,
+    historical_accuracy: f64,
+) -> f64 {
+    // Agent agreement factor
+    let sentiments: Vec<&str> = agent_opinions.iter()
+        .filter_map(|o| o.get("sentiment").and_then(|v| v.as_str()))
+        .collect();
+    let bull_count = sentiments.iter().filter(|&&s| s == "bullish").count() as f64;
+    let bear_count = sentiments.iter().filter(|&&s| s == "bearish").count() as f64;
+    let total = sentiments.len() as f64;
+    let agreement = if total > 0.0 { (bull_count.max(bear_count) / total).max(0.5) } else { 0.5 };
+
+    // Volatility factor (reduce confidence in high volatility)
+    let volatility_factor = match volatility {
+        "high" => 0.85,
+        "medium" => 0.95,
+        "low" => 1.0,
+        _ => 0.95,
+    };
+
+    // Multi-timeframe alignment factor
+    let alignment_factor = 0.7 + (mtf_alignment * 0.3);
+
+    // Historical accuracy factor
+    let historical_factor = 0.8 + (historical_accuracy.min(1.0) * 0.2);
+
+    // Final confidence calculation
+    // 50% base + 25% agreement + 15% alignment + 10% historical
+    let final_confidence = base_confidence * 0.5 +
+                          agreement * 0.25 +
+                          alignment_factor * 0.15 +
+                          historical_factor * 0.1;
+
+    // Apply volatility dampening
+    let calibrated_confidence = final_confidence * volatility_factor;
+
+    // Clamp to reasonable range
+    calibrated_confidence.max(0.2).min(0.98)
+}
+
+/// Extract trend patterns from historical decisions (simplified version)
+fn trends_from_decisions(_decisions_len: usize) -> f64 {
+    // This is a simplified version - in production you'd query decision_memory directly
+    // For now, return neutral accuracy
+    0.5
+}
+
+// ==================== Reusable Debate Function for Simulation ====================
+
+#[derive(Debug, Clone)]
+pub struct DebateResult {
+    pub session_id: Uuid,
+    pub action: String,       // "long", "short", "hold"
+    pub confidence: f64,
+    pub stop_loss: f64,
+    pub take_profit: Vec<f64>,
+    pub leverage: i32,
+    pub reasoning: String,
+    pub agent_opinions: Vec<Value>,
+    pub department_reports: Vec<Value>,
+}
+
+pub async fn run_debate_for_simulation(
+    pool: &sqlx::PgPool,
+    user_id: i64,
+    symbol: &str,
+    current_price: f64,
+    interval: &str,
+) -> Result<DebateResult> {
+
+    // 1. Get OKX client by querying DB directly (avoid creating AppState)
+    let key_row = sqlx::query(
+        r#"SELECT key, secret, passphrase, metadata FROM api_keys WHERE user_id = $1 AND is_active = true AND key_type = 'exchange' LIMIT 1"#,
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| AppError::Database(e))?
+    .ok_or_else(|| AppError::NotFound("未配置交易所 API 密钥，请先在系统设置中添加".to_string()))?;
+
+    let encrypted_key: String = key_row.get("key");
+    let encrypted_secret: String = key_row.get("secret");
+    let encrypted_passphrase: String = key_row.get("passphrase");
+    let api_key = decrypt(&encrypted_key).map_err(|e| AppError::Internal(format!("解密 API Key 失败: {}", e)))?;
+    let secret = decrypt(&encrypted_secret).map_err(|e| AppError::Internal(format!("解密 Secret 失败: {}", e)))?;
+    let passphrase = decrypt(&encrypted_passphrase).unwrap_or_default();
+    let metadata: serde_json::Value = key_row.get("metadata");
+    let is_demo = metadata.get("is_demo").and_then(|v| v.as_bool()).unwrap_or(false);
+    let okx_client = crate::exchanges::okx::OkxClient::new(api_key, secret, passphrase, is_demo);
+
+    // 2. Fetch market data
+    let ticker = okx_client.get_ticker(symbol).await
+        .map_err(|e| AppError::Validation(format!("获取行情数据失败: {}", e)))?;
+    let candles = okx_client.get_candles(symbol, interval, Some(100)).await
+        .unwrap_or_default();
+
+    let funding_data = okx_client.get_raw("/api/v5/public/funding-rate", Some(&[("instId", symbol.to_string())])).await
+        .unwrap_or_else(|_| json!({}));
+    let ccy = symbol.split('-').next().unwrap_or(symbol).to_string();
+    let long_short_data = okx_client.get_raw(
+        "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+        Some(&[("ccy", ccy), ("period", "5m".to_string())]),
+    ).await.unwrap_or_else(|_| json!({}));
+
+    let open_24h: f64 = ticker.open_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(current_price);
+    let high_24h: f64 = ticker.high_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(current_price);
+    let low_24h: f64 = ticker.low_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(current_price);
+    let vol_24h: f64 = ticker.vol_24h.as_ref().and_then(|v| v.parse().ok()).unwrap_or(0.0);
+    let funding_rate = funding_data.get("data").and_then(|d| d.get(0))
+        .and_then(|item| item.get("fundingRate")).and_then(|v| v.as_str())
+        .and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+    let long_short_ratio = long_short_data.get("data").and_then(|d| d.as_array())
+        .and_then(|arr| arr.first()).and_then(|item| item.as_array())
+        .and_then(|pair| pair.get(1)).and_then(|v| v.as_str())
+        .and_then(|s| s.parse::<f64>().ok())
+        .unwrap_or(1.0);
+
+    let recent_candles: Vec<Value> = candles.iter().take(20).map(|c| json!({
+        "open": c.o, "high": c.h, "low": c.l, "close": c.c, "volume": c.vol,
+    })).collect();
+
+    // Analyze market context: trend, volatility, volume profile
+    let (trend, trend_strength, volatility, volume_profile, key_levels) = analyze_market_context(&candles, current_price);
+
+    // Fetch multi-timeframe data
+    let multi_timeframe_data = fetch_multi_timeframe_data(&okx_client, symbol, current_price).await;
+
+    let market_data_str = format!(
+        "## 实时市场数据
+交易对: {}
+当前价格: {:.2}
+
+### 市场环境分析
+趋势: {} (强度: {:.0}%)
+波动性: {}
+成交量: {}
+关键支撑/阻力位: {:.2}, {:.2}, {:.2}
+
+### 多时间框架分析
+5分钟趋势: {}
+15分钟趋势: {}
+1小时趋势: {}
+4小时趋势: {}
+日线趋势: {}
+周期一致性: {:.0}% ({})
+近期K线: {}
+
+24h涨跌: {:.2}%
+24h最高/最低: {:.2}/{:.2}
+24h成交量: {:.2}
+资金费率: {:.6}
+多空比: {:.4}",
+        symbol, current_price,
+        trend, trend_strength * 100.0,
+        volatility, volume_profile,
+        key_levels.0, key_levels.1, key_levels.2,
+        multi_timeframe_data.m5_trend,
+        multi_timeframe_data.m15_trend,
+        multi_timeframe_data.h1_trend,
+        multi_timeframe_data.h4_trend,
+        multi_timeframe_data.d1_trend,
+        multi_timeframe_data.alignment * 100.0,
+        multi_timeframe_data.alignment_details,
+        serde_json::to_string_pretty(&recent_candles).unwrap_or_default(),
+        if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
+        high_24h, low_24h, vol_24h, funding_rate, long_short_ratio,
+    );
+
+    // 3. Fetch historical decision memory for context (learning feedback)
+    let recent_decisions = sqlx::query(
+        r#"SELECT symbol, action, confidence, actual_outcome, actual_pnl_percent, success, close_reason, reflection, created_at
+        FROM decision_memory
+        WHERE user_id = $1 AND symbol = $2 AND success IS NOT NULL
+        ORDER BY created_at DESC LIMIT 10"#
+    )
+    .bind(user_id)
+    .bind(symbol)
+    .fetch_all(pool)
+    .await
+    .unwrap_or_default();
+
+    let history_str = if recent_decisions.is_empty() {
+        String::new()
+    } else {
+        let mut lines = Vec::new();
+        for row in &recent_decisions {
+            let action: String = row.get("action");
+            let confidence: f64 = row.get("confidence");
+            let success: bool = row.get("success");
+            let pnl: Option<f64> = row.get("actual_pnl_percent");
+            let close_reason: Option<String> = row.get("close_reason");
+            lines.push(format!(
+                "- {} (置信度{:.0}%): {} 盈亏{:.2}% 原因:{}",
+                action, confidence * 100.0,
+                if success { "盈利" } else { "亏损" },
+                pnl.unwrap_or(0.0),
+                close_reason.unwrap_or_default(),
+            ));
+        }
+        format!("最近{}次同类决策:\n{}", recent_decisions.len(), lines.join("\n"))
+    };
+
+    // Fetch agent credibility weights from agent_performance
+    let agent_perfs = sqlx::query(
+        r#"SELECT agent_name, agent_department, accuracy, credibility_score, calibration_factor, total_analyses
+        FROM agent_performance WHERE total_analyses > 0"#
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap_or_default();
+
+    let mut credibility_map: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
+    for row in &agent_perfs {
+        let name: String = row.get("agent_name");
+        let credibility: f64 = row.get("credibility_score");
+        credibility_map.insert(name, credibility);
+    }
+
+    let credibility_str = if credibility_map.is_empty() {
+        String::new()
+    } else {
+        let items: Vec<String> = credibility_map.iter()
+            .map(|(name, score)| format!("{}: {:.0}%", name, score * 100.0))
+            .collect();
+        format!("\n各分析师历史可信度: {}", items.join(", "))
+    };
+
+    // 4. Create debate session
+    let session_row = sqlx::query(
+        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, created_at, updated_at)
+        VALUES ($1, $2, 'in_progress', 'auto_simulation', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, NOW(), NOW())
+        RETURNING id"#
+    )
+    .bind(user_id)
+    .bind(symbol)
+    .fetch_one(pool)
+    .await?;
+
+    let session_id: Uuid = session_row.get::<Uuid, _>("id");
+
+    // 5. Run 6 agents (with credibility weights injected)
+    let mut agent_opinions: Vec<Value> = Vec::new();
+    for agent_def in AGENTS {
+        let agent_credibility = credibility_map.get(agent_def.name).copied().unwrap_or(0.5);
+        let system_prompt = format!(
+            "你是{}的{}，名叫{}。性格：{}。\n\
+            你的历史可信度评分: {:.0}%（基于历史预测准确率）\n\
+            基于OKX实时市场数据分析。必须JSON回复：\n\
+            {{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"分析\", \"key_factors\": [\"因素\"]}}\n\
+            模拟交易验证，必须给出明确方向。只输出JSON。",
+            match agent_def.department {
+                "technical" => "技术分析部", "capital" => "资金分析部", "news" => "新闻分析部", _ => "分析部",
+            },
+            agent_def.role, agent_def.name, agent_def.personality,
+            agent_credibility * 100.0,
+        );
+
+        let opinion = match analyze_with_llm(pool, user_id, &system_prompt, &market_data_str, agent_def.id).await {
+            Ok(response) => {
+                let parsed = parse_agent_json_response(&response);
+                json!({
+                    "agent_id": agent_def.id, "agent_name": agent_def.name,
+                    "department": agent_def.department, "sentiment": parsed.sentiment,
+                    "confidence": parsed.confidence, "analysis": parsed.analysis,
+                    "key_factors": parsed.key_factors, "source": "llm",
+                })
+            }
+            Err(e) => json!({
+                "agent_id": agent_def.id, "agent_name": agent_def.name,
+                "department": agent_def.department, "sentiment": "neutral",
+                "confidence": 0.3, "analysis": format!("LLM失败: {}", e),
+                "key_factors": [], "source": "llm_error",
+            }),
+        };
+        agent_opinions.push(opinion);
+    }
+
+    // 5. Department reports
+    let mut department_reports: Vec<Value> = Vec::new();
+    for dept in &["technical", "capital", "news"] {
+        let dept_name = match *dept { "technical" => "技术分析部", "capital" => "资金分析部", "news" => "新闻分析部", _ => "分析部" };
+        let dept_opinions: Vec<&Value> = agent_opinions.iter()
+            .filter(|o| o.get("department").and_then(|v| v.as_str()) == Some(*dept)).collect();
+
+        let report = match analyze_with_llm(
+            pool, user_id,
+            &format!("你是{}汇总分析师。综合部门意见给出JSON：{{\"consensus\":\"bullish\"|\"bearish\", \"bull_summary\":\"理由\", \"bear_summary\":\"理由\"}}。只输出JSON。", dept_name),
+            &format!("{}意见:\n{}", dept_name, serde_json::to_string_pretty(&dept_opinions).unwrap_or_default()),
+            &format!("{}_dept_report", dept),
+        ).await {
+            Ok(response) => {
+                let parsed = parse_dept_report_response(&response);
+                json!({ "department": dept, "consensus": parsed.consensus, "bull_summary": parsed.bull_summary, "bear_summary": parsed.bear_summary })
+            }
+            Err(_) => {
+                let sentiments: Vec<&str> = dept_opinions.iter().filter_map(|o| o.get("sentiment").and_then(|v| v.as_str())).collect();
+                let bull = sentiments.iter().filter(|&&s| s == "bullish").count();
+                let bear = sentiments.iter().filter(|&&s| s == "bearish").count();
+                json!({ "department": dept, "consensus": if bull > bear { "bullish" } else if bear > bull { "bearish" } else { "neutral" }, "bull_summary": "基于多数意见", "bear_summary": "基于多数意见" })
+            }
+        };
+        department_reports.push(report);
+    }
+
+    // 7. Fund manager decision (with historical reflection)
+    let fund_manager_decision = match analyze_with_llm(
+        pool, user_id,
+        &format!("你是基金经理。综合各部门报告做决策。当前价: {:.2}。{}{}\n必须JSON：{{\"action\":\"long\"|\"short\"|\"hold\",\"confidence\":0.0-1.0,\"stop_loss\":价格,\"take_profit\":[价格],\"leverage\":1-5,\"reasoning\":\"理由\"}}。模拟交易需积极验证。只输出JSON。", current_price, credibility_str, if recent_decisions.is_empty() { String::new() } else { format!("\n\n历史决策参考:\n{}", history_str) }),
+        &format!("交易对: {}\n\n分析师意见:\n{}\n\n部门报告:\n{}\n\n请做最终决策，参考历史决策表现。",
+            symbol,
+            serde_json::to_string_pretty(&agent_opinions).unwrap_or_default(),
+            serde_json::to_string_pretty(&department_reports).unwrap_or_default(),
+        ),
+        "fund_manager",
+    ).await {
+        Ok(response) => {
+            let parsed = parse_fund_manager_response(&response, current_price);
+            json!({
+                "action": parsed.action, "confidence": parsed.confidence,
+                "stop_loss": parsed.stop_loss, "take_profit": parsed.take_profit,
+                "leverage": parsed.leverage, "reasoning": parsed.reasoning,
+            })
+        }
+        Err(_) => {
+            let dept_consensuses: Vec<&str> = department_reports.iter()
+                .filter_map(|r| r.get("consensus").and_then(|v| v.as_str())).collect();
+            let bull = dept_consensuses.iter().filter(|&&c| c == "bullish").count();
+            let bear = dept_consensuses.iter().filter(|&&c| c == "bearish").count();
+            json!({
+                "action": if bull > bear { "long" } else if bear > bull { "short" } else { "hold" },
+                "confidence": 0.4, "stop_loss": current_price * 0.97,
+                "take_profit": [current_price * 1.03, current_price * 1.05],
+                "leverage": 2, "reasoning": "LLM不可用，基于部门多数意见决策",
+            })
+        }
+    };
+
+    // Extract decision values
+    let action = fund_manager_decision.get("action").and_then(|v| v.as_str()).unwrap_or("hold").to_string();
+    let confidence = fund_manager_decision.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.4);
+
+    // Apply enhanced confidence calibration based on market context
+    let enhanced_confidence = calculate_enhanced_confidence(
+        confidence,
+        &agent_opinions,
+        &volatility,
+        multi_timeframe_data.alignment,
+        trends_from_decisions(recent_decisions.len()),
+    );
+
+    let stop_loss = fund_manager_decision.get("stop_loss").and_then(|v| v.as_f64()).unwrap_or(current_price * 0.97);
+    let take_profit = fund_manager_decision.get("take_profit")
+        .and_then(|v| v.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_f64()).collect())
+        .unwrap_or_else(|| vec![current_price * 1.03, current_price * 1.05]);
+    let leverage = fund_manager_decision.get("leverage").and_then(|v| v.as_i64()).unwrap_or(2) as i32;
+    let reasoning = fund_manager_decision.get("reasoning").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+    // Enhanced reasoning with market context
+    let enhanced_reasoning = format!(
+        "{} | 市场环境: 趋势{} 强度{:.0}%, 波动性{}, 成交量{}, 多周期一致性{:.0}%({})",
+        reasoning,
+        trend, trend_strength * 100.0,
+        volatility, volume_profile,
+        multi_timeframe_data.alignment * 100.0,
+        multi_timeframe_data.alignment_details,
+    );
+
+    // 7. Save debate session with enhanced data
+    let enhanced_decision = json!({
+        "action": action,
+        "confidence": enhanced_confidence,
+        "stop_loss": stop_loss,
+        "take_profit": take_profit,
+        "leverage": leverage,
+        "reasoning": enhanced_reasoning,
+        "market_context": {
+            "trend": trend,
+            "trend_strength": trend_strength,
+            "volatility": volatility,
+            "volume_profile": volume_profile,
+            "key_levels": [key_levels.0, key_levels.1, key_levels.2],
+        },
+        "multi_timeframe": {
+            "m5_trend": multi_timeframe_data.m5_trend,
+            "m15_trend": multi_timeframe_data.m15_trend,
+            "h1_trend": multi_timeframe_data.h1_trend,
+            "h4_trend": multi_timeframe_data.h4_trend,
+            "d1_trend": multi_timeframe_data.d1_trend,
+            "alignment": multi_timeframe_data.alignment,
+            "alignment_details": multi_timeframe_data.alignment_details,
+        },
+    });
+
+    let _ = sqlx::query(
+        r#"UPDATE debate_sessions SET status = 'completed', progress = 'completed',
+            agent_opinions = $2, department_reports = $3, fund_manager_decision = $4, updated_at = NOW()
+        WHERE id = $1"#
+    )
+    .bind(session_id)
+    .bind(serde_json::to_value(&agent_opinions).unwrap_or(json!([])))
+    .bind(serde_json::to_value(&department_reports).unwrap_or(json!([])))
+    .bind(&enhanced_decision)
+    .execute(pool)
+    .await;
+
+    Ok(DebateResult {
+        session_id,
+        action,
+        confidence: enhanced_confidence,
+        stop_loss,
+        take_profit,
+        leverage,
+        reasoning: enhanced_reasoning,
+        agent_opinions,
+        department_reports,
+    })
+}
+
 async fn list_debate_sessions(
     user: CurrentUser,
     State(state): State<AppState>,

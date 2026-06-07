@@ -65,6 +65,11 @@ function initChart() {
     borderDownColor: '#FF1744',
     wickUpColor: '#00C853',
     wickDownColor: '#FF1744',
+    priceFormat: {
+      type: 'price',
+      precision: 6,
+      minMove: 0.000001,
+    },
   })
 
   if (props.showVolume) {

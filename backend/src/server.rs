@@ -1,10 +1,13 @@
 use axum::Router;
+use sqlx::Row;
 use std::net::SocketAddr;
 use tokio::signal;
+use uuid::Uuid;
 
 use crate::extractors::auth_middleware;
 use crate::middleware::{rate_limit, request_logging};
 use crate::routes::api_router;
+use crate::routes::agent_simulation::spawn_simulation_loop;
 use crate::state::AppState;
 
 async fn ws_handler(
@@ -80,7 +83,40 @@ pub fn create_app(state: AppState) -> axum::Router {
     app
 }
 
+/// Resume any simulation loops that were running before server restart
+async fn resume_simulation_loops(state: &AppState) {
+    let rows = match sqlx::query(
+        "SELECT id, user_id FROM ai_simulation_configs WHERE status = 'running'"
+    )
+    .fetch_all(&state.db_pool)
+    .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::error!("Failed to query running simulations for resume: {}", e);
+            return;
+        }
+    };
+
+    if rows.is_empty() {
+        tracing::info!("[Resume] No running simulations to resume");
+        return;
+    }
+
+    tracing::info!("[Resume] Found {} running simulation(s), resuming loops...", rows.len());
+
+    for row in &rows {
+        let config_id: Uuid = row.get("id");
+        let user_id: i64 = row.get("user_id");
+        tracing::info!("[Resume] Resuming simulation loop for config {} (user {})", config_id, user_id);
+        spawn_simulation_loop(config_id, user_id, state.clone());
+    }
+}
+
 pub async fn run_server(state: AppState) -> anyhow::Result<()> {
+    // Resume any simulation loops that were running before restart
+    resume_simulation_loops(&state).await;
+
     let app = create_app(state.clone());
 
     let addr: SocketAddr = format!(

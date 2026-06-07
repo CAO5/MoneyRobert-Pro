@@ -118,6 +118,7 @@ pub struct AiSimulationConfig {
     pub max_single_trade_loss_percent: f64,
     pub ai_confidence_threshold: f64,
     pub analysis_interval_minutes: i32,
+    pub analysis_interval: String,
     pub allowed_symbols: Vec<String>,
     pub autonomous_mode_enabled: bool,
     pub requires_manual_confirm: bool,
@@ -294,6 +295,67 @@ pub enum NotificationLevel {
     Error,
     Critical,
     Emergency,
+}
+
+// ============ ENHANCED AI ACCURACY STRUCTS ============
+
+/// Multi-dimensional market context for decision making
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarketContext {
+    pub trend: String,           // "bull", "bear", "range"
+    pub volatility: String,      // "low", "medium", "high"
+    pub volume_profile: String,   // "increasing", "decreasing", "stable"
+    pub key_levels: Vec<f64>,     // key support/resistance levels
+    pub trend_strength: f64,     // 0.0 - 1.0
+}
+
+/// Multi-timeframe data for comprehensive analysis
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiTimeframeData {
+    pub m5_trend: String,         // 5-minute trend
+    pub m15_trend: String,        // 15-minute trend
+    pub h1_trend: String,        // 1-hour trend
+    pub h4_trend: String,        // 4-hour trend
+    pub d1_trend: String,        // Daily trend
+    pub alignment: f64,           // Multi-timeframe alignment score (0.0 - 1.0)
+    pub alignment_details: String, // Description of alignment
+}
+
+/// Position quality assessment
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionQuality {
+    pub direction_correct: bool,      // Direction correctness
+    pub entry_timing_score: f64,     // Entry timing score (0.0 - 1.0)
+    pub risk_reward_ratio: f64,      // Risk/reward ratio
+    pub holding_duration_fit: bool,  // Holding duration appropriateness
+    pub leverage_fit: bool,          // Leverage appropriateness
+    pub multi_timeframe_fit: bool,   // Multi-TF alignment fit
+    pub overall_score: f64,          // Overall quality score (0.0 - 1.0)
+}
+
+/// Agent performance by market context
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentContextAccuracy {
+    pub trend_accuracy: f64,         // Accuracy in trending markets
+    pub volatility_accuracy: f64,   // Accuracy by volatility level
+    pub volume_accuracy: f64,        // Accuracy by volume profile
+    pub timing_accuracy: f64,        // Entry timing accuracy
+    pub multi_timeframe_accuracy: f64, // Multi-timeframe accuracy
+    pub weighted_accuracy: f64,      // Decay-weighted accuracy
+    pub total_predictions: i32,      // Total predictions made
+    pub prediction_decay_rate: f64,  // Decay rate for old predictions
+}
+
+/// Enhanced confidence calculation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnhancedConfidence {
+    pub base_confidence: f64,        // Base confidence from debate
+    pub historical_accuracy: f64,   // Historical accuracy factor
+    pub market_volatility: f64,    // Market volatility factor
+    pub agent_agreement: f64,        // Agent consensus factor
+    pub market_context_fit: f64,    // How well context fits
+    pub final_confidence: f64,       // Final calibrated confidence
+    pub confidence_reasoning: String, // Explanation of confidence adjustment
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

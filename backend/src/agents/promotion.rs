@@ -632,14 +632,14 @@ impl PromotionSystem {
         let from_mode = match from_level {
             0 => "paper",
             1 => "demo",
-            2 => "live",
+            2 => "autonomous",
             _ => "live",
         };
 
         let to_mode = match to_level {
             0 => "paper",
             1 => "demo",
-            2 => "live",
+            2 => "autonomous",
             _ => "live",
         };
 

@@ -4,6 +4,7 @@ use crate::agents::{
 };
 use crate::exchanges::okx::OkxClient;
 use chrono::Utc;
+use serde_json::json;
 use sqlx::PgPool;
 use std::sync::Arc;
 use tracing::{info, warn};
@@ -478,6 +479,16 @@ impl SimulationEngine {
 
         self.update_rolling_stats(&mut *tx, config.id).await?;
 
+        // === Learning Feedback: Update agent_performance and decision_memory ===
+        if let Err(e) = Self::record_trade_outcome(
+            &mut *tx,
+            &updated_trade,
+            &config,
+            net_pnl > 0.0,
+        ).await {
+            warn!("Failed to record trade outcome for learning: {}", e);
+        }
+
         tx.commit().await?;
 
         info!(
@@ -832,6 +843,333 @@ impl SimulationEngine {
         .bind(config_id)
         .execute(&mut *tx)
         .await?;
+
+        Ok(())
+    }
+
+    /// Record trade outcome for agent learning: update agent_performance + decision_memory
+    async fn record_trade_outcome(
+        tx: &mut sqlx::PgConnection,
+        trade: &AiSimulationTrade,
+        config: &AiSimulationConfig,
+        is_win: bool,
+    ) -> AgentResult<()> {
+        // 1. Update decision_memory with actual outcome and market context
+        if let Some(reasoning_val) = &trade.ai_reasoning {
+            let debate_session_id = reasoning_val.get("debate_session_id")
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse::<Uuid>().ok());
+
+            let agent_opinions = reasoning_val.get("agent_opinions")
+                .cloned()
+                .unwrap_or(json!([]));
+            let department_reports = reasoning_val.get("department_reports")
+                .cloned()
+                .unwrap_or(json!([]));
+            let reasoning = reasoning_val.get("reasoning")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            // Extract market context from reasoning
+            let market_trend = reasoning_val.get("market_context")
+                .and_then(|v| v.get("trend"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
+            let volatility = reasoning_val.get("market_context")
+                .and_then(|v| v.get("volatility"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("medium");
+            let volume_profile = reasoning_val.get("market_context")
+                .and_then(|v| v.get("volume_profile"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("stable");
+
+            // Extract multi-timeframe data
+            let mtf_alignment = reasoning_val.get("multi_timeframe")
+                .and_then(|v| v.get("alignment"))
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.5);
+
+            // Calculate entry timing score based on proximity to key levels
+            let entry_timing_score = if let Some(key_levels) = reasoning_val.get("market_context")
+                .and_then(|v| v.get("key_levels"))
+                .and_then(|v| v.as_array()) {
+                let entry = trade.entry_price;
+                let mut min_dist = f64::MAX;
+                for level in key_levels {
+                    if let Some(price) = level.as_f64() {
+                        let dist = ((entry - price) / entry).abs();
+                        if dist < min_dist { min_dist = dist; }
+                    }
+                }
+                (1.0 - min_dist.min(0.05) * 20.0).max(0.0)
+            } else { 0.5 };
+
+            // Calculate leverage fit based on volatility
+            let leverage_fit = match volatility {
+                "low" => trade.leverage <= 5,
+                "medium" => trade.leverage <= 3,
+                "high" => trade.leverage <= 2,
+                _ => trade.leverage <= 3,
+            };
+
+            // Calculate position quality score
+            let risk_reward_ratio = if let (Some(sl), Some(tp)) = (trade.stop_loss, trade.take_profit) {
+                let risk = ((trade.entry_price - sl) / trade.entry_price).abs();
+                let reward = ((tp - trade.entry_price) / trade.entry_price).abs();
+                if risk > 0.0 { reward / risk } else { 1.0 }
+            } else { 1.0 };
+            let rr_score = (risk_reward_ratio / 2.0).min(1.0);
+            let direction_score = if is_win { 1.0 } else { 0.0 };
+            let position_quality_score = direction_score * 0.40 +
+                                        entry_timing_score * 0.15 +
+                                        rr_score * 0.20 +
+                                        1.0 * 0.10 + // duration fit
+                                        if leverage_fit { 1.0 } else { 0.5 } * 0.05 +
+                                        mtf_alignment * 0.10;
+
+            sqlx::query(
+                r#"
+                INSERT INTO decision_memory (
+                    user_id, config_id, trade_id, debate_session_id,
+                    symbol, action, confidence, leverage, stop_loss, take_profit,
+                    agent_opinions, department_reports, reasoning,
+                    actual_outcome, actual_pnl, actual_pnl_percent, success,
+                    holding_duration_minutes, close_reason, created_at, updated_at,
+                    market_trend, volatility, volume_profile,
+                    entry_timing_score, leverage_fit, multi_timeframe_alignment,
+                    position_quality_score
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW(),
+                        $20, $21, $22, $23, $24, $25, $26)
+                ON CONFLICT (trade_id) DO UPDATE SET
+                    actual_outcome = EXCLUDED.actual_outcome,
+                    actual_pnl = EXCLUDED.actual_pnl,
+                    actual_pnl_percent = EXCLUDED.actual_pnl_percent,
+                    success = EXCLUDED.success,
+                    holding_duration_minutes = EXCLUDED.holding_duration_minutes,
+                    close_reason = EXCLUDED.close_reason,
+                    market_trend = EXCLUDED.market_trend,
+                    volatility = EXCLUDED.volatility,
+                    volume_profile = EXCLUDED.volume_profile,
+                    entry_timing_score = EXCLUDED.entry_timing_score,
+                    leverage_fit = EXCLUDED.leverage_fit,
+                    multi_timeframe_alignment = EXCLUDED.multi_timeframe_alignment,
+                    position_quality_score = EXCLUDED.position_quality_score,
+                    updated_at = NOW()
+                "#
+            )
+            .bind(config.user_id)
+            .bind(config.id)
+            .bind(trade.id)
+            .bind(debate_session_id)
+            .bind(&trade.symbol)
+            .bind(&trade.direction)
+            .bind(trade.ai_confidence.unwrap_or(0.5))
+            .bind(trade.leverage)
+            .bind(trade.stop_loss)
+            .bind(trade.take_profit)
+            .bind(&agent_opinions)
+            .bind(&department_reports)
+            .bind(reasoning)
+            .bind(if is_win { "profit" } else { "loss" })
+            .bind(trade.pnl)
+            .bind(trade.pnl_percent)
+            .bind(is_win)
+            .bind(trade.holding_duration_minutes)
+            .bind(&trade.close_reason)
+            .bind(market_trend)
+            .bind(volatility)
+            .bind(volume_profile)
+            .bind(entry_timing_score)
+            .bind(leverage_fit)
+            .bind(mtf_alignment)
+            .bind(position_quality_score)
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        // 2. Update agent_performance for each agent that contributed to this trade
+        if let Some(reasoning_val) = &trade.ai_reasoning {
+            if let Some(opinions) = reasoning_val.get("agent_opinions").and_then(|v| v.as_array()) {
+                let trade_direction = &trade.direction;
+
+                for opinion in opinions {
+                    let agent_name = opinion.get("agent_name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("unknown");
+                    let department = opinion.get("department")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("unknown");
+                    let agent_sentiment = opinion.get("sentiment")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("neutral");
+
+                    // Determine if this agent's prediction was correct
+                    let predicted_correct = match (agent_sentiment, trade_direction.as_str()) {
+                        ("bullish", "long") => true,
+                        ("bearish", "short") => true,
+                        ("bearish", "long") => false,
+                        ("bullish", "short") => false,
+                        _ => false, // neutral is neither correct nor incorrect
+                    };
+
+                    // Upsert agent_performance
+                    let existing = sqlx::query_as::<_, (i32, i32, f64, f64, f64, f64, f64, f64, f64, f64)>(
+                        r#"SELECT total_analyses, correct_predictions, accuracy, credibility_score, calibration_factor,
+                                  trend_accuracy, volatility_accuracy, volume_accuracy, timing_accuracy, weighted_accuracy
+                           FROM agent_performance WHERE agent_name = $1 AND agent_department = $2"#
+                    )
+                    .bind(agent_name)
+                    .bind(department)
+                    .fetch_optional(&mut *tx)
+                    .await?;
+
+                    match existing {
+                        Some((total, correct, _accuracy, credibility, calibration,
+                              trend_acc, vol_acc, vol_profile_acc, timing_acc, weighted_acc)) => {
+                            let new_total = total + 1;
+                            let new_correct = correct + if predicted_correct { 1 } else { 0 };
+                            let new_accuracy = new_correct as f64 / new_total as f64;
+
+                            // Extract market context from reasoning
+                            let market_trend = reasoning_val.get("market_context")
+                                .and_then(|v| v.get("trend"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown");
+                            let volatility = reasoning_val.get("market_context")
+                                .and_then(|v| v.get("volatility"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("medium");
+                            let volume_profile = reasoning_val.get("market_context")
+                                .and_then(|v| v.get("volume_profile"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("stable");
+                            let mtf_alignment = reasoning_val.get("multi_timeframe")
+                                .and_then(|v| v.get("alignment"))
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.5);
+
+                            // Calculate context-specific accuracy with decay weighting
+                            let decay_rate: f64 = 0.95;
+                            let weighted_correct: f64 = if predicted_correct { 1.0 } else { 0.0 };
+
+                            // Update trend accuracy
+                            let new_trend_acc = if market_trend != "unknown" {
+                                let trend_weight = decay_rate.powi((total - 1) as i32);
+                                (trend_acc * (1.0 - trend_weight) + if predicted_correct { 1.0 } else { 0.0 } * trend_weight)
+                            } else {
+                                trend_acc
+                            };
+
+                            // Update volatility accuracy
+                            let new_vol_acc = if volatility != "medium" {
+                                let vol_weight = decay_rate.powi((total - 1) as i32);
+                                (vol_acc * (1.0 - vol_weight) + if predicted_correct { 1.0 } else { 0.0 } * vol_weight)
+                            } else {
+                                vol_acc
+                            };
+
+                            // Update volume accuracy
+                            let new_vol_profile_acc = if volume_profile != "stable" {
+                                let vol_profile_weight = decay_rate.powi((total - 1) as i32);
+                                (vol_profile_acc * (1.0 - vol_profile_weight) + if predicted_correct { 1.0 } else { 0.0 } * vol_profile_weight)
+                            } else {
+                                vol_profile_acc
+                            };
+
+                            // Update timing accuracy based on multi-timeframe alignment
+                            let new_timing_acc = if mtf_alignment > 0.7 {
+                                let timing_weight = decay_rate.powi((total - 1) as i32);
+                                (timing_acc * (1.0 - timing_weight) + if predicted_correct { 1.0 } else { 0.0 } * timing_weight)
+                            } else {
+                                timing_acc
+                            };
+
+                            // Calculate weighted accuracy with decay
+                            let new_weighted_acc = if total > 0 {
+                                (weighted_acc * (total - 1) as f64 * decay_rate + weighted_correct) / (total as f64)
+                            } else {
+                                weighted_correct
+                            };
+
+                            // Smoothed credibility with context awareness
+                            // 70% performance + 15% trend accuracy + 15% weighted accuracy
+                            let new_credibility = (new_accuracy * 0.7) + (new_trend_acc * 0.15) + (new_weighted_acc * 0.15);
+
+                            // Calibration: how well confidence matches reality
+                            let agent_confidence = opinion.get("confidence")
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(0.5);
+                            let new_calibration = if new_total > 5 {
+                                (calibration * (new_total - 1) as f64 + (1.0 - (agent_confidence - new_accuracy).abs())) / new_total as f64
+                            } else {
+                                calibration
+                            };
+
+                            sqlx::query(
+                                r#"UPDATE agent_performance SET
+                                total_analyses = $1, correct_predictions = $2, accuracy = $3,
+                                credibility_score = $4, calibration_factor = $5,
+                                trend_accuracy = $8, volatility_accuracy = $9, volume_accuracy = $10,
+                                timing_accuracy = $11, weighted_accuracy = $12,
+                                last_analysis_at = NOW(), updated_at = NOW()
+                                WHERE agent_name = $6 AND agent_department = $7"#
+                            )
+                            .bind(new_total)
+                            .bind(new_correct)
+                            .bind(new_accuracy)
+                            .bind(new_credibility)
+                            .bind(new_calibration)
+                            .bind(agent_name)
+                            .bind(department)
+                            .bind(new_trend_acc)
+                            .bind(new_vol_acc)
+                            .bind(new_vol_profile_acc)
+                            .bind(new_timing_acc)
+                            .bind(new_weighted_acc)
+                            .execute(&mut *tx)
+                            .await?;
+                        }
+                        None => {
+                            let credibility = if predicted_correct { 0.6 } else { 0.4 };
+                            let trend_acc = if predicted_correct { 0.6 } else { 0.4 };
+                            let vol_acc = if predicted_correct { 0.6 } else { 0.4 };
+                            let vol_profile_acc = if predicted_correct { 0.6 } else { 0.4 };
+                            let timing_acc = if predicted_correct { 0.6 } else { 0.4 };
+                            let weighted_acc = if predicted_correct { 1.0 } else { 0.0 };
+
+                            sqlx::query(
+                                r#"INSERT INTO agent_performance (
+                                    agent_name, agent_department, total_analyses, correct_predictions,
+                                    accuracy, credibility_score, calibration_factor, last_analysis_at, created_at, updated_at,
+                                    trend_accuracy, volatility_accuracy, volume_accuracy, timing_accuracy, weighted_accuracy,
+                                    total_predictions, prediction_decay_rate
+                                ) VALUES ($1, $2, 1, $3, $4, $5, 1.0, NOW(), NOW(), NOW(),
+                                          $6, $7, $8, $9, $10, 1, 0.95)"#
+                            )
+                            .bind(agent_name)
+                            .bind(department)
+                            .bind(if predicted_correct { 1 } else { 0 })
+                            .bind(if predicted_correct { 1.0 } else { 0.0 })
+                            .bind(credibility)
+                            .bind(trend_acc)
+                            .bind(vol_acc)
+                            .bind(vol_profile_acc)
+                            .bind(timing_acc)
+                            .bind(weighted_acc)
+                            .execute(&mut *tx)
+                            .await?;
+                        }
+                    }
+                }
+            }
+        }
+
+        info!(
+            "Learning feedback recorded for trade {}: win={}, direction={}",
+            trade.id, is_win, trade.direction
+        );
 
         Ok(())
     }

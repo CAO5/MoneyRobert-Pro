@@ -776,6 +776,53 @@ async fn get_long_short_ratio(
 ) -> Result<Json<serde_json::Value>> {
     let limit = query.limit.unwrap_or(50).min(500);
 
+    // Try OKX API first for real-time data for popular currencies
+    let popular_ccys = ["BTC", "ETH", "SOL", "DOGE", "XRP", "ADA", "AVAX", "LINK"];
+    let okx_data = match get_okx_client(&state, user.user_id).await {
+        Ok(client) => {
+            let mut items = Vec::new();
+            for ccy in &popular_ccys {
+                match client.get_raw(
+                    "/api/v5/rubik/stat/contracts/long-short-account-ratio",
+                    Some(&[("ccy", ccy.to_string()), ("period", "5m".to_string())]),
+                ).await {
+                    Ok(data) => {
+                        if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
+                            if let Some(latest) = arr.first() {
+                                let parts = latest.as_array();
+                                let ls_ratio = parts.and_then(|p| p.get(3)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                    .or_else(|| parts.and_then(|p| p.get(3)).and_then(|v| v.as_f64()));
+                                let long_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                                let short_ratio = parts.and_then(|p| p.get(2)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                                let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
+                                items.push(serde_json::json!({
+                                    "symbol": format!("{}-USDT-SWAP", ccy),
+                                    "ratio": ls_ratio,
+                                    "long_ratio": long_ratio,
+                                    "short_ratio": short_ratio,
+                                    "long_short_ratio": ls_ratio,
+                                    "timestamp": ts,
+                                }));
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to fetch long-short ratio from OKX for {}: {}", ccy, e);
+                    }
+                }
+            }
+            if !items.is_empty() { Some(items) } else { None }
+        }
+        Err(_) => None,
+    };
+
+    if let Some(items) = okx_data {
+        return Ok(Json(serde_json::json!({
+            "ratios": items
+        })));
+    }
+
+    // Fallback to database
     let data = sqlx::query(
         r#"
         SELECT symbol, long_ratio::float8, short_ratio::float8, long_short_ratio::float8, timestamp

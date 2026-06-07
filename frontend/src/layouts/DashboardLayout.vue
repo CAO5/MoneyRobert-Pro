@@ -6,7 +6,7 @@ import {
   LayoutDashboard, TrendingUp, LineChart, Bot, Settings, LogOut,
   Menu, X, ChevronDown, User, Bell, Wallet, Brain, MessageSquare,
   BookOpen, Newspaper, FileText, BarChart3, Shield, Target,
-  ChevronRight
+  ChevronRight, Swords
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -27,7 +27,6 @@ const navigation = [
     group: '交易',
     items: [
       { name: '交易中心', path: '/trading', icon: TrendingUp },
-      { name: '模拟交易', path: '/paper-trading', icon: BookOpen },
       { name: '策略管理', path: '/strategies', icon: Target },
       { name: '自动交易', path: '/auto-trading', icon: BarChart3 },
     ]
@@ -42,7 +41,6 @@ const navigation = [
   {
     group: 'AI',
     items: [
-      { name: 'AI 辩论', path: '/agent/debate', icon: Bot },
       { name: 'AI 分析', path: '/ai', icon: Brain },
       { name: 'AI 对话', path: '/ai/chat', icon: MessageSquare },
       { name: 'AI 预测', path: '/ai/predictions', icon: Wallet },
@@ -52,6 +50,8 @@ const navigation = [
     group: 'Agent',
     items: [
       { name: 'Agent 仪表盘', path: '/agent', icon: Bot },
+      { name: '模拟交易', path: '/paper-trading', icon: BookOpen },
+      { name: 'AI 辩论', path: '/agent/debate', icon: Swords },
       { name: '交易历史', path: '/agent/history', icon: FileText },
     ]
   },

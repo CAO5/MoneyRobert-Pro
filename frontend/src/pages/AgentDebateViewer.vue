@@ -416,7 +416,7 @@ onUnmounted(() => {})
       <div v-if="marketData" class="market-bar">
         <div class="market-item">
           <span class="market-label">价格</span>
-          <span class="market-value font-mono">{{ marketData.price?.toLocaleString() }}</span>
+          <span class="market-value font-mono">{{ marketData.price?.toFixed(6) }}</span>
         </div>
         <div class="market-divider"></div>
         <div class="market-item">
