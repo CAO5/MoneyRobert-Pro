@@ -70,7 +70,10 @@ impl AppState {
             .unwrap_or(serde_json::json!({}));
         let is_demo = metadata.get("is_demo").and_then(|v| v.as_bool()).unwrap_or(true);
 
-        Ok(Arc::new(OkxClient::new(api_key, api_secret, passphrase, is_demo)))
+        // Read proxy config from system_settings
+        let proxy_url = get_proxy_config_from_db(&self.db_pool).await;
+
+        Ok(Arc::new(OkxClient::new_with_proxy(api_key, api_secret, passphrase, is_demo, proxy_url)))
     }
 }
 
@@ -119,4 +122,32 @@ pub async fn initialize_database(pool: &PgPool) -> Result<()> {
     tracing::info!("Database migrations completed successfully");
 
     Ok(())
+}
+
+pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
+    let rows = sqlx::query(
+        "SELECT key, value FROM system_settings WHERE category = 'proxy'"
+    )
+    .fetch_all(pool)
+    .await
+    .ok()?;
+
+    let mut enabled = false;
+    let mut url = String::new();
+
+    for row in &rows {
+        let key: String = row.try_get("key").unwrap_or_default();
+        let value: String = row.try_get("value").unwrap_or_default();
+        match key.as_str() {
+            "proxy_enabled" => enabled = value == "true",
+            "proxy_url" => url = value,
+            _ => {}
+        }
+    }
+
+    if enabled && !url.is_empty() {
+        Some(url.replace("socks5h://", "socks5://"))
+    } else {
+        None
+    }
 }

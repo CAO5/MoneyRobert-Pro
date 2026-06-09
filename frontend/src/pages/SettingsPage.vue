@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
-import { Settings, Key, Trash2, RefreshCw, CheckCircle, XCircle, Loader2, Eye, EyeOff, Brain, Edit2, Star, Zap, Plus, ChevronDown } from 'lucide-vue-next'
+import { Settings, Key, Trash2, RefreshCw, CheckCircle, XCircle, Loader2, Eye, EyeOff, Brain, Edit2, Star, Zap, Plus, ChevronDown, Globe, Wifi, WifiOff } from 'lucide-vue-next'
 
 interface ApiKey {
   id: string
@@ -82,6 +82,26 @@ const providerForm = ref({
 const showProviderSecret = ref(false)
 const exchangeKeys = computed(() => apiKeys.value.filter(k => k.key_type === 'exchange'))
 const aiKeys = computed(() => apiKeys.value.filter(k => k.key_type === 'ai_provider'))
+
+// Proxy config
+interface ProxyConfig {
+  enabled: boolean
+  url: string
+  proxy_type: string
+  test_url: string
+}
+
+interface ProxyTestResult {
+  success: boolean
+  message: string
+  latency_ms: number | null
+}
+
+const proxyConfig = ref<ProxyConfig>({ enabled: false, url: '', proxy_type: 'socks5', test_url: 'https://www.okx.com' })
+const proxyLoading = ref(true)
+const proxySaving = ref(false)
+const proxyTesting = ref(false)
+const proxyTestResult = ref<ProxyTestResult | null>(null)
 
 async function loadApiKeys() {
   try {
@@ -182,7 +202,34 @@ async function setDefaultProvider(id: string) {
 function formatDate(dateStr: string) { return dateStr ? new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '' }
 function maskKey(key: string) { return !key || key.length < 8 ? '****' : key.slice(0, 8) + '****' }
 
-onMounted(() => { loadApiKeys(); loadAiProviders() })
+onMounted(() => { loadApiKeys(); loadAiProviders(); loadProxyConfig() })
+
+async function loadProxyConfig() {
+  try {
+    const { data } = await api.get('/system/proxy')
+    proxyConfig.value = data
+  } catch (e) { console.error('Failed to load proxy config', e) }
+  finally { proxyLoading.value = false }
+}
+
+async function saveProxyConfig() {
+  proxySaving.value = true
+  try {
+    const { data } = await api.put('/system/proxy', proxyConfig.value)
+    proxyConfig.value = data
+  } catch (e: any) { alert('保存失败: ' + (e.response?.data?.message || e.message)) }
+  finally { proxySaving.value = false }
+}
+
+async function testProxyConnection() {
+  proxyTesting.value = true
+  proxyTestResult.value = null
+  try {
+    const { data } = await api.put('/system/proxy/test')
+    proxyTestResult.value = data
+  } catch (e: any) { proxyTestResult.value = { success: false, message: e.response?.data?.message || '测试失败', latency_ms: null } }
+  finally { proxyTesting.value = false }
+}
 </script>
 
 <template>
@@ -190,7 +237,83 @@ onMounted(() => { loadApiKeys(); loadAiProviders() })
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold" style="color: var(--text-primary)">系统设置</h1>
-      <p class="text-sm mt-1" style="color: var(--text-secondary)">管理 API 密钥和 AI 模型配置</p>
+      <p class="text-sm mt-1" style="color: var(--text-secondary)">管理代理配置、API 密钥和 AI 模型配置</p>
+    </div>
+
+    <!-- Proxy Configuration Section -->
+    <div class="card">
+      <div class="flex items-center justify-between p-5" style="border-bottom: 1px solid var(--border)">
+        <div class="flex items-center gap-2">
+          <Globe class="w-5 h-5" style="color: var(--primary)" />
+          <h2 class="text-lg font-semibold" style="color: var(--text-primary)">代理配置</h2>
+          <span class="badge" :class="proxyConfig.enabled ? 'badge-profit' : 'badge-loss'">
+            <Wifi v-if="proxyConfig.enabled" class="w-3 h-3" style="display: inline" />
+            <WifiOff v-else class="w-3 h-3" style="display: inline" />
+            {{ proxyConfig.enabled ? '已启用' : '未启用' }}
+          </span>
+        </div>
+      </div>
+
+      <div v-if="proxyLoading" class="p-5 space-y-3">
+        <div v-for="i in 2" :key="i" class="h-16 rounded-lg animate-pulse" style="background: var(--surface-tertiary)"></div>
+      </div>
+
+      <div v-else class="p-5 space-y-4">
+        <div class="flex items-center gap-3 p-3 rounded-lg" style="background: var(--surface-secondary); border: 1px solid var(--border)">
+          <input type="checkbox" id="proxy_enabled" v-model="proxyConfig.enabled" class="w-5 h-5 rounded cursor-pointer" style="accent-color: var(--primary)" />
+          <label for="proxy_enabled" class="cursor-pointer">
+            <span class="font-semibold" style="color: var(--text-primary)">启用网络代理</span>
+            <span class="text-xs block" style="color: var(--text-muted)">后端访问 OKX 等 API 时通过代理连接，无需 Docker 配置代理</span>
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="label">代理类型</label>
+            <div class="relative">
+              <select v-model="proxyConfig.proxy_type" class="input pr-10 appearance-none" :disabled="!proxyConfig.enabled">
+                <option value="socks5">SOCKS5</option>
+                <option value="http">HTTP</option>
+                <option value="https">HTTPS</option>
+              </select>
+              <ChevronDown class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--text-muted)" />
+            </div>
+          </div>
+          <div>
+            <label class="label">测试 URL</label>
+            <input v-model="proxyConfig.test_url" class="input font-mono text-sm" placeholder="https://www.okx.com" :disabled="!proxyConfig.enabled" />
+          </div>
+        </div>
+
+        <div>
+          <label class="label">代理地址</label>
+          <input v-model="proxyConfig.url" class="input font-mono text-sm" :placeholder="proxyConfig.proxy_type === 'socks5' ? 'socks5://127.0.0.1:10809' : 'http://127.0.0.1:7890'" :disabled="!proxyConfig.enabled" />
+          <p class="text-xs mt-1" style="color: var(--text-muted)">
+            {{ proxyConfig.proxy_type === 'socks5' ? '格式: socks5://IP:端口 (如 socks5://127.0.0.1:10809)' : '格式: http://IP:端口 (如 http://127.0.0.1:7890)' }}
+          </p>
+        </div>
+
+        <div v-if="proxyTestResult" class="p-3 rounded-lg text-sm" :style="{ background: proxyTestResult.success ? 'rgba(0,200,83,0.1)' : 'rgba(255,23,68,0.1)', border: proxyTestResult.success ? '1px solid rgba(0,200,83,0.3)' : '1px solid rgba(255,23,68,0.3)' }">
+          <div class="flex items-center gap-2">
+            <CheckCircle v-if="proxyTestResult.success" class="w-4 h-4" style="color: var(--profit)" />
+            <XCircle v-else class="w-4 h-4" style="color: var(--loss)" />
+            <span :style="{ color: proxyTestResult.success ? 'var(--profit)' : 'var(--loss)' }">{{ proxyTestResult.message }}</span>
+            <span v-if="proxyTestResult.latency_ms" class="text-xs" style="color: var(--text-muted)">({{ proxyTestResult.latency_ms }}ms)</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button @click="saveProxyConfig" class="btn btn-primary" :disabled="proxySaving">
+            <Loader2 v-if="proxySaving" class="w-4 h-4 animate-spin" />
+            {{ proxySaving ? '保存中...' : '保存配置' }}
+          </button>
+          <button @click="testProxyConnection" class="btn btn-secondary" :disabled="proxyTesting || !proxyConfig.enabled">
+            <Loader2 v-if="proxyTesting" class="w-4 h-4 animate-spin" />
+            <Zap v-else class="w-4 h-4" />
+            {{ proxyTesting ? '测试中...' : '测试连接' }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- API Keys Section -->

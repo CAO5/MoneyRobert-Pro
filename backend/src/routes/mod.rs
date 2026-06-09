@@ -17,6 +17,7 @@ pub mod paper_trading;
 pub mod reports;
 pub mod sentiment_data;
 pub mod strategies;
+pub mod system_settings;
 pub mod tasks;
 pub mod trading;
 pub mod validation;
@@ -48,6 +49,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/validation", validation::router())
         .nest("/tasks", tasks::router())
         .nest("/agent", agent_simulation::router())
+        .nest("/system", system_settings::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

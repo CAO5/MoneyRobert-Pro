@@ -181,13 +181,25 @@ pub struct OkxOrderResponse {
 
 impl OkxClient {
     pub fn new(api_key: String, secret_key: String, passphrase: String, is_demo: bool) -> Self {
+        Self::new_with_proxy(api_key, secret_key, passphrase, is_demo, None)
+    }
+
+    pub fn new_with_proxy(api_key: String, secret_key: String, passphrase: String, is_demo: bool, proxy_url: Option<String>) -> Self {
         let base_url = "https://www.okx.com".to_string();
 
         let mut builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(30));
 
-        // Configure proxy from environment variables
-        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+        // Use provided proxy URL first, then fall back to environment variables
+        if let Some(url) = proxy_url {
+            if !url.is_empty() {
+                let url = url.replace("socks5h://", "socks5://");
+                if let Ok(proxy) = reqwest::Proxy::all(&url) {
+                    tracing::info!("OKX client using proxy from DB: {}", url);
+                    builder = builder.proxy(proxy);
+                }
+            }
+        } else if let Ok(proxy_url) = std::env::var("ALL_PROXY")
             .or_else(|_| std::env::var("HTTPS_PROXY"))
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {

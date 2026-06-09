@@ -40,10 +40,23 @@ pub struct MarketCollector {
 
 impl MarketCollector {
     pub fn new(db: PgPool, ws: Arc<WebSocketManager>) -> Self {
+        Self::new_with_proxy(db, ws, None)
+    }
+
+    pub fn new_with_proxy(db: PgPool, ws: Arc<WebSocketManager>, proxy_url: Option<String>) -> Self {
         let mut builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(15));
 
-        if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+        // Use provided proxy URL first, then fall back to environment variables
+        if let Some(url) = proxy_url {
+            if !url.is_empty() {
+                let url = url.replace("socks5h://", "socks5://");
+                if let Ok(proxy) = reqwest::Proxy::all(&url) {
+                    tracing::info!("Market collector using proxy from DB: {}", url);
+                    builder = builder.proxy(proxy);
+                }
+            }
+        } else if let Ok(proxy_url) = std::env::var("ALL_PROXY")
             .or_else(|_| std::env::var("HTTPS_PROXY"))
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {
