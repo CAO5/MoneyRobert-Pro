@@ -882,12 +882,34 @@ async fn try_open_new_trade(
 }
 
 async fn get_current_price(state: &AppState, user_id: i64, symbol: &str) -> Option<f64> {
-    let okx_client = get_okx_client(state, user_id).await.ok()?;
-    let symbol_owned = symbol.to_string();
-    let result = okx_client.get_raw("/api/v5/market/ticker", Some(&[("instId", symbol_owned)])).await.ok()?;
-    let data = result.get("data")?.as_array()?.first()?;
-    let last = data.get("last")?.as_str()?;
-    last.parse::<f64>().ok()
+    // Try OKX API with short timeout first
+    let api_price = async {
+        let okx_client = get_okx_client(state, user_id).await.ok()?;
+        let symbol_owned = symbol.to_string();
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            okx_client.get_raw("/api/v5/market/ticker", Some(&[("instId", symbol_owned)]))
+        ).await.ok()?.ok()?;
+        let data = result.get("data")?.as_array()?.first()?;
+        let last = data.get("last")?.as_str()?;
+        last.parse::<f64>().ok()
+    }.await;
+
+    if let Some(price) = api_price {
+        return Some(price);
+    }
+
+    // Fallback: get from database cache (ticker_history)
+    let cached: Option<f64> = sqlx::query_scalar(
+        "SELECT last FROM ticker_history WHERE symbol = $1 ORDER BY timestamp DESC LIMIT 1"
+    )
+    .bind(symbol)
+    .fetch_optional(&state.db_pool)
+    .await
+    .ok()
+    .flatten();
+
+    cached
 }
 
 fn check_should_close(trade: &AiSimulationTrade, current_price: f64) -> Option<String> {
