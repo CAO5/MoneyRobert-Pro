@@ -247,9 +247,10 @@ impl SimulationEngine {
             sz: quantity.to_string(),
             px: None,
             sl_trigger_px: stop_loss.map(|v| v.to_string()),
-            sl_ord_px: stop_loss.map(|v| v.to_string()),
+            sl_ord_px: stop_loss.map(|_| "-1".to_string()),
             tp_trigger_px: take_profit.map(|v| v.to_string()),
-            tp_ord_px: take_profit.map(|v| v.to_string()),
+            tp_ord_px: take_profit.map(|_| "-1".to_string()),
+            reduce_only: None,
         };
 
         let order_response = okx_client.place_order(&order_request).await.map_err(|e| {
@@ -375,6 +376,7 @@ impl SimulationEngine {
                     sl_ord_px: None,
                     tp_trigger_px: None,
                     tp_ord_px: None,
+                    reduce_only: Some("true".to_string()),
                 };
 
                 match okx_client.place_order(&close_request).await {

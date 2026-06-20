@@ -7,6 +7,7 @@ pub mod agent_simulation;
 pub mod api_keys;
 pub mod auth;
 pub mod auto_trading;
+pub mod backtest_api;
 pub mod billing;
 pub mod dashboard;
 pub mod health;
@@ -50,6 +51,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/tasks", tasks::router())
         .nest("/agent", agent_simulation::router())
         .nest("/system", system_settings::router())
+        .nest("/backtest", backtest_api::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

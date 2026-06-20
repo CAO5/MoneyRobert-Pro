@@ -1,5 +1,6 @@
 pub mod agents;
 pub mod auth;
+pub mod backtest;
 pub mod collector;
 pub mod config;
 pub mod error;

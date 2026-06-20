@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import api from '@/api'
-import { ArrowLeftRight, Plus, X, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertCircle, ChevronDown } from 'lucide-vue-next'
+import { ArrowLeftRight, Plus, X, RefreshCw, TrendingUp, TrendingDown, AlertCircle, ChevronDown, Shield } from 'lucide-vue-next'
 
 const positions = ref<any[]>([])
 const orders = ref<any[]>([])
@@ -9,6 +9,18 @@ const balance = ref<any>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
+
+// SL/TP modal state
+const showSlTpModal = ref(false)
+const slTpForm = ref({
+  symbol: '',
+  side: '',
+  pos_side: '',
+  size: 0,
+  stop_loss: 0,
+  take_profit: 0,
+})
+const slTpSubmitting = ref(false)
 
 const form = ref({
   symbol: 'BTC-USDT-SWAP',
@@ -20,6 +32,8 @@ const form = ref({
   stop_loss: 0,
   take_profit: 0,
 })
+
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const popularSymbols = [
   'BTC-USDT-SWAP', 'ETH-USDT-SWAP', 'SOL-USDT-SWAP',
@@ -41,6 +55,7 @@ function formatPnl(val: string | number): string {
 function formatPnlPercent(val: string | number): string {
   const num = typeof val === 'string' ? parseFloat(val) : val
   if (isNaN(num)) return '0.00%'
+  // OKX upl_ratio is already a percentage (e.g., 0.05 means 5%)
   const pct = (num * 100).toFixed(2)
   return num >= 0 ? `+${pct}%` : `${pct}%`
 }
@@ -63,7 +78,31 @@ const totalEquity = computed(() => {
   return parseFloat(eq).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 })
 
+// Extract detailed balance data from OKX response
+const balanceDetail = computed(() => {
+  const raw = balance.value
+  if (!raw) return null
+  const b = Array.isArray(raw) ? raw[0] : raw
+  if (!b) return null
+  return {
+    totalEq: parseFloat(b.total_eq || b.eq || b.total_equity || '0'),
+    availBal: parseFloat(b.avail_bal || b.available_balance || '0'),
+    frozenBal: parseFloat(b.frozen_bal || '0'),
+    cashBal: parseFloat(b.cash_bal || b.bal || '0'),
+    upl: parseFloat(b.upl || b.unrealized_pnl || '0'),
+    marginRatio: parseFloat(b.mgn_ratio || '0'),
+    notionalUsd: parseFloat(b.notional_usd || '0'),
+    imr: parseFloat(b.imr || '0'),
+    mmr: parseFloat(b.mmr || '0'),
+    ordFroz: parseFloat(b.ord_froz || '0'),
+  }
+})
+
 const totalUpl = computed(() => {
+  // Prefer balance-level upl (from OKX account data), fallback to sum of position upl
+  if (balanceDetail.value && balanceDetail.value.upl !== 0) {
+    return balanceDetail.value.upl
+  }
   return positions.value.reduce((acc, p) => acc + parseFloat(p.upl || '0'), 0)
 })
 
@@ -100,6 +139,12 @@ async function loadData() {
 
     if (balRes.status === 'fulfilled') {
       balance.value = balRes.value.data
+      // Check if balance data indicates no API key configured (all zeros in fallback)
+      const b = balRes.value.data
+      const bData = Array.isArray(b) ? b[0] : b
+      if (bData && bData.total_eq === '0' && bData.avail_bal === '0' && bData.upl === '0') {
+        if (!error.value) error.value = '未检测到交易所数据，请确认已在系统设置中配置API Key'
+      }
     }
   } catch (e: any) {
     console.error('Failed to load trading data', e)
@@ -110,6 +155,16 @@ async function loadData() {
 }
 
 async function submitOrder() {
+  // Validate limit order price
+  if (form.value.type === 'limit' && (!form.value.price || form.value.price <= 0)) {
+    error.value = '限价单必须填写有效价格'
+    return
+  }
+  // Validate quantity
+  if (!form.value.quantity || form.value.quantity <= 0) {
+    error.value = '数量必须大于0'
+    return
+  }
   submitting.value = true
   error.value = ''
   try {
@@ -142,6 +197,44 @@ async function cancelOrder(instId: string, ordId: string) {
   }
 }
 
+function openSlTpModal(p: any) {
+  slTpForm.value = {
+    symbol: p.inst_id,
+    side: p.side,
+    pos_side: p.pos_side || '',
+    size: p.size,
+    stop_loss: 0,
+    take_profit: 0,
+  }
+  showSlTpModal.value = true
+}
+
+async function submitSlTp() {
+  if (!slTpForm.value.stop_loss && !slTpForm.value.take_profit) {
+    error.value = '止损价和止盈价至少填写一个'
+    return
+  }
+  slTpSubmitting.value = true
+  error.value = ''
+  try {
+    await api.post('/trading/positions/sl-tp', {
+      symbol: slTpForm.value.symbol,
+      side: slTpForm.value.side,
+      pos_side: slTpForm.value.pos_side || undefined,
+      size: slTpForm.value.size,
+      stop_loss: slTpForm.value.stop_loss || undefined,
+      take_profit: slTpForm.value.take_profit || undefined,
+    })
+    showSlTpModal.value = false
+    await loadData()
+  } catch (e: any) {
+    console.error('Set SL/TP failed', e)
+    error.value = e.response?.data?.message || e.message || '设置止盈止损失败'
+  } finally {
+    slTpSubmitting.value = false
+  }
+}
+
 async function closePosition(instId: string, side: string, size: number) {
   submitting.value = true
   error.value = ''
@@ -151,6 +244,7 @@ async function closePosition(instId: string, side: string, size: number) {
       side: side === 'long' ? 'short' : 'long',
       type: 'market',
       quantity: size,
+      reduce_only: true,
     })
     await loadData()
   } catch (e: any) {
@@ -161,7 +255,8 @@ async function closePosition(instId: string, side: string, size: number) {
   }
 }
 
-onMounted(loadData)
+onMounted(() => { loadData(); pollTimer = setInterval(loadData, 30000) })
+onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
 </script>
 
 <template>
@@ -185,35 +280,47 @@ onMounted(loadData)
     </div>
 
     <!-- Account Summary -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="card p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--primary-bg)">
-          <Wallet class="w-6 h-6" style="color: var(--primary)" />
-        </div>
-        <div>
-          <p class="text-sm" style="color: var(--text-secondary)">账户权益</p>
-          <p class="text-xl font-bold font-mono" style="color: var(--text-primary)">${{ totalEquity }}</p>
-        </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">账户权益</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--text-primary)">${{ totalEquity }}</div>
+        <div class="text-xs" style="color: var(--text-muted)">总权益</div>
       </div>
-      <div class="card p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="{ background: totalUpl >= 0 ? 'var(--profit-light)' : 'var(--loss-light)' }">
-          <TrendingUp v-if="totalUpl >= 0" class="w-6 h-6" style="color: var(--profit)" />
-          <TrendingDown v-else class="w-6 h-6" style="color: var(--loss)" />
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">可用余额</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--primary)">
+          ${{ balanceDetail ? balanceDetail.availBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
         </div>
-        <div>
-          <p class="text-sm" style="color: var(--text-secondary)">未实现盈亏</p>
-          <p class="text-xl font-bold font-mono" :style="{ color: totalUpl >= 0 ? 'var(--profit)' : 'var(--loss)' }">
-            {{ formatPnl(totalUpl) }} USDT
-          </p>
-        </div>
+        <div class="text-xs" style="color: var(--text-muted)">可开仓资金</div>
       </div>
-      <div class="card p-5 flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--surface-tertiary)">
-          <ArrowLeftRight class="w-6 h-6" style="color: var(--text-secondary)" />
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">未实现盈亏</div>
+        <div class="text-lg font-bold font-mono" :style="{ color: totalUpl >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+          {{ totalUpl >= 0 ? '+' : '' }}${{ totalUpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
         </div>
-        <div>
-          <p class="text-sm" style="color: var(--text-secondary)">持仓数量</p>
-          <p class="text-xl font-bold font-mono" style="color: var(--text-primary)">{{ positions.length }}</p>
+        <div class="text-xs" style="color: var(--text-muted)">浮动盈亏</div>
+      </div>
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">保证金占用</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--text-primary)">
+          ${{ balanceDetail ? balanceDetail.imr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
+        </div>
+        <div class="text-xs" style="color: var(--text-muted)">初始保证金</div>
+      </div>
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">冻结资金</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--text-secondary)">
+          ${{ balanceDetail ? balanceDetail.frozenBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
+        </div>
+        <div class="text-xs" style="color: var(--text-muted)">挂单冻结</div>
+      </div>
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">持仓数 / 委托数</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--text-primary)">
+          {{ positions.length }} / {{ orders.length }}
+        </div>
+        <div class="text-xs" :style="{ color: balanceDetail && balanceDetail.marginRatio > 0 && balanceDetail.marginRatio < 0.15 ? 'var(--loss)' : 'var(--text-muted)' }">
+          {{ balanceDetail && balanceDetail.marginRatio > 0 ? `保证金率 ${(balanceDetail.marginRatio * 100).toFixed(1)}%` : '无持仓' }}
         </div>
       </div>
     </div>
@@ -370,9 +477,15 @@ onMounted(loadData)
                     <span class="text-xs ml-1">{{ formatPnlPercent(p.upl_ratio) }}</span>
                   </td>
                   <td class="text-right">
-                    <button @click="closePosition(p.inst_id, p.side, p.size)" class="btn btn-danger btn-sm">
-                      平仓
-                    </button>
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button @click="openSlTpModal(p)" class="btn btn-secondary btn-sm" title="止盈止损">
+                        <Shield class="w-3.5 h-3.5" />
+                        止盈止损
+                      </button>
+                      <button @click="closePosition(p.inst_id, p.side, p.size)" class="btn btn-danger btn-sm">
+                        平仓
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -421,6 +534,42 @@ onMounted(loadData)
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SL/TP Modal -->
+    <div v-if="showSlTpModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.3)">
+      <div class="card w-full max-w-sm mx-4 !p-6">
+        <h3 class="text-base font-bold mb-4" style="color: var(--text-primary)">设置止盈止损</h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 p-2.5 rounded-lg" style="background: var(--surface-secondary)">
+            <span class="text-sm font-semibold" style="color: var(--text-primary)">{{ formatSymbol(slTpForm.symbol) }}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded" :class="slTpForm.side === 'long' ? 'badge-profit' : 'badge-loss'">
+              {{ slTpForm.side === 'long' ? '多' : '空' }}
+            </span>
+            <span class="text-xs" style="color: var(--text-muted)">{{ slTpForm.size }} 张</span>
+          </div>
+          <div>
+            <label class="label">止损价</label>
+            <input v-model.number="slTpForm.stop_loss" type="number" class="input" placeholder="触发止损的价格" step="any" min="0" />
+            <p class="text-xs mt-1" style="color: var(--text-muted)">
+              {{ slTpForm.side === 'long' ? '低于此价将触发卖出止损' : '高于此价将触发买入止损' }}
+            </p>
+          </div>
+          <div>
+            <label class="label">止盈价</label>
+            <input v-model.number="slTpForm.take_profit" type="number" class="input" placeholder="触发止盈的价格" step="any" min="0" />
+            <p class="text-xs mt-1" style="color: var(--text-muted)">
+              {{ slTpForm.side === 'long' ? '高于此价将触发卖出止盈' : '低于此价将触发买入止盈' }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button @click="showSlTpModal = false" class="btn-secondary flex-1">取消</button>
+          <button @click="submitSlTp" :disabled="slTpSubmitting" class="btn-primary flex-1">
+            {{ slTpSubmitting ? '提交中...' : '确认设置' }}
+          </button>
         </div>
       </div>
     </div>

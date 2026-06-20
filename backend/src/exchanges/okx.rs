@@ -74,6 +74,8 @@ pub struct OkxPosition {
     pub mgn_mode: Option<String>,
     #[serde(default)]
     pub pos: Option<String>,
+    #[serde(default, rename = "posSide")]
+    pub pos_side: Option<String>,
     #[serde(default)]
     pub pos_ccy: Option<String>,
     #[serde(default)]
@@ -104,31 +106,31 @@ pub struct OkxPosition {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct OkxTicker {
-    #[serde(default)]
+    #[serde(default, rename = "instType")]
     pub inst_type: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "instId")]
     pub inst_id: Option<String>,
     #[serde(default)]
     pub last: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "lastSz")]
     pub last_sz: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "askPx")]
     pub ask_px: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "askSz")]
     pub ask_sz: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "bidPx")]
     pub bid_px: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "bidSz")]
     pub bid_sz: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "open24h")]
     pub open_24h: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "high24h")]
     pub high_24h: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "low24h")]
     pub low_24h: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "volCcy24h")]
     pub vol_ccy_24h: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "vol24h")]
     pub vol_24h: Option<String>,
     #[serde(default)]
     pub ts: Option<String>,
@@ -168,6 +170,8 @@ pub struct OkxOrderRequest {
     pub sl_ord_px: Option<String>,
     pub tp_trigger_px: Option<String>,
     pub tp_ord_px: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reduce_only: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -193,7 +197,7 @@ impl OkxClient {
         // Use provided proxy URL first, then fall back to environment variables
         if let Some(url) = proxy_url {
             if !url.is_empty() {
-                let url = url.replace("socks5h://", "socks5://");
+                let url = url.replace("socks5h://", "socks5://").replace("https://", "http://");
                 if let Ok(proxy) = reqwest::Proxy::all(&url) {
                     tracing::info!("OKX client using proxy from DB: {}", url);
                     builder = builder.proxy(proxy);
@@ -205,7 +209,7 @@ impl OkxClient {
         {
             // Use socks5 (local DNS) instead of socks5h (remote DNS)
             // because host.docker.internal can only be resolved inside Docker
-            let proxy_url = proxy_url.replace("socks5h://", "socks5://");
+            let proxy_url = proxy_url.replace("socks5h://", "socks5://").replace("https://", "http://");
             if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
                 tracing::info!("OKX client using proxy: {}", proxy_url);
                 builder = builder.proxy(proxy);
@@ -610,5 +614,73 @@ impl OkxClient {
         }
 
         Ok(())
+    }
+
+    /// Place algo order (stop-loss / take-profit) for an existing position
+    pub async fn place_algo_order(
+        &self,
+        inst_id: &str,
+        td_mode: &str,
+        side: &str,
+        pos_side: Option<&str>,
+        ord_type: &str,     // "conditional" for SL, "oco" for TP, "move_order_stop" for trailing
+        sz: &str,
+        sl_trigger_px: Option<&str>,
+        sl_ord_px: Option<&str>,
+        tp_trigger_px: Option<&str>,
+        tp_ord_px: Option<&str>,
+    ) -> Result<OkxOrderResponse> {
+        #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct AlgoOrderRequest {
+            inst_id: String,
+            td_mode: String,
+            side: String,
+            ord_type: String,
+            sz: String,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pos_side: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sl_trigger_px: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            sl_ord_px: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            tp_trigger_px: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            tp_ord_px: Option<String>,
+        }
+
+        #[derive(Deserialize)]
+        struct OkxResponse {
+            code: String,
+            msg: String,
+            data: Vec<OkxOrderResponse>,
+        }
+
+        let request = AlgoOrderRequest {
+            inst_id: inst_id.to_string(),
+            td_mode: td_mode.to_string(),
+            side: side.to_string(),
+            ord_type: ord_type.to_string(),
+            sz: sz.to_string(),
+            pos_side: pos_side.map(|s| s.to_string()),
+            sl_trigger_px: sl_trigger_px.map(|s| s.to_string()),
+            sl_ord_px: sl_ord_px.map(|s| s.to_string()),
+            tp_trigger_px: tp_trigger_px.map(|s| s.to_string()),
+            tp_ord_px: tp_ord_px.map(|s| s.to_string()),
+        };
+
+        let resp: OkxResponse = self.post("/api/v5/trade/order-algo", &request).await?;
+
+        if resp.code != "0" {
+            return Err(AppError::ExternalApi {
+                service: "OKX".to_string(),
+                message: resp.msg,
+            });
+        }
+
+        resp.data.into_iter().next().ok_or_else(|| {
+            AppError::Internal("No algo order response data".to_string())
+        })
     }
 }

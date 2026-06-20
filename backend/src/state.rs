@@ -134,6 +134,7 @@ pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
 
     let mut enabled = false;
     let mut url = String::new();
+    let mut proxy_type = "socks5".to_string();
 
     for row in &rows {
         let key: String = row.try_get("key").unwrap_or_default();
@@ -141,13 +142,37 @@ pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
         match key.as_str() {
             "proxy_enabled" => enabled = value == "true",
             "proxy_url" => url = value,
+            "proxy_type" => proxy_type = value,
             _ => {}
         }
     }
 
     if enabled && !url.is_empty() {
-        Some(url.replace("socks5h://", "socks5://"))
+        // Normalize proxy URL based on selected proxy_type
+        let normalized = normalize_proxy_url(&url, &proxy_type);
+        Some(normalized)
     } else {
         None
+    }
+}
+
+/// Normalize proxy URL to match the selected proxy_type.
+/// Ensures the URL scheme is consistent with the user's proxy_type selection.
+pub fn normalize_proxy_url(url: &str, proxy_type: &str) -> String {
+    let url = url.trim();
+
+    // Remove existing scheme prefixes
+    let url_without_scheme = url
+        .strip_prefix("socks5h://")
+        .or_else(|| url.strip_prefix("socks5://"))
+        .or_else(|| url.strip_prefix("https://"))
+        .or_else(|| url.strip_prefix("http://"))
+        .unwrap_or(url);
+
+    // Apply the correct scheme based on proxy_type
+    match proxy_type {
+        "socks5" => format!("socks5://{}", url_without_scheme),
+        "https" => format!("http://{}", url_without_scheme), // reqwest Proxy::all needs http:// for HTTPS proxies
+        _ => format!("http://{}", url_without_scheme),       // http and default
     }
 }

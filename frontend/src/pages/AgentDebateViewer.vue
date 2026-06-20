@@ -422,7 +422,7 @@ onUnmounted(() => {})
         <div class="market-item">
           <span class="market-label">24h涨跌</span>
           <span class="market-value font-mono" :style="{ color: marketData.change_24h >= 0 ? 'var(--profit)' : 'var(--loss)' }">
-            {{ marketData.change_24h >= 0 ? '+' : '' }}{{ (marketData.change_24h * 100).toFixed(2) }}%
+            {{ marketData.change_24h >= 0 ? '+' : '' }}{{ marketData.change_24h.toFixed(2) }}%
           </span>
         </div>
         <div class="market-divider"></div>

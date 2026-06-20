@@ -42,7 +42,7 @@ function toUTCTimestamp(t: string | number): number {
   if (typeof t === 'number') return t
   const str = String(t)
   const isoStr = str.includes('T') ? str : str.replace(' ', 'T') + 'Z'
-  return Math.floor(new Date(isoStr).getTime() / 1000) as unknown as number
+  return Math.floor(new Date(isoStr).getTime() / 1000)
 }
 
 const fundingChartData = computed(() =>

@@ -332,7 +332,7 @@ async fn analyze_comprehensive(
     let user_message = format!(
         "请对 {} 进行综合分析，以下是当前市场数据：\n\n\
         ## 价格信息\n\
-        当前价格: {:.2}\n\
+        当前价格: {:.6}\n\
         时间周期: {}\n\n\
         ## 技术指标\n\
         RSI(14): {:.2}\n\
@@ -618,7 +618,9 @@ async fn get_llm_client_from_db(
             temperature: temperature.unwrap_or(0.7),
         };
 
-        let client = LlmClient::new(config);
+        // Read proxy config from DB for real-time proxy support
+        let proxy_url = crate::state::get_proxy_config_from_db(pool).await;
+        let client = LlmClient::new_with_proxy(config, proxy_url);
         return Ok(Some(client));
     }
 
@@ -626,10 +628,20 @@ async fn get_llm_client_from_db(
 }
 
 fn get_llm_client_from_env() -> Option<LlmClient> {
+    get_llm_client_from_env_with_proxy(None)
+}
+
+fn get_llm_client_from_env_with_proxy(proxy_url: Option<&str>) -> Option<LlmClient> {
     match LlmClient::from_env() {
         Ok(client) => {
             if client.is_configured() {
-                Some(client)
+                // Rebuild with proxy from DB if available
+                if let Some(url) = proxy_url {
+                    let config = client.config().clone();
+                    Some(LlmClient::new_with_proxy(config, Some(url.to_string())))
+                } else {
+                    Some(client)
+                }
             } else {
                 debug!("LLM client from env not configured (missing API key)");
                 None
@@ -649,6 +661,9 @@ async fn analyze_with_llm(
     user_message: &str,
     agent_name: &str,
 ) -> Result<String> {
+    // Read proxy config from DB once for this request
+    let proxy_url = crate::state::get_proxy_config_from_db(pool).await;
+
     let client = match get_llm_client_from_db(pool, user_id).await {
         Ok(Some(client)) => {
             debug!("Using LLM client from user DB config for user {}", user_id);
@@ -656,7 +671,7 @@ async fn analyze_with_llm(
         }
         Ok(None) => {
             debug!("No DB config for user {}, falling back to env config", user_id);
-            match get_llm_client_from_env() {
+            match get_llm_client_from_env_with_proxy(proxy_url.as_deref()) {
                 Some(client) => client,
                 None => {
                     return Err(AppError::Validation(
@@ -667,7 +682,7 @@ async fn analyze_with_llm(
         }
         Err(e) => {
             warn!("Failed to get LLM client from DB: {}, falling back to env", e);
-            match get_llm_client_from_env() {
+            match get_llm_client_from_env_with_proxy(proxy_url.as_deref()) {
                 Some(client) => client,
                 None => {
                     return Err(AppError::Validation(
@@ -809,12 +824,12 @@ struct AgentDef {
 }
 
 const AGENTS: &[AgentDef] = &[
-    AgentDef { id: "tech_bull", name: "技术分析师A", department: "technical", role: "看多技术分析师", personality: "擅长发现技术面看多信号，关注支撑位突破、均线金叉、RSI超卖反弹" },
-    AgentDef { id: "tech_bear", name: "技术分析师B", department: "technical", role: "看空技术分析师", personality: "擅长发现技术面看空信号，关注阻力位压制、均线死叉、RSI超买回落" },
-    AgentDef { id: "capital_bull", name: "资金分析师A", department: "capital", role: "看多资金分析师", personality: "擅长发现资金面看多信号，关注资金流入、多头增仓、资金费率偏低" },
-    AgentDef { id: "capital_bear", name: "资金分析师B", department: "capital", role: "看空资金分析师", personality: "擅长发现资金面看空信号，关注资金流出、空头增仓、资金费率偏高" },
-    AgentDef { id: "news_bull", name: "新闻分析师A", department: "news", role: "看多新闻分析师", personality: "擅长发现消息面看多信号，关注利好政策、行业合作、市场情绪回暖" },
-    AgentDef { id: "news_bear", name: "新闻分析师B", department: "news", role: "看空新闻分析师", personality: "擅长发现消息面看空信号，关注监管风险、安全事件、市场恐慌情绪" },
+    AgentDef { id: "tech_bull", name: "技术分析师A", department: "technical", role: "技术分析师", personality: "关注技术面看多信号，如支撑位突破、均线金叉、RSI超卖反弹、放量上涨" },
+    AgentDef { id: "tech_bear", name: "技术分析师B", department: "technical", role: "技术分析师", personality: "关注技术面看空信号，如阻力位压制、均线死叉、RSI超买回落、缩量下跌" },
+    AgentDef { id: "capital_bull", name: "资金分析师A", department: "capital", role: "资金分析师", personality: "关注资金面看多信号，如资金流入、多头增仓、资金费率偏低、买盘深度厚" },
+    AgentDef { id: "capital_bear", name: "资金分析师B", department: "capital", role: "资金分析师", personality: "关注资金面看空信号，如资金流出、空头增仓、资金费率偏高、卖盘深度厚" },
+    AgentDef { id: "news_bull", name: "新闻分析师A", department: "news", role: "新闻分析师", personality: "关注消息面看多信号，如利好政策、行业合作、市场情绪回暖" },
+    AgentDef { id: "news_bear", name: "新闻分析师B", department: "news", role: "新闻分析师", personality: "关注消息面看空信号，如监管风险、安全事件、市场恐慌情绪" },
 ];
 
 async fn start_debate_old(
@@ -893,40 +908,40 @@ async fn start_debate_old(
         .and_then(|s| s.parse::<f64>().ok())
         .unwrap_or(0.0);
 
-    let long_short_ratio = long_short_data
-        .get("data")
-        .and_then(|d| d.as_array())
-        .and_then(|arr| arr.first())
-        .and_then(|item| item.as_array())
-        .and_then(|pair| pair.get(1))
-        .and_then(|v| v.as_str())
-        .and_then(|s| s.parse::<f64>().ok())
-        .or_else(|| long_short_data.get("data").and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|item| item.as_array()).and_then(|pair| pair.get(1)).and_then(|v| v.as_f64()))
-        .unwrap_or(1.0);
+    let ls_result = parse_long_short_ratio(&long_short_data);
+    let long_short_ratio = ls_result.long_short_ratio;
+    let long_pct = ls_result.long_pct;
+    let short_pct = ls_result.short_pct;
 
     // Build candle summary for prompts
-    let recent_candles: Vec<Value> = candles.iter().take(20).map(|c| json!({
-        "open": c.o,
-        "high": c.h,
-        "low": c.l,
-        "close": c.c,
-        "volume": c.vol,
-    })).collect();
+    let recent_candles: Vec<Value> = candles.iter().take(20).rev().map(|c| {
+        let ts = c.ts.as_deref().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
+        json!({
+            "time": ts,
+            "open": c.o,
+            "high": c.h,
+            "low": c.l,
+            "close": c.c,
+            "volume": c.vol,
+        })
+    }).collect();
 
     let market_data_str = format!(
         "## 实时市场数据 (来源: OKX)\n\n\
         ### 行情概览\n\
         交易对: {}\n\
-        当前价格: {:.2}\n\
-        24h开盘: {:.2}\n\
-        24h最高: {:.2}\n\
-        24h最低: {:.2}\n\
-        24h涨跌: {:.2}%\n\
-        24h成交量: {:.2}\n\n\
+        当前价格: {:.6}\n\
+        24h开盘: {:.6}\n\
+        24h最高: {:.6}\n\
+        24h最低: {:.6}\n\
+        24h涨跌: {:.4}%\n\
+        24h成交量: {:.4}\n\n\
         ### 资金费率\n\
-        当前资金费率: {:.6}\n\n\
+        当前资金费率: {:.8}\n\n\
         ### 多空比\n\
-        多空账户比: {:.4}\n\n\
+        多空账户比: {}\n\
+        多头占比: {}\n\
+        空头占比: {}\n\n\
         ### 最近K线数据 (周期: {})\n\
         {}\n",
         symbol,
@@ -937,19 +952,37 @@ async fn start_debate_old(
         if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
         vol_24h,
         funding_rate,
-        long_short_ratio,
+        long_short_ratio.map(|r| format!("{:.4}", r)).unwrap_or_else(|| "数据不可用".to_string()),
+        long_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
+        short_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
         interval,
         serde_json::to_string_pretty(&recent_candles).unwrap_or_default(),
     );
 
-    // 3. Create debate session in DB
+    // 3. Create debate session in DB with market snapshot for auditing
+    let market_snapshot = json!({
+        "symbol": symbol,
+        "current_price": current_price,
+        "open_24h": open_24h,
+        "high_24h": high_24h,
+        "low_24h": low_24h,
+        "vol_24h": vol_24h,
+        "funding_rate": funding_rate,
+        "long_short_ratio": long_short_ratio,
+        "long_pct": long_pct,
+        "short_pct": short_pct,
+        "candles_count": candles.len(),
+        "data_source": "okx_realtime",
+    });
+
     let session_row = sqlx::query(
-        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, created_at, updated_at)
-        VALUES ($1, $2, 'in_progress', 'fetching_market_data', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, NOW(), NOW())
+        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, market_snapshot, created_at, updated_at)
+        VALUES ($1, $2, 'in_progress', 'fetching_market_data', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, $3, NOW(), NOW())
         RETURNING id"#,
     )
     .bind(user.user_id)
     .bind(&symbol)
+    .bind(&market_snapshot)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -969,8 +1002,9 @@ async fn start_debate_old(
 
     for agent_def in AGENTS {
         let system_prompt = format!(
-            "你是{}的{}，名叫{}。你的性格特点是：{}。\n\
-            你需要基于提供的OKX实时市场数据，从你的专业角度进行分析。\n\
+            "你是{}的分析师，名叫{}。你的分析视角：{}。\n\
+            你需要基于提供的OKX实时市场数据，从你的专业角度进行客观分析。\n\
+            关键：你是分析师而非辩手，目标是给出最准确的判断，而非捍卫某个方向。\n\
             你必须以JSON格式回复，格式如下：\n\
             {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
             sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
@@ -982,7 +1016,6 @@ async fn start_debate_old(
                 "news" => "新闻分析部",
                 _ => "分析部",
             },
-            agent_def.role,
             agent_def.name,
             agent_def.personality,
         );
@@ -1132,7 +1165,12 @@ async fn start_debate_old(
         你需要基于以下信息做出决策：\n\
         1. 各分析师的意见和信心度\n\
         2. 各部门的汇总报告\n\
-        3. 当前市场价格: {:.2}\n\n\
+        3. 当前市场价格: {:.6}\n\n\
+        重要：推理中必须使用精确价格（如0.084740而非0.08），不得简化或四舍五入价格，否则会导致错误的支撑/阻力判断。\n\n\
+        决策原则：\n\
+        - 做多和做空应该有同等门槛，不要因为'避险'而偏向做空\n\
+        - 如果多空信号势均力敌，选择hold比强行选方向更合理\n\
+        - 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n\n\
         你必须以JSON格式回复，格式如下：\n\
         {{\"action\": \"long\"|\"short\"|\"hold\", \"confidence\": 0.0-1.0, \"entry_range\": {{\"low\": 价格, \"high\": 价格}}, \"stop_loss\": 价格, \"take_profit\": [价格1, 价格2], \"leverage\": 1-10, \"reasoning\": \"决策理由\"}}\n\
         只输出JSON，不要输出其他内容。",
@@ -1295,39 +1333,39 @@ async fn start_debate_stream(
         .and_then(|s| s.parse::<f64>().ok())
         .unwrap_or(0.0);
 
-    let long_short_ratio = long_short_data
-        .get("data")
-        .and_then(|d| d.as_array())
-        .and_then(|arr| arr.first())
-        .and_then(|item| item.as_array())
-        .and_then(|pair| pair.get(1))
-        .and_then(|v| v.as_str())
-        .and_then(|s| s.parse::<f64>().ok())
-        .or_else(|| long_short_data.get("data").and_then(|d| d.as_array()).and_then(|arr| arr.first()).and_then(|item| item.as_array()).and_then(|pair| pair.get(1)).and_then(|v| v.as_f64()))
-        .unwrap_or(1.0);
+    let ls_result = parse_long_short_ratio(&long_short_data);
+    let long_short_ratio = ls_result.long_short_ratio;
+    let long_pct = ls_result.long_pct;
+    let short_pct = ls_result.short_pct;
 
-    let recent_candles: Vec<Value> = candles.iter().take(20).map(|c| json!({
-        "open": c.o,
-        "high": c.h,
-        "low": c.l,
-        "close": c.c,
-        "volume": c.vol,
-    })).collect();
+    let recent_candles: Vec<Value> = candles.iter().take(20).rev().map(|c| {
+        let ts = c.ts.as_deref().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
+        json!({
+            "time": ts,
+            "open": c.o,
+            "high": c.h,
+            "low": c.l,
+            "close": c.c,
+            "volume": c.vol,
+        })
+    }).collect();
 
     let market_data_str = format!(
         "## 实时市场数据 (来源: OKX)\n\n\
         ### 行情概览\n\
         交易对: {}\n\
-        当前价格: {:.2}\n\
-        24h开盘: {:.2}\n\
-        24h最高: {:.2}\n\
-        24h最低: {:.2}\n\
-        24h涨跌: {:.2}%\n\
-        24h成交量: {:.2}\n\n\
+        当前价格: {:.6}\n\
+        24h开盘: {:.6}\n\
+        24h最高: {:.6}\n\
+        24h最低: {:.6}\n\
+        24h涨跌: {:.4}%\n\
+        24h成交量: {:.4}\n\n\
         ### 资金费率\n\
-        当前资金费率: {:.6}\n\n\
+        当前资金费率: {:.8}\n\n\
         ### 多空比\n\
-        多空账户比: {:.4}\n\n\
+        多空账户比: {}\n\
+        多头占比: {}\n\
+        空头占比: {}\n\n\
         ### 最近K线数据 (周期: {})\n\
         {}\n",
         symbol,
@@ -1338,19 +1376,37 @@ async fn start_debate_stream(
         if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
         vol_24h,
         funding_rate,
-        long_short_ratio,
+        long_short_ratio.map(|r| format!("{:.4}", r)).unwrap_or_else(|| "数据不可用".to_string()),
+        long_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
+        short_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
         interval,
         serde_json::to_string_pretty(&recent_candles).unwrap_or_default(),
     );
 
-    // 3. Create debate session in DB
+    // 3. Create debate session in DB with market snapshot for auditing
+    let market_snapshot = json!({
+        "symbol": symbol,
+        "current_price": current_price,
+        "open_24h": open_24h,
+        "high_24h": high_24h,
+        "low_24h": low_24h,
+        "vol_24h": vol_24h,
+        "funding_rate": funding_rate,
+        "long_short_ratio": long_short_ratio,
+        "long_pct": long_pct,
+        "short_pct": short_pct,
+        "candles_count": candles.len(),
+        "data_source": "okx_realtime",
+    });
+
     let session_row = sqlx::query(
-        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, created_at, updated_at)
-        VALUES ($1, $2, 'in_progress', 'fetching_market_data', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, NOW(), NOW())
+        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, market_snapshot, created_at, updated_at)
+        VALUES ($1, $2, 'in_progress', 'fetching_market_data', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, $3, NOW(), NOW())
         RETURNING id"#,
     )
     .bind(user.user_id)
     .bind(&symbol)
+    .bind(&market_snapshot)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -1384,6 +1440,8 @@ async fn start_debate_stream(
         "vol_24h": vol_24h,
         "funding_rate": funding_rate,
         "long_short_ratio": long_short_ratio,
+        "long_pct": long_pct,
+        "short_pct": short_pct,
         "change_24h": if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
     })).unwrap_or_default());
 
@@ -1597,7 +1655,8 @@ async fn start_debate_stream(
             你需要基于以下信息做出决策：\n\
             1. 各分析师的意见和信心度\n\
             2. 各部门的汇总报告\n\
-            3. 当前市场价格: {:.2}\n\n\
+            3. 当前市场价格: {:.6}\n\n\
+            重要：推理中必须使用精确价格（如0.084740而非0.08），不得简化或四舍五入价格，否则会导致错误的支撑/阻力判断。\n\n\
             你必须以JSON格式回复，格式如下：\n\
             {{\"action\": \"long\"|\"short\"|\"hold\", \"confidence\": 0.0-1.0, \"entry_range\": {{\"low\": 价格, \"high\": 价格}}, \"stop_loss\": 价格, \"take_profit\": [价格1, 价格2], \"leverage\": 1-10, \"reasoning\": \"决策理由\"}}\n\
             只输出JSON，不要输出其他内容。",
@@ -1928,19 +1987,54 @@ async fn get_debate_session(
 use crate::exchanges::okx::OkxClient;
  use crate::exchanges::okx::OkxCandle;
 
-/// Analyze market context from candles
+/// Extended market context with additional indicators
+struct MarketContextExtended {
+    trend: String,
+    trend_strength: f64,
+    volatility: String,
+    volume_profile: String,
+    key_levels: (f64, f64, f64),
+    ma5: f64,
+    ma10: f64,
+    ma20: f64,
+    rsi_14: f64,
+    macd_signal: String,
+    atr: f64,
+    price_change_1h: f64,
+    price_change_4h: f64,
+}
+
+/// Analyze market context from candles with extended indicators
 fn analyze_market_context(candles: &[OkxCandle], current_price: f64) -> (String, f64, String, String, (f64, f64, f64)) {
+    let ctx = analyze_market_context_extended(candles, current_price);
+    (ctx.trend, ctx.trend_strength, ctx.volatility, ctx.volume_profile, ctx.key_levels)
+}
+
+fn analyze_market_context_extended(candles: &[OkxCandle], current_price: f64) -> MarketContextExtended {
     if candles.len() < 10 {
-        return ("unknown".to_string(), 0.5, "medium".to_string(), "stable".to_string(),
-                (current_price * 0.95, current_price, current_price * 1.05));
+        return MarketContextExtended {
+            trend: "unknown".to_string(), trend_strength: 0.5,
+            volatility: "medium".to_string(), volume_profile: "stable".to_string(),
+            key_levels: (current_price * 0.95, current_price, current_price * 1.05),
+            ma5: current_price, ma10: current_price, ma20: current_price,
+            rsi_14: 50.0, macd_signal: "neutral".to_string(),
+            atr: current_price * 0.01, price_change_1h: 0.0, price_change_4h: 0.0,
+        };
     }
 
-    // Calculate trend using moving averages
-    let recent_closes: Vec<f64> = candles.iter().rev().take(20)
+    // Parse all closes in ASC order (oldest first)
+    let all_closes: Vec<f64> = candles.iter().rev()
         .filter_map(|c| c.c.as_ref().and_then(|s| s.parse::<f64>().ok()))
         .collect();
-    let ma5: f64 = recent_closes.iter().take(5).sum::<f64>() / 5.0;
-    let ma20: f64 = recent_closes.iter().sum::<f64>() / recent_closes.len() as f64;
+
+    // Moving averages
+    let ma5: f64 = all_closes.iter().rev().take(5).sum::<f64>() / 5.0;
+    let ma10: f64 = all_closes.iter().rev().take(10).sum::<f64>() / 10.0;
+    let ma20: f64 = if all_closes.len() >= 20 {
+        all_closes.iter().rev().take(20).sum::<f64>() / 20.0
+    } else {
+        all_closes.iter().sum::<f64>() / all_closes.len() as f64
+    };
 
     let trend = if ma5 > ma20 * 1.02 {
         "bull".to_string()
@@ -1950,10 +2044,33 @@ fn analyze_market_context(candles: &[OkxCandle], current_price: f64) -> (String,
         "range".to_string()
     };
 
-    // Trend strength based on distance from MAs
     let trend_strength = ((ma5 - ma20) / ma20).abs().min(0.1) * 10.0;
 
-    // Calculate volatility (ATR-based)
+    // RSI calculation (14-period)
+    let rsi_14 = if all_closes.len() >= 15 {
+        let changes: Vec<f64> = all_closes.windows(2).map(|w| w[1] - w[0]).collect();
+        let recent_changes: Vec<f64> = changes.iter().rev().take(14).copied().collect();
+        let avg_gain: f64 = recent_changes.iter().filter(|&&c| c > 0.0).map(|&c| c).sum::<f64>() / 14.0;
+        let avg_loss: f64 = recent_changes.iter().filter(|&&c| c < 0.0).map(|&c| c.abs()).sum::<f64>() / 14.0;
+        if avg_loss == 0.0 { 100.0 } else {
+            let rs = avg_gain / avg_loss;
+            100.0 - (100.0 / (1.0 + rs))
+        }
+    } else {
+        50.0
+    };
+
+    // MACD signal (simplified: EMA12 vs EMA26 trend)
+    let macd_signal = if all_closes.len() >= 26 {
+        let ema12 = calc_ema(&all_closes, 12);
+        let ema26 = calc_ema(&all_closes, 26);
+        let macd_line = ema12 - ema26;
+        if macd_line > 0.0 { "bullish".to_string() } else { "bearish".to_string() }
+    } else {
+        "neutral".to_string()
+    };
+
+    // ATR (14-period)
     let atr: f64 = candles.iter().rev().take(14)
         .filter_map(|c| {
             let h = c.h.as_ref().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
@@ -1976,7 +2093,7 @@ fn analyze_market_context(candles: &[OkxCandle], current_price: f64) -> (String,
     let recent_vol: Vec<f64> = candles.iter().rev().take(10)
         .filter_map(|c| c.vol.as_ref().and_then(|s| s.parse::<f64>().ok()))
         .collect();
-    let avg_vol = recent_vol.iter().sum::<f64>() / recent_vol.len() as f64;
+    let avg_vol = recent_vol.iter().sum::<f64>() / recent_vol.len().max(1) as f64;
     let volume_profile = if recent_vol.is_empty() || avg_vol == 0.0 {
         "stable".to_string()
     } else if recent_vol[0] > avg_vol * 1.3 {
@@ -1987,20 +2104,41 @@ fn analyze_market_context(candles: &[OkxCandle], current_price: f64) -> (String,
         "stable".to_string()
     };
 
-    // Key levels (support and resistance)
+    // Key levels
     let high = candles.iter()
         .filter_map(|c| c.h.as_ref().and_then(|s| s.parse::<f64>().ok()))
         .fold(f64::MIN, f64::max);
     let low = candles.iter()
         .filter_map(|c| c.l.as_ref().and_then(|s| s.parse::<f64>().ok()))
         .fold(f64::MAX, f64::min);
-    let key_levels = (
-        low,
-        (high + low) / 2.0,
-        high,
-    );
+    let key_levels = (low, (high + low) / 2.0, high);
 
-    (trend, trend_strength, volatility, volume_profile, key_levels)
+    // Price changes
+    let price_change_1h = if all_closes.len() >= 2 {
+        let prev = all_closes[all_closes.len() - 2];
+        if prev > 0.0 { (current_price - prev) / prev * 100.0 } else { 0.0 }
+    } else { 0.0 };
+    let price_change_4h = if all_closes.len() >= 5 {
+        let prev = all_closes[all_closes.len() - 5];
+        if prev > 0.0 { (current_price - prev) / prev * 100.0 } else { 0.0 }
+    } else { 0.0 };
+
+    MarketContextExtended {
+        trend, trend_strength, volatility, volume_profile, key_levels,
+        ma5, ma10, ma20, rsi_14, macd_signal, atr,
+        price_change_1h, price_change_4h,
+    }
+}
+
+/// Calculate EMA (Exponential Moving Average)
+fn calc_ema(data: &[f64], period: usize) -> f64 {
+    if data.len() < period { return data.last().copied().unwrap_or(0.0); }
+    let k = 2.0 / (period as f64 + 1.0);
+    let mut ema: f64 = data[..period].iter().sum::<f64>() / period as f64;
+    for price in &data[period..] {
+        ema = price * k + ema * (1.0 - k);
+    }
+    ema
 }
 
 /// Multi-timeframe data structure
@@ -2058,7 +2196,7 @@ async fn fetch_multi_timeframe_data(okx_client: &OkxClient, symbol: &str, curren
     }
 }
 
-/// Calculate enhanced confidence with market context calibration
+/// Calculate enhanced confidence with market context calibration and debate quality
 fn calculate_enhanced_confidence(
     base_confidence: f64,
     agent_opinions: &[Value],
@@ -2075,6 +2213,16 @@ fn calculate_enhanced_confidence(
     let total = sentiments.len() as f64;
     let agreement = if total > 0.0 { (bull_count.max(bear_count) / total).max(0.5) } else { 0.5 };
 
+    // Debate quality factor: agents that maintained their position after rebuttal are more reliable
+    let sentiment_changed_count = agent_opinions.iter()
+        .filter(|o| o.get("sentiment_changed").and_then(|v| v.as_bool()).unwrap_or(false))
+        .count() as f64;
+    let debate_stability = if total > 0.0 {
+        1.0 - (sentiment_changed_count / total) * 0.3 // Small penalty for flip-flopping
+    } else {
+        1.0
+    };
+
     // Volatility factor (reduce confidence in high volatility)
     let volatility_factor = match volatility {
         "high" => 0.85,
@@ -2090,11 +2238,12 @@ fn calculate_enhanced_confidence(
     let historical_factor = 0.8 + (historical_accuracy.min(1.0) * 0.2);
 
     // Final confidence calculation
-    // 50% base + 25% agreement + 15% alignment + 10% historical
-    let final_confidence = base_confidence * 0.5 +
-                          agreement * 0.25 +
+    // 45% base + 20% agreement + 15% alignment + 10% historical + 10% debate stability
+    let final_confidence = base_confidence * 0.45 +
+                          agreement * 0.20 +
                           alignment_factor * 0.15 +
-                          historical_factor * 0.1;
+                          historical_factor * 0.10 +
+                          debate_stability * 0.10;
 
     // Apply volatility dampening
     let calibrated_confidence = final_confidence * volatility_factor;
@@ -2103,11 +2252,111 @@ fn calculate_enhanced_confidence(
     calibrated_confidence.max(0.2).min(0.98)
 }
 
-/// Extract trend patterns from historical decisions (simplified version)
-fn trends_from_decisions(_decisions_len: usize) -> f64 {
-    // This is a simplified version - in production you'd query decision_memory directly
-    // For now, return neutral accuracy
-    0.5
+/// Extract trend patterns from historical decisions by querying actual success rate
+async fn trends_from_decisions(pool: &sqlx::PgPool, user_id: i64, symbol: &str) -> f64 {
+    // Query actual historical accuracy from decision_memory
+    let result = sqlx::query_scalar::<_, f64>(
+        r#"SELECT COALESCE(AVG(CASE WHEN success THEN 1.0 ELSE 0.0 END), 0.5)
+        FROM decision_memory
+        WHERE user_id = $1 AND symbol = $2 AND success IS NOT NULL
+        AND created_at > NOW() - INTERVAL '30 days'"#
+    )
+    .bind(user_id)
+    .bind(symbol)
+    .fetch_one(pool)
+    .await;
+
+    match result {
+        Ok(accuracy) => {
+            // Apply sample size weighting: with few samples, regress toward 0.5
+            let count_result = sqlx::query_scalar::<_, i64>(
+                r#"SELECT COUNT(*) FROM decision_memory
+                WHERE user_id = $1 AND symbol = $2 AND success IS NOT NULL
+                AND created_at > NOW() - INTERVAL '30 days'"#
+            )
+            .bind(user_id)
+            .bind(symbol)
+            .fetch_one(pool)
+            .await
+            .unwrap_or(0);
+
+            let sample_weight = (count_result as f64 / 20.0).min(1.0); // Full weight at 20+ samples
+            // Blend actual accuracy with neutral 0.5 based on sample size
+            accuracy * sample_weight + 0.5 * (1.0 - sample_weight)
+        }
+        Err(_) => 0.5,
+    }
+}
+
+/// Parsed result from OKX long-short-account-ratio API
+struct LongShortRatioResult {
+    /// The long/short ratio (e.g., 3.04 means longs outnumber shorts 3:1)
+    long_short_ratio: Option<f64>,
+    /// Long account percentage (calculated from ratio, e.g., 75.2%)
+    long_pct: Option<f64>,
+    /// Short account percentage (calculated from ratio, e.g., 24.8%)
+    short_pct: Option<f64>,
+}
+
+/// Parse OKX long-short-account-ratio API response.
+///
+/// OKX API `/api/v5/rubik/stat/contracts/long-short-account-ratio` returns:
+/// `{"code":"0","data":[["timestamp","longShortRatio"],...],"msg":""}`
+///
+/// Each data item is a 2-element array: [timestamp_ms, longShortRatio]
+/// - longShortRatio > 1 means longs outnumber shorts
+/// - longShortRatio < 1 means shorts outnumber longs
+///
+/// From the ratio, we derive:
+/// - long_pct = ratio / (ratio + 1) * 100
+/// - short_pct = 1 / (ratio + 1) * 100
+fn parse_long_short_ratio(data: &serde_json::Value) -> LongShortRatioResult {
+    let arr = data.get("data").and_then(|d| d.as_array());
+    if arr.is_none() {
+        tracing::warn!("OKX long-short-account-ratio API returned no data array");
+        return LongShortRatioResult { long_short_ratio: None, long_pct: None, short_pct: None };
+    }
+    let arr = arr.unwrap();
+    if arr.is_empty() {
+        tracing::warn!("OKX long-short-account-ratio API returned empty data");
+        return LongShortRatioResult { long_short_ratio: None, long_pct: None, short_pct: None };
+    }
+
+    let first = arr.first().unwrap();
+    let parts = first.as_array();
+
+    if parts.is_none() {
+        tracing::warn!("OKX long-short-account-ratio data item is not an array: {:?}", first);
+        return LongShortRatioResult { long_short_ratio: None, long_pct: None, short_pct: None };
+    }
+    let parts = parts.unwrap();
+
+    // OKX returns 2-element arrays: [timestamp, longShortRatio]
+    // Try index 1 first (the ratio value)
+    let ratio = parts.get(1)
+        .and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+        .or_else(|| parts.get(1).and_then(|v| v.as_f64()));
+
+    match ratio {
+        Some(r) if r > 0.0 => {
+            let long_pct = r / (r + 1.0) * 100.0;
+            let short_pct = 1.0 / (r + 1.0) * 100.0;
+            tracing::info!("Parsed long-short ratio: ratio={:.4}, long_pct={:.2}%, short_pct={:.2}%", r, long_pct, short_pct);
+            LongShortRatioResult {
+                long_short_ratio: Some(r),
+                long_pct: Some(long_pct),
+                short_pct: Some(short_pct),
+            }
+        }
+        Some(r) => {
+            tracing::warn!("OKX long-short-account-ratio returned invalid ratio: {}", r);
+            LongShortRatioResult { long_short_ratio: None, long_pct: None, short_pct: None }
+        }
+        None => {
+            tracing::warn!("Failed to parse long-short ratio from OKX response: {:?}", parts);
+            LongShortRatioResult { long_short_ratio: None, long_pct: None, short_pct: None }
+        }
+    }
 }
 
 // ==================== Reusable Debate Function for Simulation ====================
@@ -2151,7 +2400,10 @@ pub async fn run_debate_for_simulation(
     let passphrase = decrypt(&encrypted_passphrase).unwrap_or_default();
     let metadata: serde_json::Value = key_row.get("metadata");
     let is_demo = metadata.get("is_demo").and_then(|v| v.as_bool()).unwrap_or(false);
-    let okx_client = crate::exchanges::okx::OkxClient::new(api_key, secret, passphrase, is_demo);
+    let okx_client = {
+        let proxy_url = crate::state::get_proxy_config_from_db(pool).await;
+        crate::exchanges::okx::OkxClient::new_with_proxy(api_key, secret, passphrase, is_demo, proxy_url)
+    };
 
     // 2. Fetch market data
     let ticker = okx_client.get_ticker(symbol).await
@@ -2174,18 +2426,90 @@ pub async fn run_debate_for_simulation(
     let funding_rate = funding_data.get("data").and_then(|d| d.get(0))
         .and_then(|item| item.get("fundingRate")).and_then(|v| v.as_str())
         .and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-    let long_short_ratio = long_short_data.get("data").and_then(|d| d.as_array())
-        .and_then(|arr| arr.first()).and_then(|item| item.as_array())
-        .and_then(|pair| pair.get(1)).and_then(|v| v.as_str())
-        .and_then(|s| s.parse::<f64>().ok())
-        .unwrap_or(1.0);
+    let ls_result = parse_long_short_ratio(&long_short_data);
+    let long_short_ratio = ls_result.long_short_ratio;
+    let long_pct = ls_result.long_pct;
+    let short_pct = ls_result.short_pct;
 
-    let recent_candles: Vec<Value> = candles.iter().take(20).map(|c| json!({
-        "open": c.o, "high": c.h, "low": c.l, "close": c.c, "volume": c.vol,
-    })).collect();
+    // Fetch orderbook depth data (top 5 bids/asks)
+    let orderbook_data = okx_client.get_raw(
+        "/api/v5/market/books",
+        Some(&[("instId", symbol.to_string()), ("sz", "5".to_string())]),
+    ).await.unwrap_or_else(|_| json!({}));
+
+    // Parse orderbook depth
+    let (bid_depth_info, ask_depth_info, bid_ask_imbalance) = {
+        let books = orderbook_data.get("data").and_then(|d| d.get(0));
+        if let Some(book) = books {
+            let bids = book.get("bids").and_then(|b| b.as_array()).cloned().unwrap_or_default();
+            let asks = book.get("asks").and_then(|a| a.as_array()).cloned().unwrap_or_default();
+
+            let bid_total: f64 = bids.iter().take(5).filter_map(|b| {
+                let price: f64 = b.get(0)?.as_str()?.parse().ok()?;
+                let size: f64 = b.get(1)?.as_str()?.parse().ok()?;
+                Some(price * size)
+            }).sum();
+            let ask_total: f64 = asks.iter().take(5).filter_map(|a| {
+                let price: f64 = a.get(0)?.as_str()?.parse().ok()?;
+                let size: f64 = a.get(1)?.as_str()?.parse().ok()?;
+                Some(price * size)
+            }).sum();
+
+            let bid_info: Vec<String> = bids.iter().take(5).filter_map(|b| {
+                let price = b.get(0)?.as_str()?;
+                let size = b.get(1)?.as_str()?;
+                Some(format!("{} x {}", price, size))
+            }).collect();
+            let ask_info: Vec<String> = asks.iter().take(5).filter_map(|a| {
+                let price = a.get(0)?.as_str()?;
+                let size = a.get(1)?.as_str()?;
+                Some(format!("{} x {}", price, size))
+            }).collect();
+
+            let imbalance = if bid_total + ask_total > 0.0 {
+                (bid_total - ask_total) / (bid_total + ask_total)
+            } else {
+                0.0
+            };
+
+            (bid_info.join(", "), ask_info.join(", "), imbalance)
+        } else {
+            ("数据不可用".to_string(), "数据不可用".to_string(), 0.0)
+        }
+    };
+
+    // Fetch open interest data
+    let open_interest_data = okx_client.get_raw(
+        "/api/v5/public/open-interest",
+        Some(&[("instType", "SWAP".to_string()), ("instId", symbol.to_string())]),
+    ).await.unwrap_or_else(|_| json!({}));
+
+    let (open_interest, oi_change_hint) = {
+        let oi_item = open_interest_data.get("data").and_then(|d| d.get(0));
+        if let Some(item) = oi_item {
+            let oi = item.get("oi").and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok());
+            let oi_ccy = item.get("oiCcy").and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok());
+            let hint = match oi {
+                Some(val) if val > 0.0 => format!("持仓量: {} (币本位: {})", val, oi_ccy.unwrap_or(0.0)),
+                _ => "持仓量数据不可用".to_string(),
+            };
+            (oi, hint)
+        } else {
+            (None, "持仓量数据不可用".to_string())
+        }
+    };
+
+    // OKX returns candles in DESC order (newest first). Reverse to ASC for AI analysis.
+    // Pass 50 candles for more comprehensive analysis
+    let recent_candles: Vec<Value> = candles.iter().take(50).rev().map(|c| {
+        let ts = c.ts.as_deref().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
+        json!({
+            "time": ts, "open": c.o, "high": c.h, "low": c.l, "close": c.c, "volume": c.vol,
+        })
+    }).collect();
 
     // Analyze market context: trend, volatility, volume profile
-    let (trend, trend_strength, volatility, volume_profile, key_levels) = analyze_market_context(&candles, current_price);
+    let ctx = analyze_market_context_extended(&candles, current_price);
 
     // Fetch multi-timeframe data
     let multi_timeframe_data = fetch_multi_timeframe_data(&okx_client, symbol, current_price).await;
@@ -2193,13 +2517,19 @@ pub async fn run_debate_for_simulation(
     let market_data_str = format!(
         "## 实时市场数据
 交易对: {}
-当前价格: {:.2}
+当前价格: {:.6}
 
-### 市场环境分析
-趋势: {} (强度: {:.0}%)
+### 技术指标
+趋势: {} (强度: {:.1}%)
+MA5: {:.6}, MA10: {:.6}, MA20: {:.6}
+RSI(14): {:.1}
+MACD信号: {}
+ATR(14): {:.6}
 波动性: {}
 成交量: {}
-关键支撑/阻力位: {:.2}, {:.2}, {:.2}
+关键支撑/阻力位: {:.6}, {:.6}, {:.6}
+近1h涨跌: {:.4}%
+近4h涨跌: {:.4}%
 
 ### 多时间框架分析
 5分钟趋势: {}
@@ -2207,18 +2537,32 @@ pub async fn run_debate_for_simulation(
 1小时趋势: {}
 4小时趋势: {}
 日线趋势: {}
-周期一致性: {:.0}% ({})
+周期一致性: {:.1}% ({})
 近期K线: {}
 
-24h涨跌: {:.2}%
-24h最高/最低: {:.2}/{:.2}
-24h成交量: {:.2}
-资金费率: {:.6}
-多空比: {:.4}",
+24h涨跌: {:.4}%
+24h最高/最低: {:.6}/{:.6}
+24h成交量: {:.4}
+资金费率: {:.8}
+多空比: {}
+多空详情: 多头占比{}, 空头占比{}
+
+### 订单簿深度
+买盘(前5): {}
+卖盘(前5): {}
+买卖力量比: {:.4} (正值=买盘强, 负值=卖盘强)
+
+### 持仓量
+{}",
         symbol, current_price,
-        trend, trend_strength * 100.0,
-        volatility, volume_profile,
-        key_levels.0, key_levels.1, key_levels.2,
+        ctx.trend, ctx.trend_strength * 100.0,
+        ctx.ma5, ctx.ma10, ctx.ma20,
+        ctx.rsi_14,
+        ctx.macd_signal,
+        ctx.atr,
+        ctx.volatility, ctx.volume_profile,
+        ctx.key_levels.0, ctx.key_levels.1, ctx.key_levels.2,
+        ctx.price_change_1h, ctx.price_change_4h,
         multi_timeframe_data.m5_trend,
         multi_timeframe_data.m15_trend,
         multi_timeframe_data.h1_trend,
@@ -2228,7 +2572,12 @@ pub async fn run_debate_for_simulation(
         multi_timeframe_data.alignment_details,
         serde_json::to_string_pretty(&recent_candles).unwrap_or_default(),
         if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
-        high_24h, low_24h, vol_24h, funding_rate, long_short_ratio,
+        high_24h, low_24h, vol_24h, funding_rate,
+        long_short_ratio.map(|r| format!("{:.4}", r)).unwrap_or_else(|| "数据不可用".to_string()),
+        long_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
+        short_pct.map(|p| format!("{:.2}%", p)).unwrap_or_else(|| "数据不可用".to_string()),
+        bid_depth_info, ask_depth_info, bid_ask_imbalance,
+        oi_change_hint,
     );
 
     // 3. Fetch historical decision memory for context (learning feedback)
@@ -2290,33 +2639,68 @@ pub async fn run_debate_for_simulation(
         format!("\n各分析师历史可信度: {}", items.join(", "))
     };
 
-    // 4. Create debate session
+    // 4. Create debate session with market snapshot for auditing
+    let market_snapshot = json!({
+        "symbol": symbol,
+        "current_price": current_price,
+        "open_24h": open_24h,
+        "high_24h": high_24h,
+        "low_24h": low_24h,
+        "vol_24h": vol_24h,
+        "funding_rate": funding_rate,
+        "long_short_ratio": long_short_ratio,
+        "long_pct": long_pct,
+        "short_pct": short_pct,
+        "trend": ctx.trend,
+        "trend_strength": ctx.trend_strength,
+        "rsi_14": ctx.rsi_14,
+        "macd_signal": ctx.macd_signal,
+        "atr": ctx.atr,
+        "ma5": ctx.ma5,
+        "ma10": ctx.ma10,
+        "ma20": ctx.ma20,
+        "candles_count": candles.len(),
+        "data_source": "okx_realtime",
+        "bid_ask_imbalance": bid_ask_imbalance,
+        "open_interest": open_interest,
+    });
+
     let session_row = sqlx::query(
-        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, created_at, updated_at)
-        VALUES ($1, $2, 'in_progress', 'auto_simulation', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, NOW(), NOW())
+        r#"INSERT INTO debate_sessions (user_id, symbol, status, progress, agent_opinions, department_reports, fund_manager_decision, market_snapshot, created_at, updated_at)
+        VALUES ($1, $2, 'in_progress', 'auto_simulation', '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, $3, NOW(), NOW())
         RETURNING id"#
     )
     .bind(user_id)
     .bind(symbol)
+    .bind(&market_snapshot)
     .fetch_one(pool)
     .await?;
 
     let session_id: Uuid = session_row.get::<Uuid, _>("id");
 
-    // 5. Run 6 agents (with credibility weights injected)
+    // 5. Run 6 agents - Round 1: Initial analysis (with improved prompts for objectivity)
     let mut agent_opinions: Vec<Value> = Vec::new();
     for agent_def in AGENTS {
         let agent_credibility = credibility_map.get(agent_def.name).copied().unwrap_or(0.5);
+        let dept_label = match agent_def.department {
+            "technical" => "技术分析部", "capital" => "资金分析部", "news" => "新闻分析部", _ => "分析部",
+        };
         let system_prompt = format!(
-            "你是{}的{}，名叫{}。性格：{}。\n\
-            你的历史可信度评分: {:.0}%（基于历史预测准确率）\n\
+            "你是{}的分析师，名叫{}。你的分析视角：{}。\n\
+            你的历史可信度评分: {:.0}%（基于历史预测准确率）\n\n\
+            关键原则（必须严格遵守）：\n\
+            1. 你是专业分析师，不是多空辩手。你的目标是给出最准确的判断，而非捍卫某个方向\n\
+            2. 你必须基于数据客观分析。如果数据不支持你通常关注的信号方向，你应该如实报告\n\
+            3. 优先关注最强烈、最明确的信号，忽略牵强附会的微弱信号\n\
+            4. 使用精确价格数字（如0.084740而非0.08），避免四舍五入导致误判\n\
+            5. 订单簿深度和持仓量数据是重要参考，注意买卖力量对比\n\
+            6. 多空比极端值（如多头占比>70%或<30%）需要谨慎解读，不一定意味着反转\n\
+            7. 如果数据信号不明确，给出较低的置信度，而非强行选择方向\n\n\
             基于OKX实时市场数据分析。必须JSON回复：\n\
             {{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"分析\", \"key_factors\": [\"因素\"]}}\n\
-            模拟交易验证，必须给出明确方向。只输出JSON。",
-            match agent_def.department {
-                "technical" => "技术分析部", "capital" => "资金分析部", "news" => "新闻分析部", _ => "分析部",
-            },
-            agent_def.role, agent_def.name, agent_def.personality,
+            只输出JSON。",
+            dept_label,
+            agent_def.name, agent_def.personality,
             agent_credibility * 100.0,
         );
 
@@ -2340,7 +2724,84 @@ pub async fn run_debate_for_simulation(
         agent_opinions.push(opinion);
     }
 
-    // 5. Department reports
+    // 6. Cross-debate round: Let each agent see their department opponent's arguments and re-evaluate
+    let mut revised_opinions: Vec<Value> = Vec::new();
+    for agent_def in AGENTS {
+        let agent_idx = AGENTS.iter().position(|a| a.id == agent_def.id).unwrap();
+        let my_opinion = &agent_opinions[agent_idx];
+
+        // Find the opponent in the same department (bull vs bear pair)
+        let opponent_opinion = agent_opinions.iter().find(|o| {
+            o.get("department").and_then(|v| v.as_str()) == Some(agent_def.department)
+            && o.get("agent_id").and_then(|v| v.as_str()) != Some(agent_def.id)
+        });
+
+        if let Some(opponent) = opponent_opinion {
+            let opponent_name = opponent.get("agent_name").and_then(|v| v.as_str()).unwrap_or("对手");
+            let opponent_sentiment = opponent.get("sentiment").and_then(|v| v.as_str()).unwrap_or("neutral");
+            let opponent_analysis = opponent.get("analysis").and_then(|v| v.as_str()).unwrap_or("");
+            let opponent_factors = opponent.get("key_factors")
+                .and_then(|v| v.as_array())
+                .map(|arr| arr.iter().filter_map(|f| f.as_str()).collect::<Vec<_>>().join(", "))
+                .unwrap_or_default();
+
+            let my_sentiment = my_opinion.get("sentiment").and_then(|v| v.as_str()).unwrap_or("neutral");
+            let my_analysis = my_opinion.get("analysis").and_then(|v| v.as_str()).unwrap_or("");
+
+            let rebuttal_prompt = format!(
+                "你是{}。你刚才给出了{}观点：{}\n\n\
+                你的同部门对手{}给出了{}观点：{}\n\
+                对手的关键论据：{}\n\n\
+                请客观重新审视：\n\
+                1. 对手的论据中哪些是合理的？你是否忽略了这些信号？\n\
+                2. 你的原始论据中哪些可能存在偏差或过度解读？\n\
+                3. 综合双方论据后，你是否需要调整你的判断或置信度？\n\n\
+                重要：\n\
+                - 如果对手论据更有说服力，降低置信度或翻转方向\n\
+                - 但不要因为对手存在就自动让步——如果你有更强的数据支撑，坚持你的判断\n\
+                - 多空比极端值不一定意味着反转，需要结合其他信号综合判断\n\
+                - 避免对同一数据做过度解读（如'多头拥挤=必跌'是过度简化）\n\
+                - 使用精确价格数字，不要四舍五入\n\n\
+                必须JSON回复：{{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"反驳后的重新分析\", \"key_factors\": [\"因素\"], \"revised\": true}}\n\
+                只输出JSON。",
+                agent_def.name,
+                my_sentiment, my_analysis,
+                opponent_name, opponent_sentiment, opponent_analysis,
+                opponent_factors,
+            );
+
+            let revised = match analyze_with_llm(pool, user_id, &rebuttal_prompt, &market_data_str, &format!("{}_rebuttal", agent_def.id)).await {
+                Ok(response) => {
+                    let parsed = parse_agent_json_response(&response);
+                    json!({
+                        "agent_id": agent_def.id, "agent_name": agent_def.name,
+                        "department": agent_def.department, "sentiment": parsed.sentiment,
+                        "confidence": parsed.confidence, "analysis": parsed.analysis,
+                        "key_factors": parsed.key_factors, "source": "llm_rebuttal",
+                        "original_sentiment": my_sentiment,
+                        "sentiment_changed": my_sentiment != parsed.sentiment,
+                    })
+                }
+                Err(_) => {
+                    // If rebuttal fails, keep original opinion
+                    let mut revised = my_opinion.clone();
+                    revised["source"] = json!("llm_rebuttal_fallback");
+                    revised["original_sentiment"] = json!(my_sentiment);
+                    revised["sentiment_changed"] = json!(false);
+                    revised
+                }
+            };
+            revised_opinions.push(revised);
+        } else {
+            // No opponent found, keep original
+            revised_opinions.push(my_opinion.clone());
+        }
+    }
+
+    // Use revised opinions for further analysis
+    agent_opinions = revised_opinions;
+
+    // 7. Department reports (with cross-debate results)
     let mut department_reports: Vec<Value> = Vec::new();
     for dept in &["technical", "capital", "news"] {
         let dept_name = match *dept { "technical" => "技术分析部", "capital" => "资金分析部", "news" => "新闻分析部", _ => "分析部" };
@@ -2349,8 +2810,8 @@ pub async fn run_debate_for_simulation(
 
         let report = match analyze_with_llm(
             pool, user_id,
-            &format!("你是{}汇总分析师。综合部门意见给出JSON：{{\"consensus\":\"bullish\"|\"bearish\", \"bull_summary\":\"理由\", \"bear_summary\":\"理由\"}}。只输出JSON。", dept_name),
-            &format!("{}意见:\n{}", dept_name, serde_json::to_string_pretty(&dept_opinions).unwrap_or_default()),
+            &format!("你是{}汇总分析师。综合部门内交叉辩论后的意见给出JSON：{{\"consensus\":\"bullish\"|\"bearish\", \"bull_summary\":\"理由\", \"bear_summary\":\"理由\", \"debate_highlights\":\"辩论中暴露的关键分歧\"}}。注意：分析师已看过对手论据并重新评估，关注是否有分析师翻转了方向。只输出JSON。", dept_name),
+            &format!("{}交叉辩论后意见:\n{}", dept_name, serde_json::to_string_pretty(&dept_opinions).unwrap_or_default()),
             &format!("{}_dept_report", dept),
         ).await {
             Ok(response) => {
@@ -2367,12 +2828,12 @@ pub async fn run_debate_for_simulation(
         department_reports.push(report);
     }
 
-    // 7. Fund manager decision (with historical reflection)
+    // 8. Fund manager decision (with historical reflection and orderbook/OI context)
     let fund_manager_decision = match analyze_with_llm(
         pool, user_id,
-        &format!("你是基金经理。综合各部门报告做决策。当前价: {:.2}。{}{}\n必须JSON：{{\"action\":\"long\"|\"short\"|\"hold\",\"confidence\":0.0-1.0,\"stop_loss\":价格,\"take_profit\":[价格],\"leverage\":1-5,\"reasoning\":\"理由\"}}。模拟交易需积极验证。只输出JSON。", current_price, credibility_str, if recent_decisions.is_empty() { String::new() } else { format!("\n\n历史决策参考:\n{}", history_str) }),
-        &format!("交易对: {}\n\n分析师意见:\n{}\n\n部门报告:\n{}\n\n请做最终决策，参考历史决策表现。",
-            symbol,
+        &format!("你是基金经理。综合各部门交叉辩论后的报告做决策。当前价: {:.6}。{}{}\n重要：推理中必须使用精确价格（如0.084740而非0.08），不得简化或四舍五入价格，否则会导致错误的支撑/阻力判断。\n\n决策要点：\n1. 优先关注交叉辩论后仍保持一致的信号（这些更可靠）\n2. 关注辩论中翻转方向的分析师（说明对手论据更有说服力）\n3. 订单簿深度和持仓量是重要参考数据\n4. 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n5. 如果多空信号势均力敌，选择hold比强行选方向更合理\n6. 做多和做空应该有同等门槛，不要因为'避险'而偏向做空\n\n必须JSON：{{\"action\":\"long\"|\"short\"|\"hold\",\"confidence\":0.0-1.0,\"stop_loss\":价格,\"take_profit\":[价格],\"leverage\":1-5,\"reasoning\":\"理由\"}}。只输出JSON。", current_price, credibility_str, if recent_decisions.is_empty() { String::new() } else { format!("\n\n历史决策参考:\n{}", history_str) }),
+        &format!("交易对: {}\n当前价: {:.6}\n买卖力量比: {:.4}\n{}\n\n分析师交叉辩论意见:\n{}\n\n部门报告:\n{}\n\n请做最终决策，参考历史决策表现。优先考虑辩论中一致性强的信号。",
+            symbol, current_price, bid_ask_imbalance, oi_change_hint,
             serde_json::to_string_pretty(&agent_opinions).unwrap_or_default(),
             serde_json::to_string_pretty(&department_reports).unwrap_or_default(),
         ),
@@ -2405,12 +2866,13 @@ pub async fn run_debate_for_simulation(
     let confidence = fund_manager_decision.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.4);
 
     // Apply enhanced confidence calibration based on market context
+    let historical_accuracy = trends_from_decisions(pool, user_id, symbol).await;
     let enhanced_confidence = calculate_enhanced_confidence(
         confidence,
         &agent_opinions,
-        &volatility,
+        &ctx.volatility,
         multi_timeframe_data.alignment,
-        trends_from_decisions(recent_decisions.len()),
+        historical_accuracy,
     );
 
     let stop_loss = fund_manager_decision.get("stop_loss").and_then(|v| v.as_f64()).unwrap_or(current_price * 0.97);
@@ -2423,10 +2885,11 @@ pub async fn run_debate_for_simulation(
 
     // Enhanced reasoning with market context
     let enhanced_reasoning = format!(
-        "{} | 市场环境: 趋势{} 强度{:.0}%, 波动性{}, 成交量{}, 多周期一致性{:.0}%({})",
+        "{} | 市场环境: 趋势{} 强度{:.1}%, 波动性{}, 成交量{}, RSI {:.1}, MACD {}, 多周期一致性{:.1}%({})",
         reasoning,
-        trend, trend_strength * 100.0,
-        volatility, volume_profile,
+        ctx.trend, ctx.trend_strength * 100.0,
+        ctx.volatility, ctx.volume_profile,
+        ctx.rsi_14, ctx.macd_signal,
         multi_timeframe_data.alignment * 100.0,
         multi_timeframe_data.alignment_details,
     );
@@ -2440,11 +2903,19 @@ pub async fn run_debate_for_simulation(
         "leverage": leverage,
         "reasoning": enhanced_reasoning,
         "market_context": {
-            "trend": trend,
-            "trend_strength": trend_strength,
-            "volatility": volatility,
-            "volume_profile": volume_profile,
-            "key_levels": [key_levels.0, key_levels.1, key_levels.2],
+            "trend": ctx.trend,
+            "trend_strength": ctx.trend_strength,
+            "volatility": ctx.volatility,
+            "volume_profile": ctx.volume_profile,
+            "key_levels": [ctx.key_levels.0, ctx.key_levels.1, ctx.key_levels.2],
+            "ma5": ctx.ma5,
+            "ma10": ctx.ma10,
+            "ma20": ctx.ma20,
+            "rsi_14": ctx.rsi_14,
+            "macd_signal": ctx.macd_signal,
+            "atr": ctx.atr,
+            "price_change_1h": ctx.price_change_1h,
+            "price_change_4h": ctx.price_change_4h,
         },
         "multi_timeframe": {
             "m5_trend": multi_timeframe_data.m5_trend,

@@ -132,10 +132,14 @@ async fn get_klines_by_symbol(
     let rows = sqlx::query(
         r#"
         SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8
-        FROM klines
-        WHERE symbol = $1 AND "interval" = $2
-        ORDER BY open_time DESC
-        LIMIT $3
+        FROM (
+            SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8
+            FROM klines
+            WHERE symbol = $1 AND "interval" = $2
+            ORDER BY open_time DESC
+            LIMIT $3
+        ) sub
+        ORDER BY open_time ASC
         "#,
     )
     .bind(&symbol)
@@ -191,7 +195,7 @@ async fn get_klines(
         SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8, created_at
         FROM klines
         WHERE symbol = $1 AND "interval" = $2
-        ORDER BY open_time DESC
+        ORDER BY open_time ASC
         LIMIT $3 OFFSET $4
         "#,
     )
@@ -673,29 +677,33 @@ async fn get_long_short_ratio_by_symbol(
                 Some(&[("ccy", ccy.clone()), ("period", period.clone())]),
             ).await {
                 Ok(data) => {
-                    if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
-                        let items: Vec<serde_json::Value> = arr.iter()
-                            .take(limit)
-                            .map(|item| {
-                                let parts = item.as_array();
-                                let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
-                                let long_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                                let short_ratio = parts.and_then(|p| p.get(2)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                                let ls_ratio = parts.and_then(|p| p.get(3)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
-                                    .or_else(|| parts.and_then(|p| p.get(3)).and_then(|v| v.as_f64()));
-                                serde_json::json!({
-                                    "symbol": symbol,
-                                    "long_ratio": long_ratio,
-                                    "short_ratio": short_ratio,
-                                    "long_short_ratio": ls_ratio,
-                                    "timestamp": ts,
-                                })
-                            }).collect();
-                        Some(items)
-                    } else {
-                        None
+                        if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
+                            let items: Vec<serde_json::Value> = arr.iter()
+                                .take(limit)
+                                .map(|item| {
+                                    let parts = item.as_array();
+                                    let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
+                                    // OKX returns 2-element arrays: [timestamp, longShortRatio]
+                                    let ls_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                        .or_else(|| parts.and_then(|p| p.get(1)).and_then(|v| v.as_f64()));
+                                    // Derive long/short percentages from ratio
+                                    let (long_ratio, short_ratio) = match ls_ratio {
+                                        Some(r) if r > 0.0 => (r / (r + 1.0), 1.0 / (r + 1.0)),
+                                        _ => (0.0, 0.0),
+                                    };
+                                    serde_json::json!({
+                                        "symbol": symbol,
+                                        "long_ratio": long_ratio,
+                                        "short_ratio": short_ratio,
+                                        "long_short_ratio": ls_ratio,
+                                        "timestamp": ts,
+                                    })
+                                }).collect();
+                            Some(items)
+                        } else {
+                            None
+                        }
                     }
-                }
                 Err(e) => {
                     tracing::warn!("Failed to fetch long-short ratio from OKX for {}: {}, falling back to DB", symbol, e);
                     None
@@ -790,11 +798,15 @@ async fn get_long_short_ratio(
                         if let Some(arr) = data.get("data").and_then(|d| d.as_array()) {
                             if let Some(latest) = arr.first() {
                                 let parts = latest.as_array();
-                                let ls_ratio = parts.and_then(|p| p.get(3)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
-                                    .or_else(|| parts.and_then(|p| p.get(3)).and_then(|v| v.as_f64()));
-                                let long_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-                                let short_ratio = parts.and_then(|p| p.get(2)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                                // OKX returns 2-element arrays: [timestamp, longShortRatio]
+                                let ls_ratio = parts.and_then(|p| p.get(1)).and_then(|v| v.as_str()).and_then(|s| s.parse::<f64>().ok())
+                                    .or_else(|| parts.and_then(|p| p.get(1)).and_then(|v| v.as_f64()));
                                 let ts = parts.and_then(|p| p.get(0)).and_then(|v| v.as_str()).and_then(|s| s.parse::<i64>().ok()).unwrap_or(0) / 1000;
+                                // Derive long/short percentages from ratio
+                                let (long_ratio, short_ratio) = match ls_ratio {
+                                    Some(r) if r > 0.0 => (r / (r + 1.0), 1.0 / (r + 1.0)),
+                                    _ => (0.0, 0.0),
+                                };
                                 items.push(serde_json::json!({
                                     "symbol": format!("{}-USDT-SWAP", ccy),
                                     "ratio": ls_ratio,
@@ -973,17 +985,21 @@ async fn get_candles_by_symbol(
     State(state): State<AppState>,
     Path(symbol): Path<String>,
     Query(query): Query<CandlesQuery>,
-) -> Result<Json<Vec<KlineData>>> {
+) -> Result<Json<serde_json::Value>> {
     let interval = query.interval.unwrap_or_else(|| "1H".to_string());
     let limit = query.limit.unwrap_or(100).min(1000);
 
     let rows = sqlx::query(
         r#"
         SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8, created_at
-        FROM klines
-        WHERE symbol = $1 AND "interval" = $2
-        ORDER BY open_time DESC
-        LIMIT $3
+        FROM (
+            SELECT id, symbol, "interval", open_time, open::float8, high::float8, low::float8, close::float8, volume::float8, created_at
+            FROM klines
+            WHERE symbol = $1 AND "interval" = $2
+            ORDER BY open_time DESC
+            LIMIT $3
+        ) sub
+        ORDER BY open_time ASC
         "#,
     )
     .bind(symbol)
@@ -1006,7 +1022,9 @@ async fn get_candles_by_symbol(
         created_at: row.get("created_at"),
     }).collect();
 
-    Ok(Json(klines))
+    Ok(Json(serde_json::json!({
+        "candles": klines
+    })))
 }
 
 async fn get_popular_symbols(

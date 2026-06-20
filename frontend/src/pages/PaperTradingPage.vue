@@ -127,7 +127,12 @@ const currentLevelTheme = computed(() => {
 const balanceChange = computed(() => {
   if (!dashboard.value?.config) return { amount: 0, percent: 0 }
   const cfg = dashboard.value.config
-  const diff = cfg.current_balance - cfg.initial_balance
+  // Include unrealized PnL in equity calculation
+  const totalUnrealizedPnl = dashboard.value.open_positions.reduce((acc, pos) => {
+    return acc + (pos.unrealized_pnl || 0)
+  }, 0)
+  const equity = cfg.current_balance + totalUnrealizedPnl
+  const diff = equity - cfg.initial_balance
   return { amount: diff, percent: (diff / cfg.initial_balance) * 100 }
 })
 

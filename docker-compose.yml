@@ -27,9 +27,9 @@ services:
       - APP_RATE_LIMIT__ENABLED=true
       - APP_RATE_LIMIT__REQUESTS_PER_MINUTE=100
       - APP_RATE_LIMIT__REQUESTS_PER_HOUR=1000
-      - HTTP_PROXY=socks5://host.docker.internal:10809
-      - HTTPS_PROXY=socks5://host.docker.internal:10809
-      - ALL_PROXY=socks5://host.docker.internal:10809
+      - HTTP_PROXY=http://host.docker.internal:7890
+      - HTTPS_PROXY=http://host.docker.internal:7890
+      - ALL_PROXY=http://host.docker.internal:7890
       - NO_PROXY=localhost,127.0.0.1,backend,db,redis
     depends_on:
       db:

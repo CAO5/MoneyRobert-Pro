@@ -116,7 +116,7 @@ async function loadTrades() {
       const rawTrades = realRes.data?.data || realRes.data || []
       // Map OKX trade format to our Trade interface
       realTrades = (Array.isArray(rawTrades) ? rawTrades : []).map((t: any) => ({
-        id: t.ordId || t.tradeId || t.id || Math.random().toString(),
+        id: t.ordId || t.tradeId || t.id || `${t.instId}-${t.cTime}`,
         symbol: t.instId || t.symbol || '',
         direction: t.side === 'buy' ? 'long' : 'short',
         mode: 'live',

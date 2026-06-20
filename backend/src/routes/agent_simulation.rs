@@ -37,6 +37,7 @@ pub fn router() -> Router<AppState> {
         .route("/autonomous/start", post(start_autonomous))
         .route("/autonomous/stop", post(stop_autonomous))
         .route("/emergency/stop", post(emergency_stop))
+        .route("/performance", get(get_agent_performance))
 }
 
 #[derive(Debug, Deserialize)]
@@ -882,8 +883,40 @@ async fn try_open_new_trade(
 }
 
 async fn get_current_price(state: &AppState, user_id: i64, symbol: &str) -> Option<f64> {
-    // Try OKX API with short timeout first
+    // Try OKX public API first (no API key needed for market data)
     let api_price = async {
+        let proxy_url = crate::state::get_proxy_config_from_db(&state.db_pool).await;
+        let mut builder = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(5));
+        if let Some(url) = proxy_url {
+            let url = url.replace("socks5h://", "socks5://").replace("https://", "http://");
+            if let Ok(proxy) = reqwest::Proxy::all(&url) {
+                builder = builder.proxy(proxy);
+            }
+        } else if let Ok(env_proxy) = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+            .or_else(|_| std::env::var("HTTP_PROXY"))
+        {
+            let env_proxy = env_proxy.replace("socks5h://", "socks5://").replace("https://", "http://");
+            if let Ok(proxy) = reqwest::Proxy::all(&env_proxy) {
+                builder = builder.proxy(proxy);
+            }
+        }
+        let client = builder.build().ok()?;
+        let url = format!("https://www.okx.com/api/v5/market/ticker?instId={}", symbol);
+        let resp = client.get(&url).send().await.ok()?;
+        let body: serde_json::Value = resp.json().await.ok()?;
+        let data = body.get("data")?.as_array()?.first()?;
+        let last = data.get("last")?.as_str()?;
+        last.parse::<f64>().ok()
+    }.await;
+
+    if let Some(price) = api_price {
+        return Some(price);
+    }
+
+    // Fallback: try OKX API with user's API key (signed request)
+    let signed_price = async {
         let okx_client = get_okx_client(state, user_id).await.ok()?;
         let symbol_owned = symbol.to_string();
         let result = tokio::time::timeout(
@@ -895,7 +928,7 @@ async fn get_current_price(state: &AppState, user_id: i64, symbol: &str) -> Opti
         last.parse::<f64>().ok()
     }.await;
 
-    if let Some(price) = api_price {
+    if let Some(price) = signed_price {
         return Some(price);
     }
 
@@ -1608,5 +1641,55 @@ async fn initiate_promotion(
         "from_level": audit.from_level,
         "to_level": audit.to_level,
         "status": audit.status,
+    })))
+}
+
+#[derive(Debug, Serialize)]
+struct AgentPerformanceItem {
+    agent_name: String,
+    agent_department: String,
+    accuracy: f64,
+    credibility_score: f64,
+    trend_accuracy: f64,
+    volatility_accuracy: f64,
+    volume_accuracy: f64,
+    timing_accuracy: f64,
+    weighted_accuracy: f64,
+    total_analyses: i32,
+}
+
+async fn get_agent_performance(
+    user: CurrentUser,
+    State(state): State<AppState>,
+) -> Result<Json<serde_json::Value>> {
+    let agents = sqlx::query_as::<_, (String, String, f64, f64, f64, f64, f64, f64, f64, i32)>(
+        r#"SELECT agent_name, agent_department, accuracy, credibility_score,
+           trend_accuracy, volatility_accuracy, volume_accuracy, timing_accuracy,
+           weighted_accuracy, total_analyses
+           FROM agent_performance
+           ORDER BY credibility_score DESC"#
+    )
+    .fetch_all(&state.db_pool)
+    .await
+    .unwrap_or_default()
+    .into_iter()
+    .map(|(name, dept, accuracy, credibility, trend_acc, vol_acc, vol2_acc, timing_acc, weighted_acc, total)| {
+        AgentPerformanceItem {
+            agent_name: name,
+            agent_department: dept,
+            accuracy,
+            credibility_score: credibility,
+            trend_accuracy: trend_acc,
+            volatility_accuracy: vol_acc,
+            volume_accuracy: vol2_acc,
+            timing_accuracy: timing_acc,
+            weighted_accuracy: weighted_acc,
+            total_analyses: total,
+        }
+    })
+    .collect::<Vec<_>>();
+
+    Ok(Json(serde_json::json!({
+        "agents": agents
     })))
 }

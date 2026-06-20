@@ -35,40 +35,42 @@ const FUNDING_INTERVAL_SECS: u64 = 300;
 pub struct MarketCollector {
     db: PgPool,
     ws: Arc<WebSocketManager>,
-    client: reqwest::Client,
 }
 
 impl MarketCollector {
     pub fn new(db: PgPool, ws: Arc<WebSocketManager>) -> Self {
-        Self::new_with_proxy(db, ws, None)
+        Self { db, ws }
     }
 
-    pub fn new_with_proxy(db: PgPool, ws: Arc<WebSocketManager>, proxy_url: Option<String>) -> Self {
+    /// Build a reqwest::Client with current proxy config from DB
+    async fn build_http_client(&self) -> reqwest::Client {
         let mut builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(15));
 
-        // Use provided proxy URL first, then fall back to environment variables
+        // Dynamically read proxy config from DB each time
+        let proxy_url = crate::state::get_proxy_config_from_db(&self.db).await;
         if let Some(url) = proxy_url {
             if !url.is_empty() {
-                let url = url.replace("socks5h://", "socks5://");
                 if let Ok(proxy) = reqwest::Proxy::all(&url) {
                     tracing::info!("Market collector using proxy from DB: {}", url);
                     builder = builder.proxy(proxy);
                 }
             }
-        } else if let Ok(proxy_url) = std::env::var("ALL_PROXY")
-            .or_else(|_| std::env::var("HTTPS_PROXY"))
-            .or_else(|_| std::env::var("HTTP_PROXY"))
-        {
-            let proxy_url = proxy_url.replace("socks5h://", "socks5://");
-            if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
-                tracing::info!("Market collector using proxy: {}", proxy_url);
-                builder = builder.proxy(proxy);
+        } else {
+            // Fallback to environment variables if no DB config
+            if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+                .or_else(|_| std::env::var("HTTPS_PROXY"))
+                .or_else(|_| std::env::var("HTTP_PROXY"))
+            {
+                let proxy_url = proxy_url.replace("socks5h://", "socks5://").replace("https://", "http://");
+                if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
+                    tracing::info!("Market collector using proxy from env: {}", proxy_url);
+                    builder = builder.proxy(proxy);
+                }
             }
         }
 
-        let client = builder.build().expect("Failed to create HTTP client");
-        Self { db, ws, client }
+        builder.build().expect("Failed to create HTTP client")
     }
 
     pub async fn start(self: Arc<Self>) {
@@ -107,13 +109,14 @@ impl MarketCollector {
     }
 
     async fn fetch_tickers(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = self.build_http_client().await;
         for symbol in SYMBOLS {
             let url = format!(
                 "https://www.okx.com/api/v5/market/ticker?instId={}",
                 symbol
             );
 
-            let resp = self.client.get(&url).send().await?;
+            let resp = client.get(&url).send().await?;
             let body: serde_json::Value = resp.json().await?;
 
             if let Some(data) = body.get("data").and_then(|d| d.as_array()).and_then(|a| a.first()) {
@@ -174,6 +177,7 @@ impl MarketCollector {
     }
 
     async fn fetch_klines(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = self.build_http_client().await;
         let intervals = vec![("1H", "1H"), ("5m", "5m"), ("15m", "15m"), ("30m", "30m"), ("4H", "4H"), ("1D", "1D")];
 
         for symbol in SYMBOLS {
@@ -183,7 +187,7 @@ impl MarketCollector {
                     symbol, bar
                 );
 
-                let resp = self.client.get(&url).send().await?;
+                let resp = client.get(&url).send().await?;
                 let body: serde_json::Value = resp.json().await?;
 
                 if let Some(data) = body.get("data").and_then(|d| d.as_array()) {
@@ -245,13 +249,14 @@ impl MarketCollector {
     }
 
     async fn fetch_funding_rates(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = self.build_http_client().await;
         for symbol in SYMBOLS {
             let url = format!(
                 "https://www.okx.com/api/v5/public/funding-rate?instId={}",
                 symbol
             );
 
-            let resp = self.client.get(&url).send().await?;
+            let resp = client.get(&url).send().await?;
             let body: serde_json::Value = resp.json().await?;
 
             if let Some(data) = body.get("data").and_then(|d| d.as_array()).and_then(|a| a.first()) {

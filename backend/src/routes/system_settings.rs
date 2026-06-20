@@ -163,6 +163,7 @@ async fn test_proxy(
 
         let mut enabled = false;
         let mut url = String::new();
+        let mut proxy_type = "socks5".to_string();
         let mut test_url = "https://www.okx.com".to_string();
 
         for row in &rows {
@@ -171,23 +172,25 @@ async fn test_proxy(
             match key.as_str() {
                 "proxy_enabled" => enabled = value == "true",
                 "proxy_url" => url = value,
+                "proxy_type" => proxy_type = value,
                 "proxy_test_url" => test_url = value,
                 _ => {}
             }
         }
 
-        (enabled, url, test_url)
+        (enabled, url, proxy_type, test_url)
     };
 
-    let (enabled, proxy_url, test_url) = proxy_config;
+    let (enabled, proxy_url, proxy_type, test_url) = proxy_config;
 
     // Build HTTP client with or without proxy
     let mut builder = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10));
 
     if enabled && !proxy_url.is_empty() {
-        let proxy_url = proxy_url.replace("socks5h://", "socks5://");
-        match reqwest::Proxy::all(&proxy_url) {
+        // Normalize URL based on proxy_type
+        let normalized = crate::state::normalize_proxy_url(&proxy_url, &proxy_type);
+        match reqwest::Proxy::all(&normalized) {
             Ok(proxy) => {
                 builder = builder.proxy(proxy);
             }

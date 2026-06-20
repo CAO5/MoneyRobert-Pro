@@ -118,9 +118,33 @@ pub struct LlmClient {
 
 impl LlmClient {
     pub fn new(config: LlmConfig) -> Self {
-        let http = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(120))
-            .no_proxy()
+        Self::new_with_proxy(config, None)
+    }
+
+    pub fn new_with_proxy(config: LlmConfig, proxy_url: Option<String>) -> Self {
+        let mut builder = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(120));
+
+        // Use provided proxy URL first, then fall back to environment variables
+        if let Some(url) = proxy_url {
+            if !url.is_empty() {
+                if let Ok(proxy) = reqwest::Proxy::all(&url) {
+                    tracing::info!("LLM client using proxy from DB: {}", url);
+                    builder = builder.proxy(proxy);
+                }
+            }
+        } else if let Ok(proxy_url) = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+            .or_else(|_| std::env::var("HTTP_PROXY"))
+        {
+            let proxy_url = proxy_url.replace("socks5h://", "socks5://").replace("https://", "http://");
+            if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
+                tracing::info!("LLM client using proxy: {}", proxy_url);
+                builder = builder.proxy(proxy);
+            }
+        }
+
+        let http = builder
             .build()
             .expect("Failed to create HTTP client");
 

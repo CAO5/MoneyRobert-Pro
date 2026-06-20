@@ -215,6 +215,13 @@ async function loadProxyConfig() {
 async function saveProxyConfig() {
   proxySaving.value = true
   try {
+    // Normalize URL: strip any existing scheme before saving
+    const url = proxyConfig.value.url.trim()
+    const stripped = url
+      .replace(/^socks5h?:\/\//, '')
+      .replace(/^https?:\/\//, '')
+    proxyConfig.value.url = stripped
+
     const { data } = await api.put('/system/proxy', proxyConfig.value)
     proxyConfig.value = data
   } catch (e: any) { alert('保存失败: ' + (e.response?.data?.message || e.message)) }
@@ -263,7 +270,7 @@ async function testProxyConnection() {
           <input type="checkbox" id="proxy_enabled" v-model="proxyConfig.enabled" class="w-5 h-5 rounded cursor-pointer" style="accent-color: var(--primary)" />
           <label for="proxy_enabled" class="cursor-pointer">
             <span class="font-semibold" style="color: var(--text-primary)">启用网络代理</span>
-            <span class="text-xs block" style="color: var(--text-muted)">后端访问 OKX 等 API 时通过代理连接，无需 Docker 配置代理</span>
+            <span class="text-xs block" style="color: var(--text-muted)">后端访问 OKX 等 API 时通过代理连接，保存后立即生效，无需重启</span>
           </label>
         </div>
 
@@ -287,9 +294,14 @@ async function testProxyConnection() {
 
         <div>
           <label class="label">代理地址</label>
-          <input v-model="proxyConfig.url" class="input font-mono text-sm" :placeholder="proxyConfig.proxy_type === 'socks5' ? 'socks5://127.0.0.1:10809' : 'http://127.0.0.1:7890'" :disabled="!proxyConfig.enabled" />
+          <div class="flex gap-2">
+            <div class="flex items-center px-3 rounded-lg text-sm font-mono" style="background: var(--surface-tertiary); border: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap">
+              {{ proxyConfig.proxy_type === 'socks5' ? 'socks5://' : 'http://' }}
+            </div>
+            <input v-model="proxyConfig.url" class="input font-mono text-sm flex-1" :placeholder="proxyConfig.proxy_type === 'socks5' ? '127.0.0.1:10809' : '127.0.0.1:7890'" :disabled="!proxyConfig.enabled" />
+          </div>
           <p class="text-xs mt-1" style="color: var(--text-muted)">
-            {{ proxyConfig.proxy_type === 'socks5' ? '格式: socks5://IP:端口 (如 socks5://127.0.0.1:10809)' : '格式: http://IP:端口 (如 http://127.0.0.1:7890)' }}
+            只需输入 IP:端口，协议前缀会根据代理类型自动添加。当前完整地址: <span class="font-mono">{{ proxyConfig.proxy_type === 'socks5' ? 'socks5://' : 'http://' }}{{ proxyConfig.url || (proxyConfig.proxy_type === 'socks5' ? '127.0.0.1:10809' : '127.0.0.1:7890') }}</span>
           </p>
         </div>
 
