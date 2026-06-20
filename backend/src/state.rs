@@ -119,6 +119,25 @@ pub async fn initialize_database(pool: &PgPool) -> Result<()> {
     .await
     .map_err(|e| AppError::Database(e))?;
 
+    // Docker only executes migration files when the Postgres volume is first
+    // created. Keep this idempotent compatibility step for existing volumes.
+    sqlx::query(
+        "DELETE FROM news duplicate USING news original \
+         WHERE duplicate.url = original.url \
+         AND (duplicate.created_at, duplicate.id::text) > (original.created_at, original.id::text)"
+    )
+    .execute(pool)
+    .await
+    .map_err(AppError::Database)?;
+    sqlx::query("CREATE UNIQUE INDEX IF NOT EXISTS idx_news_url_unique ON news(url)")
+        .execute(pool)
+        .await
+        .map_err(AppError::Database)?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_news_related_symbols ON news USING GIN(related_symbols)")
+        .execute(pool)
+        .await
+        .map_err(AppError::Database)?;
+
     tracing::info!("Database migrations completed successfully");
 
     Ok(())

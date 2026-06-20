@@ -47,6 +47,7 @@ aes-gcm = "0.10"
 utoipa = { version = "5", features = ["axum_extras"] }
 dashmap = "6"
 async-trait = "0.1"
+feed-rs = "2"
 
 [dev-dependencies]
 tokio-test = "0.4"
