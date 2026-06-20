@@ -157,22 +157,22 @@ pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
 }
 
 /// Normalize proxy URL to match the selected proxy_type.
-/// Ensures the URL scheme is consistent with the user's proxy_type selection.
+/// If the URL already contains a valid scheme, trust it; otherwise apply proxy_type.
 pub fn normalize_proxy_url(url: &str, proxy_type: &str) -> String {
     let url = url.trim();
 
-    // Remove existing scheme prefixes
-    let url_without_scheme = url
-        .strip_prefix("socks5h://")
-        .or_else(|| url.strip_prefix("socks5://"))
-        .or_else(|| url.strip_prefix("https://"))
-        .or_else(|| url.strip_prefix("http://"))
-        .unwrap_or(url);
+    // If URL already has a valid scheme, trust it but fix known issues
+    if url.starts_with("socks5://") || url.starts_with("socks5h://") {
+        return url.replace("socks5h://", "socks5://");
+    }
+    if url.starts_with("http://") || url.starts_with("https://") {
+        // https:// is not a valid proxy scheme for reqwest, convert to http://
+        return url.replace("https://", "http://");
+    }
 
-    // Apply the correct scheme based on proxy_type
+    // No scheme in URL — apply based on proxy_type
     match proxy_type {
-        "socks5" => format!("socks5://{}", url_without_scheme),
-        "https" => format!("http://{}", url_without_scheme), // reqwest Proxy::all needs http:// for HTTPS proxies
-        _ => format!("http://{}", url_without_scheme),       // http and default
+        "socks5" => format!("socks5://{}", url),
+        _ => format!("http://{}", url), // http and default
     }
 }

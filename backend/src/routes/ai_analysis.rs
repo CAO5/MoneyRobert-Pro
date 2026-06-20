@@ -824,12 +824,12 @@ struct AgentDef {
 }
 
 const AGENTS: &[AgentDef] = &[
-    AgentDef { id: "tech_bull", name: "技术分析师A", department: "technical", role: "技术分析师", personality: "关注技术面看多信号，如支撑位突破、均线金叉、RSI超卖反弹、放量上涨" },
-    AgentDef { id: "tech_bear", name: "技术分析师B", department: "technical", role: "技术分析师", personality: "关注技术面看空信号，如阻力位压制、均线死叉、RSI超买回落、缩量下跌" },
-    AgentDef { id: "capital_bull", name: "资金分析师A", department: "capital", role: "资金分析师", personality: "关注资金面看多信号，如资金流入、多头增仓、资金费率偏低、买盘深度厚" },
-    AgentDef { id: "capital_bear", name: "资金分析师B", department: "capital", role: "资金分析师", personality: "关注资金面看空信号，如资金流出、空头增仓、资金费率偏高、卖盘深度厚" },
-    AgentDef { id: "news_bull", name: "新闻分析师A", department: "news", role: "新闻分析师", personality: "关注消息面看多信号，如利好政策、行业合作、市场情绪回暖" },
-    AgentDef { id: "news_bear", name: "新闻分析师B", department: "news", role: "新闻分析师", personality: "关注消息面看空信号，如监管风险、安全事件、市场恐慌情绪" },
+    AgentDef { id: "tech_bull", name: "技术分析师A", department: "technical", role: "技术分析师", personality: "擅长识别趋势突破、支撑阻力位、均线系统和量价关系，客观判断技术面方向" },
+    AgentDef { id: "tech_bear", name: "技术分析师B", department: "technical", role: "技术分析师", personality: "擅长识别超买超卖、背离信号、形态破位和波动率异常，客观判断技术面风险" },
+    AgentDef { id: "capital_bull", name: "资金分析师A", department: "capital", role: "资金分析师", personality: "擅长分析资金流入流出、持仓变化、订单簿深度和买盘力量，客观评估资金面" },
+    AgentDef { id: "capital_bear", name: "资金分析师B", department: "capital", role: "资金分析师", personality: "擅长分析资金费率极端值、多空比拥挤度、杠杆率和清算风险，客观评估资金面风险" },
+    AgentDef { id: "news_bull", name: "新闻分析师A", department: "news", role: "新闻分析师", personality: "擅长识别利好催化剂、行业合作和市场情绪回暖信号，客观评估消息面" },
+    AgentDef { id: "news_bear", name: "新闻分析师B", department: "news", role: "新闻分析师", personality: "擅长识别监管风险、安全事件和系统性风险信号，客观评估消息面风险" },
 ];
 
 async fn start_debate_old(
@@ -1005,6 +1005,8 @@ async fn start_debate_old(
             "你是{}的分析师，名叫{}。你的分析视角：{}。\n\
             你需要基于提供的OKX实时市场数据，从你的专业角度进行客观分析。\n\
             关键：你是分析师而非辩手，目标是给出最准确的判断，而非捍卫某个方向。\n\
+            如果数据不支持你通常关注的信号方向，你应该如实报告。\n\
+            当数据信号不明确时，给出neutral而非强行选择方向。\n\
             你必须以JSON格式回复，格式如下：\n\
             {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
             sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
@@ -1170,7 +1172,9 @@ async fn start_debate_old(
         决策原则：\n\
         - 做多和做空应该有同等门槛，不要因为'避险'而偏向做空\n\
         - 如果多空信号势均力敌，选择hold比强行选方向更合理\n\
-        - 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n\n\
+        - 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n\
+        - 分析师给出neutral时，代表数据不明确，不应被忽略\n\
+        - 不要将'谨慎'等同于'看空'\n\n\
         你必须以JSON格式回复，格式如下：\n\
         {{\"action\": \"long\"|\"short\"|\"hold\", \"confidence\": 0.0-1.0, \"entry_range\": {{\"low\": 价格, \"high\": 价格}}, \"stop_loss\": 价格, \"take_profit\": [价格1, 价格2], \"leverage\": 1-10, \"reasoning\": \"决策理由\"}}\n\
         只输出JSON，不要输出其他内容。",
@@ -1474,8 +1478,11 @@ async fn start_debate_stream(
             let _ = tx.send(Ok(thinking_event)).await;
 
             let system_prompt = format!(
-                "你是{}的{}，名叫{}。你的性格特点是：{}。\n\
-                你需要基于提供的OKX实时市场数据，从你的专业角度进行分析。\n\
+                "你是{}的{}，名叫{}。你的分析视角：{}。\n\
+                你需要基于提供的OKX实时市场数据，从你的专业角度进行客观分析。\n\
+                关键：你是分析师而非辩手，目标是给出最准确的判断，而非捍卫某个方向。\n\
+                如果数据不支持你通常关注的信号方向，你应该如实报告。\n\
+                当数据信号不明确时，给出neutral而非强行选择方向。\n\
                 你必须以JSON格式回复，格式如下：\n\
                 {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
                 sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
@@ -1657,6 +1664,12 @@ async fn start_debate_stream(
             2. 各部门的汇总报告\n\
             3. 当前市场价格: {:.6}\n\n\
             重要：推理中必须使用精确价格（如0.084740而非0.08），不得简化或四舍五入价格，否则会导致错误的支撑/阻力判断。\n\n\
+            决策原则（必须遵守）：\n\
+            - 做多和做空应该有同等门槛，不要因为'避险'而偏向做空\n\
+            - 如果多空信号势均力敌，选择hold比强行选方向更合理\n\
+            - 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n\
+            - 分析师给出neutral时，代表数据不明确，不应被忽略\n\
+            - 不要将'谨慎'等同于'看空'\n\n\
             你必须以JSON格式回复，格式如下：\n\
             {{\"action\": \"long\"|\"short\"|\"hold\", \"confidence\": 0.0-1.0, \"entry_range\": {{\"low\": 价格, \"high\": 价格}}, \"stop_loss\": 价格, \"take_profit\": [价格1, 价格2], \"leverage\": 1-10, \"reasoning\": \"决策理由\"}}\n\
             只输出JSON，不要输出其他内容。",
@@ -2697,7 +2710,8 @@ ATR(14): {:.6}
             6. 多空比极端值（如多头占比>70%或<30%）需要谨慎解读，不一定意味着反转\n\
             7. 如果数据信号不明确，给出较低的置信度，而非强行选择方向\n\n\
             基于OKX实时市场数据分析。必须JSON回复：\n\
-            {{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"分析\", \"key_factors\": [\"因素\"]}}\n\
+            {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\", \"confidence\": 0.5-1.0, \"analysis\": \"分析\", \"key_factors\": [\"因素\"]}}\n\
+            重要：当数据信号不明确时，必须给出\"neutral\"而非强行选择方向。neutral是有效且负责任的判断。\n\
             只输出JSON。",
             dept_label,
             agent_def.name, agent_def.personality,

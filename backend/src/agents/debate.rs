@@ -602,21 +602,21 @@ impl Agent for FundingRateAnalyst {
 
         let funding_rate = snapshot.funding_rate.unwrap_or(0.0);
 
-        let (sentiment, confidence, content) = if funding_rate < -0.0001 {
+        let (sentiment, confidence, content) = if funding_rate < -0.001 {
             (
                 AgentSentiment::Bullish,
-                0.75,
+                0.70,
                 format!(
-                    "资金费率 {:.4}% 极低，空头拥挤，可能出现逼空行情。",
+                    "资金费率 {:.4}% 极低（空头拥挤），可能出现逼空行情。",
                     funding_rate * 100.0
                 ),
             )
-        } else if funding_rate > 0.0001 {
+        } else if funding_rate > 0.001 {
             (
                 AgentSentiment::Bearish,
-                0.75,
+                0.65,
                 format!(
-                    "资金费率 {:.4}% 较高，多头拥挤，可能出现回调。",
+                    "资金费率 {:.4}% 偏高，多头成本增加，但需结合趋势判断是否反转。",
                     funding_rate * 100.0
                 ),
             )
@@ -625,7 +625,7 @@ impl Agent for FundingRateAnalyst {
                 AgentSentiment::Neutral,
                 0.55,
                 format!(
-                    "资金费率 {:.4}% 处于中性区间。",
+                    "资金费率 {:.4}% 处于正常区间，多空成本相对平衡。",
                     funding_rate * 100.0
                 ),
             )

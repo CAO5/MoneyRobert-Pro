@@ -192,7 +192,7 @@ impl FundManagerAgent {
                 AgentSentiment::Bullish => 1.0,
                 AgentSentiment::Bearish => -1.0,
                 AgentSentiment::Neutral => 0.0,
-                AgentSentiment::Cautious => -0.3,
+                AgentSentiment::Cautious => 0.0, // Cautious = uncertain, not bearish
             };
 
             let agent_weight = weights.agent_weights.get(&analysis.agent_name).copied().unwrap_or(0.0);
