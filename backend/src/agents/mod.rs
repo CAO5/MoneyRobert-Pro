@@ -10,6 +10,8 @@ pub mod market;
 pub mod risk;
 pub mod notification;
 pub mod llm_client;
+pub mod memory;
+pub mod evolution;
 
 pub use errors::{AgentError, AgentResult};
 pub use models::*;
@@ -33,3 +35,5 @@ pub use debate::{
     KOLWhaleMonitor,
     EventDrivenAnalyst,
 };
+pub use memory::MemoryManager;
+pub use evolution::EvolutionEngine;

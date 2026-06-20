@@ -4,14 +4,17 @@ pub mod ai_chat;
 pub mod ai_predictions;
 pub mod ai_providers;
 pub mod agent_simulation;
+pub mod agent_analysis_api;
 pub mod api_keys;
 pub mod auth;
 pub mod auto_trading;
 pub mod backtest_api;
 pub mod billing;
 pub mod dashboard;
+pub mod evolution_api;
 pub mod health;
 pub mod market_data;
+pub mod memory_api;
 pub mod news;
 pub mod notifications;
 pub mod paper_trading;
@@ -49,7 +52,11 @@ pub fn api_router() -> Router<AppState> {
         .nest("/papers", paper_trading::router())
         .nest("/validation", validation::router())
         .nest("/tasks", tasks::router())
+        // Agent system routes (Chapter 5, 12, 13, 14)
         .nest("/agent", agent_simulation::router())
+        .nest("/agent/analyze", agent_analysis_api::router())
+        .nest("/agent/memory", memory_api::router())
+        .nest("/agent/evolution", evolution_api::router())
         .nest("/system", system_settings::router())
         .nest("/backtest", backtest_api::router())
 }

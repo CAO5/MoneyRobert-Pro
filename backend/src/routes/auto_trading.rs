@@ -212,7 +212,23 @@ async fn start_auto_trading(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>> {
-    Ok(Json(serde_json::json!({"message": "Auto trading started", "status": "running"})))
+    // Activate the user's enabled auto-trading configs and create active sessions
+    let configs = sqlx::query(
+        r#"UPDATE auto_trading_configs SET status = 'active', updated_at = NOW()
+           WHERE user_id = $1 AND is_enabled = TRUE
+           RETURNING id, symbol, mode"#,
+    )
+    .bind(user.user_id)
+    .fetch_all(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    let started_count = configs.len();
+    Ok(Json(serde_json::json!({
+        "message": "Auto trading started",
+        "status": "running",
+        "started_configs": started_count
+    })))
 }
 
 async fn list_sessions(

@@ -383,43 +383,110 @@ async fn start_debate(
     State(state): State<AppState>,
     Json(req): Json<StartDebateRequest>,
 ) -> Result<Json<StartDebateResponse>> {
-    let session_id = Uuid::new_v4();
+    use crate::agents::debate::DebateEngine;
+    use crate::agents::llm_client::LlmClient;
+    use std::sync::Arc;
 
-    let _market_snapshot = MarketSnapshot {
-        symbol: req.symbol.clone(),
-        current_price: 42000.0,
-        open_24h: 41000.0,
-        high_24h: 42500.0,
-        low_24h: 40500.0,
-        close_24h: 42000.0,
-        volume_24h: 1000000000.0,
-        price_change_percent_24h: 2.44,
-        funding_rate: Some(-0.0001),
-        open_interest: Some(500000000.0),
-        long_short_ratio: Some(1.2),
-        rsi_14: Some(55.0),
-        macd_signal: Some(0.001),
-        timestamp: Utc::now(),
+    // Build LLM client if configured
+    let llm_client = if LlmClient::is_configured() {
+        match LlmClient::new_from_env().await {
+            Ok(client) => Some(Arc::new(client)),
+            Err(_) => None,
+        }
+    } else {
+        None
     };
 
-    let _session = DebateSession {
-        id: session_id,
-        config_id: req.config_id,
-        user_id: Some(user.user_id),
-        symbol: req.symbol,
-        status: DebateStatus::InProgress,
-        messages: Vec::new(),
-        final_decision: None,
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
+    let engine = DebateEngine::new(Arc::new(state.db_pool.clone()), llm_client);
+
+    // Build market snapshot from latest ticker data
+    let snapshot = match build_market_snapshot_from_db(&state.db_pool, &req.symbol).await {
+        Ok(s) => s,
+        Err(e) => {
+            // Fallback to a basic snapshot if DB query fails
+            MarketSnapshot {
+                symbol: req.symbol.clone(),
+                current_price: 0.0,
+                open_24h: 0.0,
+                high_24h: 0.0,
+                low_24h: 0.0,
+                close_24h: 0.0,
+                volume_24h: 0.0,
+                price_change_percent_24h: 0.0,
+                funding_rate: None,
+                open_interest: None,
+                long_short_ratio: None,
+                rsi_14: None,
+                macd_signal: None,
+                timestamp: Utc::now(),
+            }
+        }
     };
 
-    info!("Debate session started: {}", session_id);
+    // Run the actual debate
+    match engine
+        .run_debate(&req.symbol, snapshot, req.config_id, Some(user.user_id))
+        .await
+    {
+        Ok(session) => {
+            let session_id = session.id;
+            // Save session to DB
+            let _ = engine.save_session_to_db(&session).await;
+            info!("Debate session completed: {}", session_id);
+            Ok(Json(StartDebateResponse {
+                session_id,
+                status: "completed".to_string(),
+            }))
+        }
+        Err(e) => {
+            // Return a failed session ID for tracking
+            let session_id = Uuid::new_v4();
+            Ok(Json(StartDebateResponse {
+                session_id,
+                status: format!("failed: {}", e),
+            }))
+        }
+    }
+}
 
-    Ok(Json(StartDebateResponse {
-        session_id,
-        status: "in_progress".to_string(),
-    }))
+/// Helper: build market snapshot from latest ticker data in DB.
+async fn build_market_snapshot_from_db(
+    db_pool: &sqlx::PgPool,
+    symbol: &str,
+) -> Result<MarketSnapshot, Box<dyn std::error::Error + Send + Sync>> {
+    let row = sqlx::query(
+        r#"SELECT symbol, last_price, open_24h, high_24h, low_24h, volume_24h,
+                  price_change_percent_24h, funding_rate, timestamp
+           FROM ticker_history
+           WHERE symbol = $1
+           ORDER BY timestamp DESC
+           LIMIT 1"#,
+    )
+    .bind(symbol)
+    .fetch_optional(db_pool)
+    .await?;
+
+    match row {
+        Some(r) => Ok(MarketSnapshot {
+            symbol: r.get("symbol"),
+            current_price: r.get::<Option<f64>, _>("last_price").unwrap_or(0.0),
+            open_24h: r.get::<Option<f64>, _>("open_24h").unwrap_or(0.0),
+            high_24h: r.get::<Option<f64>, _>("high_24h").unwrap_or(0.0),
+            low_24h: r.get::<Option<f64>, _>("low_24h").unwrap_or(0.0),
+            close_24h: r.get::<Option<f64>, _>("last_price").unwrap_or(0.0),
+            volume_24h: r.get::<Option<f64>, _>("volume_24h").unwrap_or(0.0),
+            price_change_percent_24h: r
+                .get::<Option<f64>, _>("price_change_percent_24h")
+                .unwrap_or(0.0),
+            funding_rate: r.get("funding_rate"),
+            open_interest: None,
+            long_short_ratio: None,
+            rsi_14: None,
+            macd_signal: None,
+            timestamp: r.get("timestamp"),
+        }),
+        None => Err("No ticker data found for symbol".into()),
+    }
 }
 
 async fn get_debate_session(

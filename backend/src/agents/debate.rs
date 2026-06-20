@@ -1304,11 +1304,14 @@ impl DebateEngine {
         let mut messages = Vec::new();
         let mut message_order = 0;
 
+        // Load historical decisions from DB for context (dynamic memory integration)
+        let historical_decisions = self.load_historical_decisions(symbol).await?;
+
         let context = AnalysisContext {
             symbol: symbol.to_string(),
             market_snapshot: market_snapshot.clone(),
             session_id,
-            historical_decisions: Vec::new(),
+            historical_decisions: historical_decisions.clone(),
         };
 
         let mut session = DebateSession {
@@ -1323,16 +1326,29 @@ impl DebateEngine {
             updated_at: Utc::now(),
         };
 
+        // Phase 1: Independent analysis (each agent analyzes independently)
         let tech_analyses = self.run_independent_analysis(&self.tech_agents, &context, &mut messages, &mut message_order).await?;
         let capital_analyses = self.run_independent_analysis(&self.capital_agents, &context, &mut messages, &mut message_order).await?;
         let news_analyses = self.run_independent_analysis(&self.news_agents, &context, &mut messages, &mut message_order).await?;
 
-        self.run_intra_department_debate(&tech_analyses, &self.tech_agents, &context, &mut messages, &mut message_order).await?;
-        self.run_intra_department_debate(&capital_analyses, &self.capital_agents, &context, &mut messages, &mut message_order).await?;
-        self.run_intra_department_debate(&news_analyses, &self.news_agents, &context, &mut messages, &mut message_order).await?;
+        // Phase 2: Intra-department debate (agents within same department debate)
+        let tech_debated = self.run_intra_department_debate(&tech_analyses, &self.tech_agents, &context, &mut messages, &mut message_order).await?;
+        let capital_debated = self.run_intra_department_debate(&capital_analyses, &self.capital_agents, &context, &mut messages, &mut message_order).await?;
+        let news_debated = self.run_intra_department_debate(&news_analyses, &self.news_agents, &context, &mut messages, &mut message_order).await?;
 
+        // Phase 3: Cross-department debate (bull camp vs bear camp across departments)
+        let all_debated_analyses = [tech_debated, capital_debated, news_debated].concat();
+        let cross_dept_analyses = self.run_cross_department_debate(&all_debated_analyses, &context, &mut messages, &mut message_order).await?;
+
+        // Phase 4: Fund Manager Agent makes final decision (integrated, not formula-based)
         let all_analyses = [tech_analyses, capital_analyses, news_analyses].concat();
-        let final_decision = self.make_final_decision(&all_analyses, &market_snapshot, symbol)?;
+        let final_decision = self.make_final_decision_with_fund_manager(
+            &cross_dept_analyses,
+            &all_analyses,
+            &market_snapshot,
+            symbol,
+            &historical_decisions,
+        ).await?;
 
         session.messages = messages;
         session.final_decision = Some(final_decision);
@@ -1340,6 +1356,272 @@ impl DebateEngine {
         session.updated_at = Utc::now();
 
         Ok(session)
+    }
+
+    /// Load historical decisions from DB for context (memory integration).
+    async fn load_historical_decisions(&self, symbol: &str) -> AgentResult<Vec<FundManagerDecision>> {
+        let rows = sqlx::query(
+            r#"SELECT id, symbol, action, confidence, position_size_percent, leverage,
+                      stop_loss_percent, take_profit_percent, reasoning, timestamp
+               FROM fund_manager_decisions
+               WHERE symbol = $1
+               ORDER BY timestamp DESC
+               LIMIT 5"#,
+        )
+        .bind(symbol)
+        .fetch_all(&*self.db_pool)
+        .await?;
+
+        let mut decisions = Vec::new();
+        for row in rows {
+            decisions.push(FundManagerDecision {
+                session_id: row.get("id"),
+                action: parse_decision_action(&row.get::<String, _>("action")),
+                symbol: row.get("symbol"),
+                confidence: row.get("confidence"),
+                position_size_percent: row.get("position_size_percent"),
+                leverage: row.get("leverage"),
+                stop_loss_percent: row.get("stop_loss_percent"),
+                take_profit_percent: row.get("take_profit_percent"),
+                reasoning: row.get("reasoning"),
+                agent_contributions: Vec::new(),
+                risk_assessment: RiskAssessment {
+                    overall_risk_level: "unknown".to_string(),
+                    max_position_risk: 0.0,
+                    margin_requirement: 0.0,
+                    risk_reward_ratio: 0.0,
+                    volatility_rating: "unknown".to_string(),
+                    alerts: Vec::new(),
+                    passed: true,
+                },
+                timestamp: row.get("timestamp"),
+            });
+        }
+        Ok(decisions)
+    }
+
+    /// Phase 3: Cross-department debate - Bull camp vs Bear camp.
+    /// Agents with same sentiment across departments reinforce each other,
+    /// then bull camp and bear camp debate against each other.
+    async fn run_cross_department_debate(
+        &self,
+        analyses: &[AgentAnalysis],
+        context: &AnalysisContext,
+        messages: &mut Vec<DebateMessage>,
+        message_order: &mut i32,
+    ) -> AgentResult<Vec<AgentAnalysis>> {
+        use crate::agents::models::AgentSentiment;
+
+        // Split into bull camp and bear camp
+        let bull_camp: Vec<&AgentAnalysis> = analyses.iter().filter(|a| a.sentiment == AgentSentiment::Bullish).collect();
+        let bear_camp: Vec<&AgentAnalysis> = analyses.iter().filter(|a| a.sentiment == AgentSentiment::Bearish).collect();
+
+        if bull_camp.is_empty() || bear_camp.is_empty() {
+            return Ok(analyses.to_vec());
+        }
+
+        // Build camp summaries
+        let bull_summary = bull_camp.iter().map(|a| format!("[{}] {}", a.agent_name, a.content)).collect::<Vec<_>>().join("\n");
+        let bear_summary = bear_camp.iter().map(|a| format!("[{}] {}", a.agent_name, a.content)).collect::<Vec<_>>().join("\n");
+
+        // Each agent in bull camp sees bear camp arguments and responds
+        for analysis in analyses.iter() {
+            let opponent_summary = if analysis.sentiment == AgentSentiment::Bullish {
+                &bear_summary
+            } else {
+                &bull_summary
+            };
+
+            // Find the agent
+            let agent = self.find_agent_by_name(&analysis.agent_name);
+            if let Some(agent) = agent {
+                // Create a synthetic opponent analysis representing the opposing camp
+                let camp_opponent = AgentAnalysis {
+                    agent_name: format!("{:?}_camp", if analysis.sentiment == AgentSentiment::Bullish { "bear" } else { "bull" }),
+                    department: analysis.department.clone(),
+                    sentiment: if analysis.sentiment == AgentSentiment::Bullish { AgentSentiment::Bearish } else { AgentSentiment::Bullish },
+                    confidence: 0.7,
+                    content: opponent_summary.clone(),
+                    analysis_data: serde_json::json!({"camp": "opposing", "source": "cross_department_debate"}),
+                    timestamp: Utc::now(),
+                };
+
+                let debate_analysis = agent.debate(context, &camp_opponent, &self.db_pool, self.llm_client.clone()).await?;
+
+                messages.push(DebateMessage {
+                    id: Uuid::new_v4(),
+                    session_id: context.session_id,
+                    agent_name: agent.name().to_string(),
+                    agent_department: agent.department(),
+                    role: format!("{} (跨部门辩论)", agent.role()),
+                    content: debate_analysis.content.clone(),
+                    analysis_data: debate_analysis.analysis_data.clone(),
+                    confidence: debate_analysis.confidence,
+                    sentiment: Some(debate_analysis.sentiment.clone()),
+                    message_order: *message_order,
+                    created_at: Utc::now(),
+                });
+                *message_order += 1;
+            }
+        }
+
+        Ok(analyses.to_vec())
+    }
+
+    /// Phase 4: Fund Manager Agent makes final decision using the integrated FundManagerAgent.
+    async fn make_final_decision_with_fund_manager(
+        &self,
+        cross_dept_analyses: &[AgentAnalysis],
+        all_analyses: &[AgentAnalysis],
+        snapshot: &MarketSnapshot,
+        symbol: &str,
+        historical_decisions: &[FundManagerDecision],
+    ) -> AgentResult<FundManagerDecision> {
+        use crate::agents::agents::{FundManagerAgent, FundManagerConfig, PortfolioContext};
+
+        // Load dynamic credibility scores from agent_performance table
+        let dynamic_credibilities = self.load_dynamic_credibilities().await?;
+
+        // Calculate weighted sentiment with dynamic credibility
+        let (weighted_bullish, weighted_bearish, weighted_neutral, agent_contributions) =
+            self.calculate_weighted_sentiment_dynamic(all_analyses, &dynamic_credibilities);
+
+        let total = weighted_bullish + weighted_bearish + weighted_neutral;
+        let bullish_ratio = if total > 0.0 { weighted_bullish / total } else { 0.0 };
+        let bearish_ratio = if total > 0.0 { weighted_bearish / total } else { 0.0 };
+
+        // Use FundManagerAgent for decision making
+        let fund_manager = FundManagerAgent::new(FundManagerConfig::default());
+
+        // Build portfolio context (default for now, could be loaded from DB)
+        let portfolio_context = PortfolioContext::default();
+
+        // Get decision from FundManagerAgent
+        let fm_decision = fund_manager
+            .make_decision(
+                Uuid::new_v4(),
+                symbol,
+                all_analyses,
+                snapshot,
+                &portfolio_context,
+            )
+            .await?;
+
+        // Build reasoning with cross-department debate context
+        let reasoning = format!(
+            "{}\n\n\
+             [跨部门辩论总结] 看多权重: {:.1}%, 看空权重: {:.1}%, 中性权重: {:.1}%\n\
+             [动态可信度] 已加载 {} 个 Agent 的动态可信度\n\
+             [历史参考] {} 条历史决策",
+            fm_decision.reasoning,
+            bullish_ratio * 100.0,
+            bearish_ratio * 100.0,
+            (1.0 - bullish_ratio - bearish_ratio).max(0.0) * 100.0,
+            dynamic_credibilities.len(),
+            historical_decisions.len()
+        );
+
+        Ok(FundManagerDecision {
+            session_id: fm_decision.session_id,
+            action: fm_decision.action,
+            symbol: fm_decision.symbol,
+            confidence: fm_decision.confidence,
+            position_size_percent: fm_decision.position_size_percent,
+            leverage: fm_decision.leverage,
+            stop_loss_percent: fm_decision.stop_loss_percent,
+            take_profit_percent: fm_decision.take_profit_percent,
+            reasoning,
+            agent_contributions,
+            risk_assessment: fm_decision.risk_assessment,
+            timestamp: fm_decision.timestamp,
+        })
+    }
+
+    /// Load dynamic credibility scores from agent_performance table.
+    async fn load_dynamic_credibilities(&self) -> AgentResult<std::collections::HashMap<String, f64>> {
+        let rows = sqlx::query(
+            r#"SELECT agent_id, credibility_score, weighted_accuracy
+               FROM agent_performance
+               WHERE updated_at > NOW() - INTERVAL '30 days'
+               ORDER BY updated_at DESC"#,
+        )
+        .fetch_all(&*self.db_pool)
+        .await?;
+
+        let mut credibilities = std::collections::HashMap::new();
+        for row in rows {
+            let agent_id: String = row.get("agent_id");
+            let base_credibility: f64 = row.get("credibility_score");
+            let weighted_accuracy: Option<f64> = row.get("weighted_accuracy");
+
+            // Combine base credibility with weighted accuracy (70% base + 30% recent accuracy)
+            let dynamic_score = if let Some(accuracy) = weighted_accuracy {
+                base_credibility * 0.7 + accuracy * 0.3
+            } else {
+                base_credibility
+            };
+
+            credibilities.insert(agent_id, dynamic_score.clamp(0.1, 1.0));
+        }
+
+        Ok(credibilities)
+    }
+
+    /// Calculate weighted sentiment using dynamic credibility scores.
+    fn calculate_weighted_sentiment_dynamic(
+        &self,
+        analyses: &[AgentAnalysis],
+        dynamic_credibilities: &std::collections::HashMap<String, f64>,
+    ) -> (f64, f64, f64, Vec<AgentContribution>) {
+        let mut weighted_bullish = 0.0;
+        let mut weighted_bearish = 0.0;
+        let mut weighted_neutral = 0.0;
+        let mut contributions = Vec::new();
+
+        let department_weights: HashMap<AgentDepartment, f64> = [
+            (AgentDepartment::Technical, 0.35),
+            (AgentDepartment::Capital, 0.35),
+            (AgentDepartment::News, 0.30),
+        ]
+        .iter()
+        .cloned()
+        .collect();
+
+        for analysis in analyses {
+            let agent = self.find_agent_by_name(&analysis.agent_name);
+            // Use dynamic credibility if available, otherwise fall back to agent's base score
+            let credibility = dynamic_credibilities
+                .get(&analysis.agent_name)
+                .copied()
+                .or_else(|| agent.map(|a| a.credibility_score()))
+                .unwrap_or(0.5);
+            let dept_weight = department_weights.get(&analysis.department).unwrap_or(&0.33);
+
+            let contribution_weight = credibility * analysis.confidence * dept_weight;
+
+            match analysis.sentiment {
+                AgentSentiment::Bullish => {
+                    weighted_bullish += contribution_weight;
+                }
+                AgentSentiment::Bearish => {
+                    weighted_bearish += contribution_weight;
+                }
+                AgentSentiment::Neutral | AgentSentiment::Cautious => {
+                    weighted_neutral += contribution_weight;
+                }
+            }
+
+            contributions.push(AgentContribution {
+                agent_name: analysis.agent_name.clone(),
+                department: analysis.department.clone(),
+                sentiment: analysis.sentiment.clone(),
+                confidence: analysis.confidence,
+                contribution_weight,
+                credibility_score: credibility,
+            });
+        }
+
+        (weighted_bullish, weighted_bearish, weighted_neutral, contributions)
     }
 
     async fn run_independent_analysis(
@@ -1388,7 +1670,8 @@ impl DebateEngine {
         context: &AnalysisContext,
         messages: &mut Vec<DebateMessage>,
         message_order: &mut i32,
-    ) -> AgentResult<()> {
+    ) -> AgentResult<Vec<AgentAnalysis>> {
+        let mut debated_analyses = analyses.to_vec();
         for (i, (agent, analysis)) in agents.iter().zip(analyses.iter()).enumerate() {
             for (j, opponent_analysis) in analyses.iter().enumerate() {
                 if i != j && analysis.sentiment != opponent_analysis.sentiment {
@@ -1408,10 +1691,15 @@ impl DebateEngine {
                         created_at: Utc::now(),
                     });
                     *message_order += 1;
+
+                    // Update the debated analysis with the new one
+                    if let Some(d) = debated_analyses.get_mut(i) {
+                        *d = debate_analysis;
+                    }
                 }
             }
         }
-        Ok(())
+        Ok(debated_analyses)
     }
 
     fn make_final_decision(

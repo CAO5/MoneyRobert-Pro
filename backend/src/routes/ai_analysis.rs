@@ -786,7 +786,19 @@ async fn reset_usage(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<Value>> {
-    Ok(Json(json!({"message": "Usage counter reset"})))
+    // Reset usage by deleting AI prediction trades older than 24 hours for this user
+    let deleted = sqlx::query(
+        r#"DELETE FROM ai_predictions
+           WHERE user_id = $1 AND created_at < NOW() - INTERVAL '24 hours'"#,
+    )
+    .bind(user.user_id)
+    .execute(&state.db_pool)
+    .await?;
+
+    Ok(Json(json!({
+        "message": "Usage counter reset",
+        "deleted_count": deleted.rows_affected()
+    })))
 }
 
 async fn generate_report(

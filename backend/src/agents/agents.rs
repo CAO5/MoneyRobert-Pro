@@ -703,6 +703,19 @@ pub struct PortfolioContext {
     pub open_positions: Vec<OpenPosition>,
 }
 
+impl Default for PortfolioContext {
+    fn default() -> Self {
+        Self {
+            current_balance: 10000.0,
+            daily_pnl: 0.0,
+            daily_loss_percent: 0.0,
+            weekly_loss_percent: 0.0,
+            consecutive_stop_losses: 0,
+            open_positions: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenPosition {
     pub symbol: String,

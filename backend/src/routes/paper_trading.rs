@@ -45,7 +45,34 @@ async fn reset_account(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>> {
-    Ok(Json(serde_json::json!({"message": "Account reset is not supported with current schema"})))
+    // Close all open positions for the user
+    let closed_positions = sqlx::query(
+        r#"UPDATE positions SET status = 'CLOSED', updated_at = NOW()
+           WHERE user_id = $1 AND status = 'OPEN'"#,
+    )
+    .bind(user.user_id)
+    .execute(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    // Reset paper trading account balance to initial value
+    let reset = sqlx::query(
+        r#"INSERT INTO paper_trading_accounts (user_id, balance, initial_balance, total_pnl, total_trades, winning_trades, losing_trades)
+           VALUES ($1, 100000, 100000, 0, 0, 0, 0)
+           ON CONFLICT (user_id) DO UPDATE
+           SET balance = 100000, initial_balance = 100000, total_pnl = 0,
+               total_trades = 0, winning_trades = 0, losing_trades = 0, updated_at = NOW()"#,
+    )
+    .bind(user.user_id)
+    .execute(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Account reset successfully",
+        "balance": 100000,
+        "closed_positions": closed_positions.rows_affected()
+    })))
 }
 
 async fn get_positions(
