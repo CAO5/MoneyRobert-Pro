@@ -212,8 +212,10 @@ export const useAgentStore = defineStore('agent', () => {
   function connectWebSocket() {
     if (wsConnection.value) return
 
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/v1/agent/ws`
-    wsConnection.value = new WebSocket(wsUrl)
+    const token = localStorage.getItem('access_token')
+    if (!token) return
+    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/v1/ws/stream`
+    wsConnection.value = new WebSocket(wsUrl, ['bearer', token])
 
     wsConnection.value.onopen = () => {
       wsConnected.value = true

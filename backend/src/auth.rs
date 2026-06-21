@@ -2,7 +2,6 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
-use crate::config::SecurityConfig;
 use crate::error::{AppError, Result};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -20,6 +19,20 @@ pub struct Claims {
 
 impl Claims {
     pub fn new(user_id: i64, username: String, role: String, expires_in: Duration) -> Self {
+        Self::new_with_type(user_id, username, role, expires_in, "access")
+    }
+
+    pub fn new_refresh(user_id: i64, username: String, role: String, expires_in: Duration) -> Self {
+        Self::new_with_type(user_id, username, role, expires_in, "refresh")
+    }
+
+    fn new_with_type(
+        user_id: i64,
+        username: String,
+        role: String,
+        expires_in: Duration,
+        token_type: &str,
+    ) -> Self {
         let now = Utc::now();
         Self {
             sub: user_id.to_string(),
@@ -28,14 +41,20 @@ impl Claims {
             role: Some(role),
             exp: (now + expires_in).timestamp(),
             iat: now.timestamp(),
-            r#type: Some("access".to_string()),
+            r#type: Some(token_type.to_string()),
         }
     }
 
+    pub fn is_access_token(&self) -> bool {
+        self.r#type.as_deref() == Some("access")
+    }
+
+    pub fn is_refresh_token(&self) -> bool {
+        self.r#type.as_deref() == Some("refresh")
+    }
+
     pub fn get_user_id(&self) -> i64 {
-        self.user_id
-            .or_else(|| self.sub.parse().ok())
-            .unwrap_or(0)
+        self.user_id.or_else(|| self.sub.parse().ok()).unwrap_or(0)
     }
 
     pub fn get_username(&self) -> String {

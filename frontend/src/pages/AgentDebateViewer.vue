@@ -266,7 +266,9 @@ async function startDebate() {
       try {
         const err = await response.json()
         errMsg = err.message || errMsg
-      } catch {}
+      } catch {
+        // Keep the fallback message when the error body is not JSON.
+      }
       error.value = errMsg
       debateStatus.value = 'error'
       return
@@ -282,7 +284,7 @@ async function startDebate() {
     const decoder = new TextDecoder()
     let buffer = ''
 
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read()
       if (done) break
 

@@ -24,9 +24,14 @@ function connect() {
   if (ws.value && (ws.value.readyState === WebSocket.CONNECTING || ws.value.readyState === WebSocket.OPEN)) {
     return
   }
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    console.warn('[WS] Access token missing')
+    return
+  }
 
   const url = getWsUrl()
-  const socket = new WebSocket(url)
+  const socket = new WebSocket(url, ['bearer', token])
 
   socket.onopen = () => {
     connected.value = true

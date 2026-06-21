@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::Row;
 
 use crate::error::{AppError, Result};
-use crate::extractors::CurrentUser;
+use crate::extractors::{require_role, CurrentUser};
 use crate::state::AppState;
 
 // ===== Models =====
@@ -63,12 +63,11 @@ async fn get_proxy_config(
     State(state): State<AppState>,
     _user: CurrentUser,
 ) -> Result<Json<ProxyConfig>> {
-    let rows = sqlx::query(
-        "SELECT key, value FROM system_settings WHERE category = 'proxy'",
-    )
-    .fetch_all(&state.db_pool)
-    .await
-    .map_err(|e| AppError::Database(e))?;
+    require_role(_user, "admin").await?;
+    let rows = sqlx::query("SELECT key, value FROM system_settings WHERE category = 'proxy'")
+        .fetch_all(&state.db_pool)
+        .await
+        .map_err(|e| AppError::Database(e))?;
 
     let mut config = ProxyConfig {
         enabled: false,
@@ -95,9 +94,10 @@ async fn get_proxy_config(
 /// PUT /system/proxy - 更新代理配置
 async fn update_proxy_config(
     State(state): State<AppState>,
-    _user: CurrentUser,
+    user: CurrentUser,
     Json(input): Json<UpdateProxyConfig>,
 ) -> Result<Json<ProxyConfig>> {
+    require_role(user.clone(), "admin").await?;
     // Update each field if provided
     if let Some(enabled) = input.enabled {
         let _ = sqlx::query(
@@ -144,7 +144,7 @@ async fn update_proxy_config(
     }
 
     // Return updated config
-    get_proxy_config(State(state), _user).await
+    get_proxy_config(State(state), user).await
 }
 
 /// PUT /system/proxy/test - 测试代理连接
@@ -153,13 +153,12 @@ async fn test_proxy(
     _user: CurrentUser,
 ) -> Result<Json<ProxyTestResult>> {
     // Get current proxy config from DB
+    require_role(_user, "admin").await?;
     let proxy_config = {
-        let rows = sqlx::query(
-            "SELECT key, value FROM system_settings WHERE category = 'proxy'",
-        )
-        .fetch_all(&state.db_pool)
-        .await
-        .map_err(|e| AppError::Database(e))?;
+        let rows = sqlx::query("SELECT key, value FROM system_settings WHERE category = 'proxy'")
+            .fetch_all(&state.db_pool)
+            .await
+            .map_err(|e| AppError::Database(e))?;
 
         let mut enabled = false;
         let mut url = String::new();
@@ -184,8 +183,7 @@ async fn test_proxy(
     let (enabled, proxy_url, proxy_type, test_url) = proxy_config;
 
     // Build HTTP client with or without proxy
-    let mut builder = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(10));
+    let mut builder = reqwest::Client::builder().timeout(std::time::Duration::from_secs(10));
 
     if enabled && !proxy_url.is_empty() {
         // Normalize URL based on proxy_type
@@ -238,6 +236,7 @@ async fn get_all_settings(
     State(state): State<AppState>,
     _user: CurrentUser,
 ) -> Result<Json<Vec<SystemSetting>>> {
+    require_role(_user, "admin").await?;
     let settings = sqlx::query_as::<_, SystemSetting>(
         "SELECT key, value, value_type, category, description, updated_at, updated_by FROM system_settings ORDER BY category, key",
     )
@@ -254,6 +253,7 @@ async fn get_setting(
     _user: CurrentUser,
     Path(key): Path<String>,
 ) -> Result<Json<SystemSetting>> {
+    require_role(_user, "admin").await?;
     let setting = sqlx::query_as::<_, SystemSetting>(
         "SELECT key, value, value_type, category, description, updated_at, updated_by FROM system_settings WHERE key = $1",
     )
@@ -269,10 +269,11 @@ async fn get_setting(
 /// PUT /system/{key} - 更新单个设置
 async fn update_setting(
     State(state): State<AppState>,
-    _user: CurrentUser,
+    user: CurrentUser,
     Path(key): Path<String>,
     Json(body): Json<serde_json::Value>,
 ) -> Result<Json<SystemSetting>> {
+    require_role(user.clone(), "admin").await?;
     let value = body
         .get("value")
         .and_then(|v| v.as_str())
@@ -289,5 +290,5 @@ async fn update_setting(
     .await
     .map_err(|e| AppError::Database(e))?;
 
-    get_setting(State(state), _user, Path(key)).await
+    get_setting(State(state), user, Path(key)).await
 }

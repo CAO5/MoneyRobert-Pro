@@ -53,9 +53,8 @@ impl AppState {
         .await
         .map_err(|e| AppError::Database(e))?;
 
-        let row = row.ok_or_else(|| {
-            AppError::Validation("No active OKX API key found".to_string())
-        })?;
+        let row =
+            row.ok_or_else(|| AppError::Validation("No active OKX API key found".to_string()))?;
 
         let encrypted_key = row.try_get::<String, _>("key").unwrap_or_default();
         let encrypted_secret = row.try_get::<String, _>("secret").unwrap_or_default();
@@ -68,12 +67,17 @@ impl AppState {
         let metadata: serde_json::Value = row
             .try_get::<serde_json::Value, _>("metadata")
             .unwrap_or(serde_json::json!({}));
-        let is_demo = metadata.get("is_demo").and_then(|v| v.as_bool()).unwrap_or(true);
+        let is_demo = metadata
+            .get("is_demo")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
 
         // Read proxy config from system_settings
         let proxy_url = get_proxy_config_from_db(&self.db_pool).await;
 
-        Ok(Arc::new(OkxClient::new_with_proxy(api_key, api_secret, passphrase, is_demo, proxy_url)))
+        Ok(Arc::new(OkxClient::new_with_proxy(
+            api_key, api_secret, passphrase, is_demo, proxy_url,
+        )))
     }
 }
 
@@ -90,8 +94,7 @@ pub async fn create_db_pool(database_url: &str, pool_size: u32) -> Result<PgPool
 }
 
 pub async fn create_redis_client(redis_url: &str) -> Result<ConnectionManager> {
-    let client = redis::Client::open(redis_url)
-        .map_err(|e| AppError::Redis(e))?;
+    let client = redis::Client::open(redis_url).map_err(|e| AppError::Redis(e))?;
 
     let manager = ConnectionManager::new(client)
         .await
@@ -103,6 +106,8 @@ pub async fn create_redis_client(redis_url: &str) -> Result<ConnectionManager> {
 }
 
 pub async fn initialize_database(pool: &PgPool) -> Result<()> {
+    static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
+
     tracing::info!("Running database migrations...");
 
     sqlx::query(
@@ -113,18 +118,33 @@ pub async fn initialize_database(pool: &PgPool) -> Result<()> {
             success BOOLEAN NOT NULL,
             checksum BYTEA NOT NULL,
             execution_time BIGINT NOT NULL
-        )"
+        )",
     )
     .execute(pool)
     .await
-    .map_err(|e| AppError::Database(e))?;
+    .map_err(AppError::Database)?;
 
-    // Docker only executes migration files when the Postgres volume is first
-    // created. Keep this idempotent compatibility step for existing volumes.
+    let has_schema =
+        sqlx::query_scalar::<_, bool>("SELECT to_regclass('public.users') IS NOT NULL")
+            .fetch_one(pool)
+            .await
+            .map_err(AppError::Database)?;
+
+    if !has_schema {
+        MIGRATOR
+            .run(pool)
+            .await
+            .map_err(|e| AppError::Internal(format!("Database migration failed: {e}")))?;
+        tracing::info!("Database migrations completed successfully");
+        return Ok(());
+    }
+
+    // Docker initialized older volumes by executing SQL files directly. Make
+    // the latest compatibility migration idempotent before recording a baseline.
     sqlx::query(
         "DELETE FROM news duplicate USING news original \
          WHERE duplicate.url = original.url \
-         AND (duplicate.created_at, duplicate.id::text) > (original.created_at, original.id::text)"
+         AND (duplicate.created_at, duplicate.id::text) > (original.created_at, original.id::text)",
     )
     .execute(pool)
     .await
@@ -133,23 +153,62 @@ pub async fn initialize_database(pool: &PgPool) -> Result<()> {
         .execute(pool)
         .await
         .map_err(AppError::Database)?;
-    sqlx::query("CREATE INDEX IF NOT EXISTS idx_news_related_symbols ON news USING GIN(related_symbols)")
-        .execute(pool)
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_news_related_symbols ON news USING GIN(related_symbols)",
+    )
+    .execute(pool)
+    .await
+    .map_err(AppError::Database)?;
+
+    let applied_count =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM _sqlx_migrations WHERE success = true")
+            .fetch_one(pool)
+            .await
+            .map_err(AppError::Database)?;
+
+    if applied_count == 0 {
+        let legacy_is_current =
+            sqlx::query_scalar::<_, bool>("SELECT to_regclass('public.backtest_jobs') IS NOT NULL")
+                .fetch_one(pool)
+                .await
+                .map_err(AppError::Database)?;
+
+        if !legacy_is_current {
+            return Err(AppError::Internal(
+                "Legacy database is not at migration 013; upgrade it before starting".to_string(),
+            ));
+        }
+
+        for migration in MIGRATOR.iter().filter(|migration| migration.version <= 14) {
+            sqlx::query(
+                "INSERT INTO _sqlx_migrations \
+                 (version, description, success, checksum, execution_time) \
+                 VALUES ($1, $2, true, $3, 0) ON CONFLICT (version) DO NOTHING",
+            )
+            .bind(migration.version)
+            .bind(migration.description.as_ref())
+            .bind(migration.checksum.as_ref())
+            .execute(pool)
+            .await
+            .map_err(AppError::Database)?;
+        }
+        tracing::info!("Recorded SQLx baseline for legacy Docker-initialized database");
+    }
+
+    MIGRATOR
+        .run(pool)
         .await
-        .map_err(AppError::Database)?;
+        .map_err(|e| AppError::Internal(format!("Database migration failed: {e}")))?;
 
     tracing::info!("Database migrations completed successfully");
-
     Ok(())
 }
 
 pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
-    let rows = sqlx::query(
-        "SELECT key, value FROM system_settings WHERE category = 'proxy'"
-    )
-    .fetch_all(pool)
-    .await
-    .ok()?;
+    let rows = sqlx::query("SELECT key, value FROM system_settings WHERE category = 'proxy'")
+        .fetch_all(pool)
+        .await
+        .ok()?;
 
     let mut enabled = false;
     let mut url = String::new();

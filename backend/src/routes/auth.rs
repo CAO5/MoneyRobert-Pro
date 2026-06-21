@@ -1,8 +1,7 @@
 use axum::{
     extract::State,
     routing::{get, post},
-    Router,
-    Json,
+    Json, Router,
 };
 use chrono::Duration;
 use sqlx::Row;
@@ -24,15 +23,15 @@ pub fn router() -> Router<AppState> {
 }
 
 pub fn authenticated_router() -> Router<AppState> {
-    Router::new()
-        .route("/me", get(get_current_user))
+    Router::new().route("/me", get(get_current_user))
 }
 
 async fn register(
     State(state): State<AppState>,
     Json(req): Json<RegisterRequest>,
 ) -> Result<Json<MessageResponse>> {
-    req.validate().map_err(|e| AppError::Validation(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
 
     let password_hash = hash_password(&req.password)?;
 
@@ -64,7 +63,8 @@ async fn login(
     State(state): State<AppState>,
     Json(req): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>> {
-    req.validate().map_err(|e| AppError::Validation(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
 
     let user = sqlx::query(
         r#"
@@ -78,9 +78,8 @@ async fn login(
     .await
     .map_err(|e| AppError::Database(e))?;
 
-    let user = user.ok_or_else(|| {
-        AppError::Authentication("Invalid username or password".to_string())
-    })?;
+    let user =
+        user.ok_or_else(|| AppError::Authentication("Invalid username or password".to_string()))?;
 
     let valid = verify_password(&req.password, &user.get::<String, _>("hashed_password"))?;
     if !valid {
@@ -96,7 +95,7 @@ async fn login(
         Duration::minutes(state.config.security.access_token_expire_minutes),
     );
 
-    let refresh_claims = Claims::new(
+    let refresh_claims = Claims::new_refresh(
         user.get::<i64, _>("id"),
         user.get::<String, _>("username"),
         user.get::<String, _>("role"),
@@ -121,19 +120,40 @@ async fn refresh_token(
     Json(req): Json<RefreshRequest>,
 ) -> Result<Json<AuthResponse>> {
     let claims = Claims::from_token(&req.refresh_token, &state.config.security.secret_key)?;
+    if !claims.is_refresh_token() {
+        return Err(AppError::Authentication(
+            "Refresh token required".to_string(),
+        ));
+    }
+
+    let user = sqlx::query(
+        "SELECT id, username, LOWER(role::text) AS role FROM users WHERE id = $1 AND is_active = true",
+    )
+    .bind(claims.get_user_id())
+    .fetch_optional(&state.db_pool)
+    .await
+    .map_err(AppError::Database)?
+    .ok_or_else(|| AppError::Authentication("User is inactive or no longer exists".to_string()))?;
 
     let new_claims = Claims::new(
-        claims.get_user_id(),
-        claims.get_username(),
-        claims.get_role(),
+        user.get::<i64, _>("id"),
+        user.get::<String, _>("username"),
+        user.get::<String, _>("role"),
         Duration::minutes(state.config.security.access_token_expire_minutes),
     );
 
     let access_token = new_claims.generate_token(&state.config.security.secret_key)?;
+    let refresh_token = Claims::new_refresh(
+        user.get::<i64, _>("id"),
+        user.get::<String, _>("username"),
+        user.get::<String, _>("role"),
+        Duration::days(state.config.security.refresh_token_expire_days),
+    )
+    .generate_token(&state.config.security.secret_key)?;
 
     Ok(Json(AuthResponse {
         access_token,
-        refresh_token: req.refresh_token,
+        refresh_token,
         token_type: "bearer".to_string(),
         expires_in: state.config.security.access_token_expire_minutes * 60,
     }))

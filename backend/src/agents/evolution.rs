@@ -1199,8 +1199,8 @@ mod tests {
         assert_eq!(VersionStatus::Active.to_string(), "active");
     }
 
-    #[test]
-    fn test_core_rules_validation() {
+    #[tokio::test]
+    async fn test_core_rules_validation() {
         let engine = EvolutionEngine::new(PgPool::connect_lazy("postgres://localhost/test").unwrap());
         let valid_change = serde_json::json!({"adjust": "confidence_threshold"});
         assert!(engine.validate_against_core_rules(&valid_change));

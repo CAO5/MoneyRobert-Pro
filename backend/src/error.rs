@@ -22,6 +22,8 @@ pub enum AppError {
 
     #[error("Conflict: {0}")]
     Conflict(String),
+    #[error("Not implemented: {0}")]
+    NotImplemented(String),
 
     #[error("Internal server error: {0}")]
     Internal(String),
@@ -47,47 +49,102 @@ pub enum AppError {
 
 impl axum::response::IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
-        let (status, error_code, message, category, severity, recoverable): (axum::http::StatusCode, &str, String, &str, &str, bool) = match &self {
+        let (status, error_code, message, category, severity, recoverable): (
+            axum::http::StatusCode,
+            &str,
+            String,
+            &str,
+            &str,
+            bool,
+        ) = match &self {
             AppError::Authentication(msg) => (
                 axum::http::StatusCode::UNAUTHORIZED,
-                "UNAUTHORIZED", msg.clone(), "authentication", "medium", true,
+                "UNAUTHORIZED",
+                msg.clone(),
+                "authentication",
+                "medium",
+                true,
             ),
             AppError::Authorization(msg) => (
                 axum::http::StatusCode::FORBIDDEN,
-                "FORBIDDEN", msg.clone(), "authorization", "medium", false,
+                "FORBIDDEN",
+                msg.clone(),
+                "authorization",
+                "medium",
+                false,
             ),
             AppError::Validation(msg) => (
                 axum::http::StatusCode::BAD_REQUEST,
-                "VALIDATION_ERROR", msg.clone(), "validation", "low", true,
+                "VALIDATION_ERROR",
+                msg.clone(),
+                "validation",
+                "low",
+                true,
             ),
             AppError::NotFound(msg) => (
                 axum::http::StatusCode::NOT_FOUND,
-                "NOT_FOUND", msg.clone(), "not_found", "low", false,
+                "NOT_FOUND",
+                msg.clone(),
+                "not_found",
+                "low",
+                false,
             ),
             AppError::Conflict(msg) => (
                 axum::http::StatusCode::CONFLICT,
-                "CONFLICT", msg.clone(), "validation", "low", true,
+                "CONFLICT",
+                msg.clone(),
+                "validation",
+                "low",
+                true,
             ),
+            AppError::NotImplemented(msg) => (
+                axum::http::StatusCode::NOT_IMPLEMENTED,
+                "NOT_IMPLEMENTED",
+                msg.clone(),
+                "feature",
+                "medium",
+                false,
+            ),
+
             AppError::RateLimitExceeded => (
                 axum::http::StatusCode::TOO_MANY_REQUESTS,
-                "RATE_LIMIT_EXCEEDED", "Rate limit exceeded".to_string(), "rate_limit", "low", true,
+                "RATE_LIMIT_EXCEEDED",
+                "Rate limit exceeded".to_string(),
+                "rate_limit",
+                "low",
+                true,
             ),
             AppError::Database(_) | AppError::Redis(_) | AppError::Internal(_) => {
                 tracing::error!("Internal error: {:?}", self);
                 (
                     axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                    "INTERNAL_ERROR", "An unexpected error occurred".to_string(), "internal", "critical", false,
+                    "INTERNAL_ERROR",
+                    "An unexpected error occurred".to_string(),
+                    "internal",
+                    "critical",
+                    false,
                 )
             }
-            AppError::ExternalApi { service: _, message } => (
+            AppError::ExternalApi {
+                service: _,
+                message,
+            } => (
                 axum::http::StatusCode::BAD_GATEWAY,
-                "EXTERNAL_API_ERROR", message.clone(), "external_api", "high", true,
+                "EXTERNAL_API_ERROR",
+                message.clone(),
+                "external_api",
+                "high",
+                true,
             ),
             _ => {
                 tracing::error!("Unhandled error: {:?}", self);
                 (
                     axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                    "INTERNAL_ERROR", self.to_string(), "internal", "critical", false,
+                    "INTERNAL_ERROR",
+                    self.to_string(),
+                    "internal",
+                    "critical",
+                    false,
                 )
             }
         };

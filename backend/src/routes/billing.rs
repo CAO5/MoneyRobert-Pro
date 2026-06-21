@@ -1,11 +1,9 @@
 use axum::{
-    extract::{State, Query, Path},
+    extract::{Query, State},
     routing::{get, post},
-    Router,
-    Json,
+    Json, Router,
 };
 use serde::Deserialize;
-use uuid::Uuid;
 
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
@@ -45,20 +43,13 @@ struct CreateSubscriptionRequest {
 }
 
 async fn create_subscription(
-    user: CurrentUser,
-    State(state): State<AppState>,
-    Json(req): Json<CreateSubscriptionRequest>,
+    _user: CurrentUser,
+    State(_state): State<AppState>,
+    Json(_req): Json<CreateSubscriptionRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    let subscription = sqlx::query_scalar::<_, serde_json::Value>(
-        r#"WITH ins AS (INSERT INTO subscriptions (user_id, subscription_type, start_date, end_date, is_active, auto_renew) VALUES ($1, $2, NOW(), NOW() + INTERVAL '30 days', true, true) RETURNING id, subscription_type, is_active, start_date, end_date) SELECT row_to_json(ins) FROM ins"#,
-    )
-    .bind(user.user_id as i32)
-    .bind(req.subscription_type)
-    .fetch_one(&state.db_pool)
-    .await
-    .map_err(|e| AppError::Database(e))?;
-
-    Ok(Json(subscription))
+    Err(AppError::NotImplemented(
+        "Subscription activation requires a configured payment provider".to_string(),
+    ))
 }
 
 async fn cancel_subscription(
@@ -73,7 +64,9 @@ async fn cancel_subscription(
     .await
     .map_err(|e| AppError::Database(e))?;
 
-    Ok(Json(serde_json::json!({"message": "Subscription cancelled"})))
+    Ok(Json(
+        serde_json::json!({"message": "Subscription cancelled"}),
+    ))
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,7 +94,9 @@ async fn get_billing_records(
     .await
     .map_err(|e| AppError::Database(e))?;
 
-    Ok(Json(serde_json::json!({"items": records, "page": page, "page_size": page_size})))
+    Ok(Json(
+        serde_json::json!({"items": records, "page": page, "page_size": page_size}),
+    ))
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,17 +106,13 @@ struct PaymentRequest {
 }
 
 async fn create_payment(
-    user: CurrentUser,
-    State(state): State<AppState>,
-    Json(req): Json<PaymentRequest>,
+    _user: CurrentUser,
+    State(_state): State<AppState>,
+    Json(_req): Json<PaymentRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    let payment_id = Uuid::new_v4();
-    Ok(Json(serde_json::json!({
-        "payment_id": payment_id.to_string(),
-        "amount": req.amount,
-        "status": "pending",
-        "message": "Payment initiated",
-    })))
+    Err(AppError::NotImplemented(
+        "Payment provider is not configured".to_string(),
+    ))
 }
 
 #[derive(Debug, Deserialize)]
@@ -131,16 +122,13 @@ struct PayPerUseRequest {
 }
 
 async fn pay_per_use(
-    user: CurrentUser,
-    State(state): State<AppState>,
-    Json(req): Json<PayPerUseRequest>,
+    _user: CurrentUser,
+    State(_state): State<AppState>,
+    Json(_req): Json<PayPerUseRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    let quantity = req.quantity.unwrap_or(1);
-    Ok(Json(serde_json::json!({
-        "service_type": req.service_type,
-        "quantity": quantity,
-        "status": "recorded",
-    })))
+    Err(AppError::NotImplemented(
+        "Usage billing requires a configured payment provider".to_string(),
+    ))
 }
 
 async fn get_usage_records(
@@ -183,5 +171,7 @@ async fn check_subscription(
     .await
     .map_err(|e| AppError::Database(e))?;
 
-    Ok(Json(serde_json::json!({"has_active_subscription": active > 0})))
+    Ok(Json(
+        serde_json::json!({"has_active_subscription": active > 0}),
+    ))
 }

@@ -1,45 +1,77 @@
-use axum::Router;
+use axum::{http::HeaderMap, Router};
 use sqlx::Row;
 use std::net::SocketAddr;
 use tokio::signal;
 use uuid::Uuid;
 
+use crate::auth::Claims;
+use crate::error::{AppError, Result};
 use crate::extractors::auth_middleware;
 use crate::middleware::{rate_limit, request_logging};
-use crate::routes::api_router;
 use crate::routes::agent_simulation::spawn_simulation_loop;
+use crate::routes::api_router;
 use crate::state::AppState;
 
 async fn ws_handler(
     axum::extract::State(state): axum::extract::State<AppState>,
+    headers: HeaderMap,
     ws: axum::extract::ws::WebSocketUpgrade,
-) -> axum::response::Response {
-    ws.on_upgrade(move |socket| async move {
-        state.ws_manager.handle_connection(socket, None).await;
-    })
+) -> Result<axum::response::Response> {
+    let protocols = headers
+        .get("sec-websocket-protocol")
+        .and_then(|value| value.to_str().ok())
+        .ok_or_else(|| AppError::Authentication("WebSocket token required".to_string()))?;
+    let token = protocols
+        .split(',')
+        .map(str::trim)
+        .find(|value| *value != "bearer")
+        .ok_or_else(|| AppError::Authentication("WebSocket token required".to_string()))?;
+    let claims = Claims::from_token(token, &state.config.security.secret_key)?;
+    if !claims.is_access_token() {
+        return Err(AppError::Authentication(
+            "Access token required".to_string(),
+        ));
+    }
+    let user_id =
+        sqlx::query_scalar::<_, i64>("SELECT id FROM users WHERE id = $1 AND is_active = true")
+            .bind(claims.get_user_id())
+            .fetch_optional(&state.db_pool)
+            .await
+            .map_err(AppError::Database)?
+            .ok_or_else(|| {
+                AppError::Authentication("User is inactive or no longer exists".to_string())
+            })?;
+
+    Ok(ws
+        .protocols(["bearer"])
+        .on_upgrade(move |socket| async move {
+            state
+                .ws_manager
+                .handle_connection(socket, Some(user_id))
+                .await;
+        }))
 }
 
 pub fn create_app(state: AppState) -> axum::Router {
     let health_router = crate::routes::health::router();
     let auth_public_router = crate::routes::auth::router();
-    let auth_authenticated_router = crate::routes::auth::authenticated_router()
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            auth_middleware,
-        ));
+    let auth_authenticated_router = crate::routes::auth::authenticated_router().layer(
+        axum::middleware::from_fn_with_state(state.clone(), auth_middleware),
+    );
 
-    let api = api_router()
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            auth_middleware,
-        ));
+    let api = api_router().layer(axum::middleware::from_fn_with_state(
+        state.clone(),
+        auth_middleware,
+    ));
 
-    let ws_router = Router::new()
-        .route("/stream", axum::routing::get(ws_handler));
+    let ws_router = Router::new().route("/stream", axum::routing::get(ws_handler));
 
     let app = Router::new()
         .nest("/api/v1/health", health_router)
-        .nest("/api/v1/auth", auth_public_router.merge(auth_authenticated_router))
+        .nest(
+            "/api/v1/auth",
+            auth_public_router.merge(auth_authenticated_router),
+        )
         .nest("/api/v1", api)
         .nest("/api/v1/ws", ws_router)
         .with_state(state.clone())
@@ -85,30 +117,36 @@ pub fn create_app(state: AppState) -> axum::Router {
 
 /// Resume any simulation loops that were running before server restart
 async fn resume_simulation_loops(state: &AppState) {
-    let rows = match sqlx::query(
-        "SELECT id, user_id FROM ai_simulation_configs WHERE status = 'running'"
-    )
-    .fetch_all(&state.db_pool)
-    .await
-    {
-        Ok(r) => r,
-        Err(e) => {
-            tracing::error!("Failed to query running simulations for resume: {}", e);
-            return;
-        }
-    };
+    let rows =
+        match sqlx::query("SELECT id, user_id FROM ai_simulation_configs WHERE status = 'running'")
+            .fetch_all(&state.db_pool)
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!("Failed to query running simulations for resume: {}", e);
+                return;
+            }
+        };
 
     if rows.is_empty() {
         tracing::info!("[Resume] No running simulations to resume");
         return;
     }
 
-    tracing::info!("[Resume] Found {} running simulation(s), resuming loops...", rows.len());
+    tracing::info!(
+        "[Resume] Found {} running simulation(s), resuming loops...",
+        rows.len()
+    );
 
     for row in &rows {
         let config_id: Uuid = row.get("id");
         let user_id: i64 = row.get("user_id");
-        tracing::info!("[Resume] Resuming simulation loop for config {} (user {})", config_id, user_id);
+        tracing::info!(
+            "[Resume] Resuming simulation loop for config {} (user {})",
+            config_id,
+            user_id
+        );
         spawn_simulation_loop(config_id, user_id, state.clone());
     }
 }
@@ -119,11 +157,8 @@ pub async fn run_server(state: AppState) -> anyhow::Result<()> {
 
     let app = create_app(state.clone());
 
-    let addr: SocketAddr = format!(
-        "{}:{}",
-        state.config.server.host, state.config.server.port
-    )
-    .parse()?;
+    let addr: SocketAddr =
+        format!("{}:{}", state.config.server.host, state.config.server.port).parse()?;
 
     tracing::info!(
         "Starting server on {} in {} mode",

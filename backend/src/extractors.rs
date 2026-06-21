@@ -1,4 +1,4 @@
-use axum::extract::{Request, FromRequestParts};
+use axum::extract::{FromRequestParts, Request};
 use axum::http::{header, StatusCode};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
@@ -26,7 +26,9 @@ where
         parts: &mut axum::http::request::Parts,
         _state: &S,
     ) -> Result<Self, Self::Rejection> {
-        let claims = parts.extensions.get::<Claims>()
+        let claims = parts
+            .extensions
+            .get::<Claims>()
             .ok_or_else(|| AppError::Authentication("Authentication required".to_string()))?;
 
         Ok(Self {
@@ -51,21 +53,43 @@ pub async fn auth_middleware(
         Some(auth) if auth.starts_with("Bearer ") => {
             let token = &auth[7..];
             match Claims::from_token(token, &state.config.security.secret_key) {
-                Ok(claims) => {
-                    request.extensions_mut().insert(claims);
-                    next.run(request).await
+                Ok(mut claims) if claims.is_access_token() => {
+                    let user = sqlx::query_as::<_, (String, String)>(
+                        "SELECT username, LOWER(role::text) FROM users WHERE id = $1 AND is_active = true",
+                    )
+                    .bind(claims.get_user_id())
+                    .fetch_optional(&state.db_pool)
+                    .await;
+
+                    match user {
+                        Ok(Some((username, role))) => {
+                            claims.username = Some(username);
+                            claims.role = Some(role);
+                            request.extensions_mut().insert(claims);
+                            next.run(request).await
+                        }
+                        Ok(None) => error_response(
+                            StatusCode::UNAUTHORIZED,
+                            "User is inactive or no longer exists",
+                        ),
+                        Err(_) => error_response(
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            "Failed to validate user session",
+                        ),
+                    }
                 }
+                Ok(_) => error_response(StatusCode::UNAUTHORIZED, "Access token required"),
                 Err(e) => error_response(StatusCode::UNAUTHORIZED, &e.to_string()),
             }
         }
-        _ => error_response(StatusCode::UNAUTHORIZED, "Missing or invalid authorization header"),
+        _ => error_response(
+            StatusCode::UNAUTHORIZED,
+            "Missing or invalid authorization header",
+        ),
     }
 }
 
-pub async fn require_role(
-    user: CurrentUser,
-    required_role: &str,
-) -> Result<(), AppError> {
+pub async fn require_role(user: CurrentUser, required_role: &str) -> Result<(), AppError> {
     let roles = match user.role.as_str() {
         "admin" => vec!["admin", "trader", "viewer", "normal"],
         "trader" => vec!["trader", "viewer", "normal"],
