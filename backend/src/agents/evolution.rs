@@ -790,9 +790,9 @@ impl EvolutionEngine {
                 "daily_morning",
                 Some("scheduled"),
                 "fund_manager",
-                observations,
-                serde_json::json!(lessons),
-                serde_json::json!(proposed),
+                observations.clone(),
+                serde_json::json!(lessons.clone()),
+                serde_json::json!(proposed.clone()),
             )
             .await?;
 
@@ -865,9 +865,9 @@ impl EvolutionEngine {
                 "weekly_review",
                 Some("scheduled"),
                 "fund_manager",
-                observations,
-                lessons,
-                proposed,
+                observations.clone(),
+                lessons.clone(),
+                proposed.clone(),
             )
             .await?;
 
@@ -917,9 +917,9 @@ impl EvolutionEngine {
                 "monthly_architecture",
                 Some("scheduled"),
                 "system",
-                observations,
-                lessons,
-                proposed,
+                observations.clone(),
+                lessons.clone(),
+                proposed.clone(),
             )
             .await?;
 
@@ -970,9 +970,9 @@ impl EvolutionEngine {
                 "triggered",
                 Some(trigger),
                 "fund_manager",
-                observations,
-                lessons,
-                proposed,
+                observations.clone(),
+                lessons.clone(),
+                proposed.clone(),
             )
             .await?;
 

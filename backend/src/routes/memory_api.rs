@@ -278,14 +278,18 @@ async fn list_calibration(
 async fn trigger_reflection(State(state): State<AppState>) -> impl IntoResponse {
     let memory = MemoryManager::new(state.db_pool.clone());
     match memory.run_reflection_cycle().await {
-        Ok(log) => Json(MemoryResponse {
-            success: true,
-            data: Some(log),
-            error: None,
-        }),
+        Ok(log) => (
+            StatusCode::OK,
+            Json(MemoryResponse::<crate::agents::memory::MemoryReflectionLog> {
+                success: true,
+                data: Some(log),
+                error: None,
+            }),
+        )
+            .into_response(),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(MemoryResponse {
+            Json(MemoryResponse::<crate::agents::memory::MemoryReflectionLog> {
                 success: false,
                 data: None,
                 error: Some(e.to_string()),

@@ -51,13 +51,9 @@ async fn analyze_symbol(
     Path(symbol): Path<String>,
     Query(params): Query<AnalysisQuery>,
 ) -> impl IntoResponse {
-    let llm_client = if LlmClient::is_configured() {
-        match LlmClient::new_from_env().await {
-            Ok(client) => Some(Arc::new(client)),
-            Err(_) => None,
-        }
-    } else {
-        None
+    let llm_client = match LlmClient::from_env() {
+        Ok(client) if client.is_configured() => Some(Arc::new(client)),
+        _ => None,
     };
 
     let engine = DebateEngine::new(Arc::new(state.db_pool.clone()), llm_client);
@@ -164,13 +160,9 @@ async fn get_session(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let llm_client = if LlmClient::is_configured() {
-        match LlmClient::new_from_env().await {
-            Ok(client) => Some(Arc::new(client)),
-            Err(_) => None,
-        }
-    } else {
-        None
+    let llm_client = match LlmClient::from_env() {
+        Ok(client) if client.is_configured() => Some(Arc::new(client)),
+        _ => None,
     };
 
     let engine = DebateEngine::new(Arc::new(state.db_pool.clone()), llm_client);
@@ -467,7 +459,7 @@ async fn get_performance(
 async fn build_market_snapshot(
     db_pool: &sqlx::PgPool,
     symbol: &str,
-) -> Result<MarketSnapshot, Box<dyn std::error::Error + Send + Sync>> {
+) -> std::result::Result<MarketSnapshot, Box<dyn std::error::Error + Send + Sync>> {
     let row = sqlx::query(
         r#"SELECT symbol, last_price, open_24h, high_24h, low_24h, volume_24h,
                   price_change_percent_24h, funding_rate, timestamp

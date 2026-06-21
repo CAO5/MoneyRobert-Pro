@@ -1,4 +1,4 @@
-FROM rust:1.88-slim-bookworm AS builder
+FROM rust:1.96-slim-bookworm AS builder
 
 RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null; \
     sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \

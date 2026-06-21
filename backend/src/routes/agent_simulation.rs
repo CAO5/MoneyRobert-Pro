@@ -388,13 +388,9 @@ async fn start_debate(
     use std::sync::Arc;
 
     // Build LLM client if configured
-    let llm_client = if LlmClient::is_configured() {
-        match LlmClient::new_from_env().await {
-            Ok(client) => Some(Arc::new(client)),
-            Err(_) => None,
-        }
-    } else {
-        None
+    let llm_client = match LlmClient::from_env() {
+        Ok(client) if client.is_configured() => Some(Arc::new(client)),
+        _ => None,
     };
 
     let engine = DebateEngine::new(Arc::new(state.db_pool.clone()), llm_client);
@@ -453,7 +449,7 @@ async fn start_debate(
 async fn build_market_snapshot_from_db(
     db_pool: &sqlx::PgPool,
     symbol: &str,
-) -> Result<MarketSnapshot, Box<dyn std::error::Error + Send + Sync>> {
+) -> std::result::Result<MarketSnapshot, Box<dyn std::error::Error + Send + Sync>> {
     let row = sqlx::query(
         r#"SELECT symbol, last_price, open_24h, high_24h, low_24h, volume_24h,
                   price_change_percent_24h, funding_rate, timestamp
@@ -485,7 +481,10 @@ async fn build_market_snapshot_from_db(
             macd_signal: None,
             timestamp: r.get("timestamp"),
         }),
-        None => Err("No ticker data found for symbol".into()),
+        None => Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "No ticker data found for symbol",
+        ))),
     }
 }
 

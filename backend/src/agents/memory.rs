@@ -884,7 +884,7 @@ impl MemoryManager {
         let calibrated = self.calibrate_agents().await?;
 
         // Step 6: Memory cleanup - apply forgetting curve
-        let cleaned = self.l2.apply_forgetting_curve().await?;
+        let cleaned = self.l2.apply_forgetting_curve().await? as i32;
         self.l1.cleanup_expired();
 
         let duration_ms = start.elapsed().as_millis() as i64;

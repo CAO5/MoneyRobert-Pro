@@ -403,32 +403,30 @@ impl OpportunityScanner {
 
     async fn detect_opportunity(&self, event: &MarketEvent) -> AgentResult<Option<Opportunity>> {
         // Real market-driven opportunity detection (no more rand mock)
-        // Based on price change, volume, and technical indicators from the market event
-        let price_change_pct = if event.snapshot.open_24h > 0.0 {
-            (event.snapshot.current_price - event.snapshot.open_24h) / event.snapshot.open_24h * 100.0
-        } else {
-            0.0
-        };
+        // Based on price change, volume, and technical indicators from the market event data
+        let new_price = event.data.get("new_price").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let price_change_pct = event.data.get("change_percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let funding_rate = event.data.get("funding_rate").and_then(|v| v.as_f64());
+        let rsi = event.data.get("rsi_14").and_then(|v| v.as_f64()).unwrap_or(50.0);
 
         // RSI-based signal: oversold (<30) → Long, overbought (>70) → Short
-        let rsi = event.snapshot.rsi_14.unwrap_or(50.0);
         let (opportunity_type, base_confidence, description) = if rsi < 30.0 {
-            (OpportunityType::Long, 0.7, format!("RSI oversold ({:.1}), potential reversal up", rsi))
+            (OpportunityType::Long, 0.7_f64, format!("RSI oversold ({:.1}), potential reversal up", rsi))
         } else if rsi > 70.0 {
-            (OpportunityType::Short, 0.7, format!("RSI overbought ({:.1}), potential reversal down", rsi))
+            (OpportunityType::Short, 0.7_f64, format!("RSI overbought ({:.1}), potential reversal down", rsi))
         } else if price_change_pct < -5.0 {
             // Significant dip - potential bounce
-            (OpportunityType::Long, 0.65, format!("Price dropped {:.1}%, potential bounce", price_change_pct))
+            (OpportunityType::Long, 0.65_f64, format!("Price dropped {:.1}%, potential bounce", price_change_pct))
         } else if price_change_pct > 5.0 {
             // Significant pump - potential correction
-            (OpportunityType::Short, 0.65, format!("Price pumped {:.1}%, potential correction", price_change_pct))
+            (OpportunityType::Short, 0.65_f64, format!("Price pumped {:.1}%, potential correction", price_change_pct))
         } else {
             // No clear signal
             return Ok(None);
         };
 
         // Adjust confidence based on funding rate (contrarian signal)
-        let funding_adjustment = event.snapshot.funding_rate.map(|fr| {
+        let funding_adjustment: f64 = funding_rate.map(|fr| {
             if fr > 0.001 && opportunity_type == OpportunityType::Long {
                 -0.1 // High positive funding: longs paying shorts, bearish for longs
             } else if fr < -0.001 && opportunity_type == OpportunityType::Short {
@@ -438,7 +436,7 @@ impl OpportunityScanner {
             }
         }).unwrap_or(0.0);
 
-        let confidence = (base_confidence + funding_adjustment).clamp(0.0, 1.0);
+        let confidence: f64 = (base_confidence + funding_adjustment).clamp(0.0, 1.0);
 
         if confidence < self.config.high_confidence_threshold {
             return Ok(None);
@@ -454,13 +452,13 @@ impl OpportunityScanner {
         ];
 
         let target_price = match opportunity_type {
-            OpportunityType::Long => Some(event.snapshot.current_price * 1.05),
-            OpportunityType::Short => Some(event.snapshot.current_price * 0.95),
+            OpportunityType::Long => Some(new_price * 1.05),
+            OpportunityType::Short => Some(new_price * 0.95),
             _ => None,
         };
         let stop_loss = match opportunity_type {
-            OpportunityType::Long => Some(event.snapshot.current_price * 0.97),
-            OpportunityType::Short => Some(event.snapshot.current_price * 1.03),
+            OpportunityType::Long => Some(new_price * 0.97),
+            OpportunityType::Short => Some(new_price * 1.03),
             _ => None,
         };
 
@@ -470,7 +468,7 @@ impl OpportunityScanner {
             symbol: event.symbol.clone(),
             opportunity_type,
             confidence,
-            price_level: event.snapshot.current_price,
+            price_level: new_price,
             target_price,
             stop_loss,
             reasoning: description,
