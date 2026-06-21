@@ -260,8 +260,14 @@ impl LlmClient {
         let personality_str = personality.join("、");
 
         let system_prompt = format!(
-            "你是{}的{}，名叫{}。你的性格特点是：{}。\n\
-            你需要基于提供的市场数据，从你的专业角度进行分析。\n\
+            "你是{}的{}，名叫{}。\n\
+            你的性格特点：{}\n\n\
+            ## 分析原则\n\
+            1. 基于提供的市场数据，从你的专业角度进行分析\n\
+            2. 使用精确价格数字，避免四舍五入导致误判\n\
+            3. 优先关注最强烈、最明确的信号\n\
+            4. 多空比极端值需要结合趋势判断，不能简单认为'拥挤=反转'\n\
+            5. 如果数据信号不明确，给出较低的置信度\n\n\
             你必须以JSON格式回复，格式如下：\n\
             {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
             sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
