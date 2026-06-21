@@ -2,6 +2,7 @@ use axum::{http::HeaderMap, Router};
 use sqlx::Row;
 use std::net::SocketAddr;
 use tokio::signal;
+use tokio::time::{Duration, MissedTickBehavior};
 use uuid::Uuid;
 
 use crate::auth::Claims;
@@ -10,6 +11,7 @@ use crate::extractors::auth_middleware;
 use crate::middleware::{rate_limit, request_logging};
 use crate::routes::agent_simulation::spawn_simulation_loop;
 use crate::routes::api_router;
+use crate::routes::news::refresh_news;
 use crate::state::AppState;
 
 async fn ws_handler(
@@ -151,9 +153,46 @@ async fn resume_simulation_loops(state: &AppState) {
     }
 }
 
+fn spawn_news_refresh_loop(state: AppState) {
+    let interval_minutes = std::env::var("NEWS_FETCH_INTERVAL_MINUTES")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(15);
+
+    if interval_minutes == 0 {
+        tracing::info!("Automatic news refresh is disabled");
+        return;
+    }
+
+    let interval_minutes = interval_minutes.clamp(1, 1_440);
+    tracing::info!(
+        "Automatic news refresh scheduled every {} minute(s)",
+        interval_minutes
+    );
+
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(interval_minutes * 60));
+        interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
+
+        loop {
+            interval.tick().await;
+            match refresh_news(&state).await {
+                Ok(summary) => tracing::info!(
+                    status = summary.get("status").and_then(|value| value.as_str()).unwrap_or("unknown"),
+                    fetched = summary.get("fetched").and_then(|value| value.as_u64()).unwrap_or(0),
+                    inserted = summary.get("inserted").and_then(|value| value.as_u64()).unwrap_or(0),
+                    "Automatic news refresh completed"
+                ),
+                Err(error) => tracing::warn!("Automatic news refresh failed: {}", error),
+            }
+        }
+    });
+}
+
 pub async fn run_server(state: AppState) -> anyhow::Result<()> {
     // Resume any simulation loops that were running before restart
     resume_simulation_loops(&state).await;
+    spawn_news_refresh_loop(state.clone());
 
     let app = create_app(state.clone());
 

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{AppError, Result};
-use crate::extractors::CurrentUser;
+use crate::extractors::{require_role, CurrentUser};
 use crate::state::{get_proxy_config_from_db, AppState};
 
 const FEED_SOURCES: &[FeedSource] = &[
@@ -132,9 +132,14 @@ async fn get_news(
 }
 
 async fn fetch_news(
-    _user: CurrentUser,
+    user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>> {
+    require_role(user, "admin").await?;
+    Ok(Json(refresh_news(&state).await?))
+}
+
+pub async fn refresh_news(state: &AppState) -> Result<serde_json::Value> {
     let mut builder = reqwest::Client::builder()
         .timeout(Duration::from_secs(12))
         .connect_timeout(Duration::from_secs(5))
@@ -147,6 +152,17 @@ async fn fetch_news(
     }
 
     let client = builder.build()?;
+    let mut transaction = state.db_pool.begin().await?;
+    let acquired = sqlx::query_scalar::<_, bool>("SELECT pg_try_advisory_xact_lock($1)")
+        .bind(7_347_791_101_i64)
+        .fetch_one(&mut *transaction)
+        .await?;
+    if !acquired {
+        return Ok(serde_json::json!({
+            "message": "News refresh already running",
+            "status": "skipped",
+        }));
+    }
     let results = join_all(
         FEED_SOURCES
             .iter()
@@ -176,7 +192,6 @@ async fn fetch_news(
 
     let fetched = results.iter().map(|result| result.fetched).sum::<usize>();
     let mut inserted = 0_u64;
-    let mut transaction = state.db_pool.begin().await?;
     for item in results.iter().flat_map(|result| result.items.iter()) {
         let outcome = sqlx::query(
             r#"INSERT INTO news
@@ -197,14 +212,14 @@ async fn fetch_news(
     }
     transaction.commit().await?;
 
-    Ok(Json(serde_json::json!({
+    Ok(serde_json::json!({
         "message": "News fetch completed",
         "status": if successful_sources == FEED_SOURCES.len() { "success" } else { "partial_success" },
         "fetched": fetched,
         "inserted": inserted,
         "duplicates": fetched.saturating_sub(inserted as usize),
         "sources": results,
-    })))
+    }))
 }
 
 async fn fetch_feed(client: &reqwest::Client, source: FeedSource) -> SourceResult {
