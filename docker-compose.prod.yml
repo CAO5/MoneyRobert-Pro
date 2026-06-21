@@ -70,7 +70,7 @@ services:
         max-file: "3"
 
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: moneyrobert-pro-db
     restart: always
     environment:

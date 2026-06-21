@@ -157,8 +157,25 @@ CREATE INDEX IF NOT EXISTS idx_department_reports_dept ON department_reports(dep
 
 -- ============================================================================
 -- Fund Manager Decisions (独立表 - 第 5.2 节，原为 JSONB 列)
--- 注意：007 已创建 fund_manager_decisions 表，此处补充索引
+-- 注意：007 仅创建 debate_sessions/debate_messages，此处创建独立决策表
 -- ============================================================================
+CREATE TABLE IF NOT EXISTS fund_manager_decisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL,
+    symbol VARCHAR(50) NOT NULL,
+    action VARCHAR(30) NOT NULL,
+    confidence DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    position_size_percent DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    leverage INT NOT NULL DEFAULT 1,
+    stop_loss_percent DOUBLE PRECISION,
+    take_profit_percent DOUBLE PRECISION,
+    reasoning TEXT,
+    agent_contributions JSONB DEFAULT '[]'::jsonb,
+    risk_assessment JSONB DEFAULT '{}'::jsonb,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (session_id) REFERENCES debate_sessions(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_fund_manager_decisions_session ON fund_manager_decisions(session_id);
 CREATE INDEX IF NOT EXISTS idx_fund_manager_decisions_symbol ON fund_manager_decisions(symbol);
 CREATE INDEX IF NOT EXISTS idx_fund_manager_decisions_action ON fund_manager_decisions(action);

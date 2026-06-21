@@ -63,7 +63,7 @@ services:
       - moneyrobert-network
 
   db:
-    image: docker.1ms.run/library/postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: moneyrobert-pro-db
     restart: unless-stopped
     ports:
