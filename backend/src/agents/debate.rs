@@ -982,17 +982,7 @@ impl Agent for SentimentAnalyst {
             }
         }
 
-        Ok(AgentAnalysis {
-            agent_name: self.name().to_string(),
-            department: self.department(),
-            sentiment: AgentSentiment::Neutral,
-            confidence: 0.55,
-            content: "舆情情绪暂未发现显著偏向。".to_string(),
-            analysis_data: serde_json::json!({
-                "source": "hardcoded",
-            }),
-            timestamp: Utc::now(),
-        })
+        Ok(build_news_fallback_analysis(self, context))
     }
 
     async fn debate(
@@ -1065,17 +1055,7 @@ impl Agent for MacroPolicyAnalyst {
             }
         }
 
-        Ok(AgentAnalysis {
-            agent_name: self.name().to_string(),
-            department: self.department(),
-            sentiment: AgentSentiment::Neutral,
-            confidence: 0.55,
-            content: "宏观政策面暂未发现重大变化。".to_string(),
-            analysis_data: serde_json::json!({
-                "source": "hardcoded",
-            }),
-            timestamp: Utc::now(),
-        })
+        Ok(build_news_fallback_analysis(self, context))
     }
 
     async fn debate(
@@ -1148,17 +1128,7 @@ impl Agent for KOLWhaleMonitor {
             }
         }
 
-        Ok(AgentAnalysis {
-            agent_name: self.name().to_string(),
-            department: self.department(),
-            sentiment: AgentSentiment::Neutral,
-            confidence: 0.55,
-            content: "KOL和鲸鱼钱包暂未发现显著异动。".to_string(),
-            analysis_data: serde_json::json!({
-                "source": "hardcoded",
-            }),
-            timestamp: Utc::now(),
-        })
+        Ok(build_news_fallback_analysis(self, context))
     }
 
     async fn debate(
@@ -1231,17 +1201,7 @@ impl Agent for EventDrivenAnalyst {
             }
         }
 
-        Ok(AgentAnalysis {
-            agent_name: self.name().to_string(),
-            department: self.department(),
-            sentiment: AgentSentiment::Neutral,
-            confidence: 0.55,
-            content: "暂未发现重大驱动事件。".to_string(),
-            analysis_data: serde_json::json!({
-                "source": "hardcoded",
-            }),
-            timestamp: Utc::now(),
-        })
+        Ok(build_news_fallback_analysis(self, context))
     }
 
     async fn debate(
@@ -2295,5 +2255,73 @@ impl AgentRegistry {
 impl Default for AgentRegistry {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Build a fallback analysis for News-department agents based on recent news sentiment.
+/// When LLM is unavailable, this uses the average sentiment from `context.recent_news`
+/// to produce a data-driven fallback instead of a hardcoded Neutral.
+fn build_news_fallback_analysis(agent: &dyn Agent, context: &AnalysisContext) -> AgentAnalysis {
+    if context.recent_news.is_empty() {
+        return AgentAnalysis {
+            agent_name: agent.name().to_string(),
+            department: agent.department(),
+            sentiment: AgentSentiment::Neutral,
+            confidence: 0.35,
+            content: "新闻数据暂不可用，无法进行情绪分析。".to_string(),
+            analysis_data: serde_json::json!({
+                "source": "news_fallback",
+                "reason": "no_news_available",
+            }),
+            timestamp: Utc::now(),
+        };
+    }
+
+    let avg_sentiment: f64 = context
+        .recent_news
+        .iter()
+        .filter_map(|item| item.get("sentiment").and_then(|v| v.as_f64()))
+        .sum::<f64>()
+        / context.recent_news.len() as f64;
+
+    let (sentiment, confidence) = if avg_sentiment > 0.6 {
+        (AgentSentiment::Bullish, (0.45 + (avg_sentiment - 0.5) * 0.6).clamp(0.45, 0.75))
+    } else if avg_sentiment < 0.4 {
+        (AgentSentiment::Bearish, (0.45 + (0.5 - avg_sentiment) * 0.6).clamp(0.45, 0.75))
+    } else {
+        (AgentSentiment::Neutral, 0.45)
+    };
+
+    let headlines: Vec<&str> = context
+        .recent_news
+        .iter()
+        .filter_map(|item| item.get("title").and_then(|v| v.as_str()))
+        .take(3)
+        .collect();
+
+    let sentiment_str = match sentiment {
+        AgentSentiment::Bullish => "偏多",
+        AgentSentiment::Bearish => "偏空",
+        _ => "中性",
+    };
+
+    AgentAnalysis {
+        agent_name: agent.name().to_string(),
+        department: agent.department(),
+        sentiment,
+        confidence,
+        content: format!(
+            "基于{}条新闻的平均情绪({:.2})分析，市场情绪{}。",
+            context.recent_news.len(),
+            avg_sentiment,
+            sentiment_str
+        ),
+        analysis_data: serde_json::json!({
+            "source": "news_fallback",
+            "avg_sentiment": avg_sentiment,
+            "news_count": context.recent_news.len(),
+            "headlines": headlines,
+        }),
+        timestamp: Utc::now(),
     }
 }

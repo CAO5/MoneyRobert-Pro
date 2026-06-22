@@ -5,6 +5,7 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
@@ -36,18 +37,24 @@ async fn get_report_statistics(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>> {
+    // 仅统计当前用户的报告
     let total = sqlx::query_scalar::<_, i64>(
-        r#"SELECT COUNT(*) as count FROM reports"#,
+        r#"SELECT COUNT(*) as count FROM reports WHERE user_id = $1"#,
     )
+    .bind(user.user_id)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     let by_type = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT report_type::text as report_type, COUNT(*) as count FROM reports GROUP BY report_type
+            SELECT format as report_type, COUNT(*) as count
+            FROM reports
+            WHERE user_id = $1
+            GROUP BY format
         ) AS sq"#,
     )
+    .bind(user.user_id)
     .fetch_all(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -64,13 +71,18 @@ async fn list_reports(
     let page_size = query.page_size.unwrap_or(20).min(100);
     let offset = (page - 1) * page_size;
 
+    // 按 user_id 隔离
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, report_type::text as report_type, status::text as status, created_at FROM reports
-            WHERE ($1::text IS NULL OR report_type::text = $1) AND ($2::text IS NULL OR status::text = $2)
-            ORDER BY created_at DESC LIMIT $3 OFFSET $4
+            SELECT id, title, format as report_type, status, created_at
+            FROM reports
+            WHERE user_id = $1
+              AND ($2::text IS NULL OR format = $2)
+              AND ($3::text IS NULL OR status = $3)
+            ORDER BY created_at DESC LIMIT $4 OFFSET $5
         ) AS sq"#,
     )
+    .bind(user.user_id)
     .bind(query.report_type)
     .bind(query.status)
     .bind(page_size as i64)
@@ -99,13 +111,16 @@ async fn search_reports(
     let offset = (page - 1) * page_size;
     let pattern = format!("%{}%", query.q);
 
+    // 按 user_id 隔离
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, report_type::text as report_type, status::text as status, created_at FROM reports
-            WHERE title ILIKE $1
-            ORDER BY created_at DESC LIMIT $2 OFFSET $3
+            SELECT id, title, format as report_type, status, created_at
+            FROM reports
+            WHERE user_id = $1 AND title ILIKE $2
+            ORDER BY created_at DESC LIMIT $3 OFFSET $4
         ) AS sq"#,
     )
+    .bind(user.user_id)
     .bind(pattern)
     .bind(page_size as i64)
     .bind(offset as i64)
@@ -119,14 +134,18 @@ async fn search_reports(
 async fn get_report(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(report_id): Path<i32>,
+    Path(report_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>> {
+    // 按 user_id 隔离：仅返回属于当前用户的报告
     let report = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, content, report_type::text as report_type, status::text as status, created_at FROM reports WHERE id = $1
+            SELECT id, title, content, format as report_type, status, created_at
+            FROM reports
+            WHERE id = $1 AND user_id = $2
         ) AS sq"#,
     )
     .bind(report_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
@@ -147,13 +166,19 @@ async fn create_report(
     State(state): State<AppState>,
     Json(req): Json<CreateReportRequest>,
 ) -> Result<Json<serde_json::Value>> {
+    // 创建时绑定 user_id
     let report = sqlx::query_scalar::<_, serde_json::Value>(
-        r#"WITH ins AS (INSERT INTO reports (title, content, report_type, status) VALUES ($1, $2, $3::report_type_enum, 'DRAFT') RETURNING id, title, report_type::text as report_type, status::text as status, created_at)
+        r#"WITH ins AS (
+            INSERT INTO reports (user_id, title, content, format, status)
+            VALUES ($1, $2, $3, $4, 'generated')
+            RETURNING id, title, format as report_type, status, created_at
+        )
         SELECT row_to_json(ins) FROM ins"#,
     )
+    .bind(user.user_id)
     .bind(req.title)
     .bind(req.content)
-    .bind(req.report_type.unwrap_or_else(|| "DAILY".to_string()))
+    .bind(req.report_type.unwrap_or_else(|| "markdown".to_string()))
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -171,20 +196,30 @@ struct UpdateReportRequest {
 async fn update_report(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(report_id): Path<i32>,
+    Path(report_id): Path<Uuid>,
     Json(req): Json<UpdateReportRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    sqlx::query(
-        r#"UPDATE reports SET title = COALESCE($2, title), content = COALESCE($3, content), report_type = COALESCE($4::report_type_enum, report_type), updated_at = NOW() WHERE id = $1 RETURNING id"#,
+    // 按 user_id 隔离：仅更新属于当前用户的报告
+    let updated = sqlx::query_scalar::<_, i64>(
+        r#"UPDATE reports
+           SET title = COALESCE($3, title),
+               content = COALESCE($4, content),
+               format = COALESCE($5, format)
+           WHERE id = $1 AND user_id = $2
+           RETURNING id"#,
     )
     .bind(report_id)
+    .bind(user.user_id)
     .bind(req.title)
     .bind(req.content)
     .bind(req.report_type)
     .fetch_optional(&state.db_pool)
     .await
-    .map_err(|e| AppError::Database(e))?
-    .ok_or_else(|| AppError::NotFound("Report not found".to_string()))?;
+    .map_err(|e| AppError::Database(e))?;
+
+    if updated.is_none() {
+        return Err(AppError::NotFound("Report not found or not owned by user".to_string()));
+    }
 
     Ok(Json(serde_json::json!({"message": "Report updated"})))
 }
@@ -192,18 +227,20 @@ async fn update_report(
 async fn delete_report(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(report_id): Path<i32>,
+    Path(report_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>> {
+    // 按 user_id 隔离：仅删除属于当前用户的报告
     let result = sqlx::query(
-        r#"DELETE FROM reports WHERE id = $1"#,
+        r#"DELETE FROM reports WHERE id = $1 AND user_id = $2"#,
     )
     .bind(report_id)
+    .bind(user.user_id)
     .execute(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     if result.rows_affected() == 0 {
-        return Err(AppError::NotFound("Report not found".to_string()));
+        return Err(AppError::NotFound("Report not found or not owned by user".to_string()));
     }
 
     Ok(Json(serde_json::json!({"message": "Report deleted"})))
@@ -217,19 +254,19 @@ struct ExportRequest {
 async fn export_report(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(report_id): Path<i32>,
+    Path(report_id): Path<Uuid>,
     Json(req): Json<ExportRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    sqlx::query_scalar::<_, serde_json::Value>(
-        r#"SELECT row_to_json(sq) FROM (
-            SELECT id FROM reports WHERE id = $1
-        ) AS sq"#,
+    // 按 user_id 隔离：仅允许导出属于当前用户的报告
+    let _ = sqlx::query_scalar::<_, Uuid>(
+        r#"SELECT id FROM reports WHERE id = $1 AND user_id = $2"#,
     )
     .bind(report_id)
+    .bind(user.user_id)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
-    .ok_or_else(|| AppError::NotFound("Report not found".to_string()))?;
+    .ok_or_else(|| AppError::NotFound("Report not found or not owned by user".to_string()))?;
 
     Ok(Json(serde_json::json!({
         "download_url": format!("/api/v1/reports/download/{}_{}.{}", report_id, req.format, req.format.to_lowercase()),
@@ -240,7 +277,7 @@ async fn export_report(
 
 #[derive(Debug, Deserialize)]
 struct CompareRequest {
-    report_ids: Vec<i32>,
+    report_ids: Vec<Uuid>,
 }
 
 async fn compare_reports(
@@ -248,12 +285,16 @@ async fn compare_reports(
     State(state): State<AppState>,
     Json(req): Json<CompareRequest>,
 ) -> Result<Json<serde_json::Value>> {
+    // 按 user_id 隔离：仅返回属于当前用户的报告
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, content, report_type::text as report_type, created_at FROM reports WHERE id = ANY($1)
+            SELECT id, title, content, format as report_type, created_at
+            FROM reports
+            WHERE id = ANY($1) AND user_id = $2
         ) AS sq"#,
     )
     .bind(&req.report_ids)
+    .bind(user.user_id)
     .fetch_all(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -265,11 +306,16 @@ async fn get_recent_reports(
     user: CurrentUser,
     State(state): State<AppState>,
 ) -> Result<Json<serde_json::Value>> {
+    // 按 user_id 隔离：仅返回当前用户最近的报告
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, report_type::text as report_type, status::text as status, created_at FROM reports ORDER BY created_at DESC LIMIT 5
+            SELECT id, title, format as report_type, status, created_at
+            FROM reports
+            WHERE user_id = $1
+            ORDER BY created_at DESC LIMIT 5
         ) AS sq"#,
     )
+    .bind(user.user_id)
     .fetch_all(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;

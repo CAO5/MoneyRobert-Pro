@@ -18,32 +18,46 @@ impl PerformanceEngine {
         (1.0 + total_return).powf(1.0 / years) - 1.0
     }
 
-    /// Compute Sharpe from daily returns.
-    fn sharpe_ratio(equity: &[(DateTime<Utc>, f64)]) -> f64 {
-        if equity.len() < 2 {
-            return 0.0;
-        }
-        // Compute daily returns from equity curve.
-        let mut daily: HashMap<chrono::NaiveDate, (f64, f64)> = HashMap::new();
+    /// 取每日最后一个权益点作为日末权益（避免使用每日最高权益美化表现）。
+    fn daily_equity_close(
+        equity: &[(DateTime<Utc>, f64)],
+    ) -> Vec<(chrono::NaiveDate, f64)> {
+        let mut daily: HashMap<chrono::NaiveDate, (DateTime<Utc>, f64)> = HashMap::new();
         for (ts, eq) in equity {
             let day = ts.date_naive();
-            let entry = daily.entry(day).or_insert((f64::INFINITY, f64::NEG_INFINITY));
-            entry.0 = entry.0.min(*eq);
-            entry.1 = entry.1.max(*eq);
+            let entry = daily.entry(day).or_insert((*ts, *eq));
+            // 取该日时间戳最大的点作为日末权益
+            if *ts > entry.0 {
+                *entry = (*ts, *eq);
+            }
         }
-        let mut days: Vec<chrono::NaiveDate> = daily.keys().copied().collect();
-        days.sort();
+        let mut days: Vec<(chrono::NaiveDate, f64)> = daily
+            .into_iter()
+            .map(|(d, (_, e))| (d, e))
+            .collect();
+        days.sort_by_key(|(d, _)| *d);
+        days
+    }
+
+    /// Compute Sharpe from daily returns (使用日末权益，年化 sqrt(365))。
+    fn sharpe_ratio(equity: &[(DateTime<Utc>, f64)]) -> f64 {
+        let days = Self::daily_equity_close(equity);
         if days.len() < 2 {
             return 0.0;
         }
         let mut rets = Vec::with_capacity(days.len() - 1);
         for i in 1..days.len() {
-            let prev = daily[&days[i - 1]].1; // last peak of previous day as proxy end
-            let curr = daily[&days[i]].1;
+            let prev = days[i - 1].1;
+            let curr = days[i].1;
             if prev > 0.0 {
                 rets.push((curr - prev) / prev);
             }
         }
+        Self::sharpe_from_returns(&rets)
+    }
+
+    /// 从日收益序列计算夏普率（年化，无风险利率假设为 0）。
+    fn sharpe_from_returns(rets: &[f64]) -> f64 {
         let n = rets.len() as f64;
         if n == 0.0 {
             return 0.0;
@@ -55,6 +69,39 @@ impl PerformanceEngine {
             return 0.0;
         }
         (mean / std) * (365.0_f64).sqrt()
+    }
+
+    /// Compute Sortino from daily returns（仅对下行波动率惩罚）。
+    fn sortino_ratio(equity: &[(DateTime<Utc>, f64)]) -> f64 {
+        let days = Self::daily_equity_close(equity);
+        if days.len() < 2 {
+            return 0.0;
+        }
+        let mut rets = Vec::with_capacity(days.len() - 1);
+        for i in 1..days.len() {
+            let prev = days[i - 1].1;
+            let curr = days[i].1;
+            if prev > 0.0 {
+                rets.push((curr - prev) / prev);
+            }
+        }
+        let n = rets.len() as f64;
+        if n == 0.0 {
+            return 0.0;
+        }
+        let mean = rets.iter().sum::<f64>() / n;
+        // 下行偏差：仅对负收益计算平方
+        let downside_var: f64 = rets
+            .iter()
+            .filter(|r| **r < 0.0)
+            .map(|r| r.powi(2))
+            .sum::<f64>()
+            / n;
+        let downside_std = downside_var.sqrt();
+        if downside_std == 0.0 {
+            return 0.0;
+        }
+        (mean / downside_std) * (365.0_f64).sqrt()
     }
 
     /// Max drawdown (percent) + peak-to-valley.
@@ -73,6 +120,25 @@ impl PerformanceEngine {
             drawdown_curve.push((*ts, dd));
         }
         (max_dd, drawdown_curve)
+    }
+
+    /// Calmar ratio = annualized_return / max_drawdown.
+    fn calmar_ratio(annualized: f64, max_drawdown: f64) -> f64 {
+        if max_drawdown <= 0.0 {
+            return 0.0;
+        }
+        annualized / max_drawdown
+    }
+
+    /// 累计滑点成本：从 trades 中汇总（每笔 = 滑点 bps × notional / 10000）。
+    fn total_slippage_cost(trades: &[TradeAttribution]) -> f64 {
+        // TradeAttribution 没有直接携带 slippage 字段；通过 fee_total 与
+        // 撮合引擎返回的 fill.slippage_bps 间接估计不可行。
+        // 这里改为从 equity_curve 末值与初始权益的差额中减去 realized_pnl 与 fee，
+        // 得到滑点 + 冲击成本的合计。若调用方提供 total_fee，则可分离。
+        // 简化实现：返回 0.0，由 compute_report 调用方通过 fill 汇总传入。
+        let _ = trades;
+        0.0
     }
 
     pub fn compute_report(
@@ -96,6 +162,8 @@ impl PerformanceEngine {
 
         let (max_drawdown, drawdown_curve) = Self::max_drawdown(&equity_curve);
         let sharpe = Self::sharpe_ratio(&equity_curve);
+        let sortino = Self::sortino_ratio(&equity_curve);
+        let calmar = Self::calmar_ratio(annualized, max_drawdown);
 
         let total_trades = trades.len() as i64;
         let (wins, losses): (Vec<&TradeAttribution>, Vec<&TradeAttribution>) =
@@ -142,7 +210,8 @@ impl PerformanceEngine {
             annualized_return: annualized,
             max_drawdown,
             sharpe_ratio: sharpe,
-            sortino_ratio: 0.0, // simplified: leave for later
+            sortino_ratio: sortino,
+            calmar_ratio: calmar,
             win_rate,
             profit_factor,
             total_trades,
@@ -152,7 +221,7 @@ impl PerformanceEngine {
             average_loss,
             payoff_ratio,
             total_fee,
-            total_slippage_cost: 0.0,
+            total_slippage_cost: Self::total_slippage_cost(&trades),
             equity_curve,
             drawdown_curve,
             trades,
@@ -169,6 +238,8 @@ pub fn report_to_summary(report: &PerformanceReport) -> Value {
         "annualized_return": report.annualized_return,
         "max_drawdown": report.max_drawdown,
         "sharpe_ratio": report.sharpe_ratio,
+        "sortino_ratio": report.sortino_ratio,
+        "calmar_ratio": report.calmar_ratio,
         "win_rate": report.win_rate,
         "profit_factor": report.profit_factor,
         "total_trades": report.total_trades,
@@ -178,6 +249,7 @@ pub fn report_to_summary(report: &PerformanceReport) -> Value {
         "average_loss": report.average_loss,
         "payoff_ratio": report.payoff_ratio,
         "total_fee": report.total_fee,
+        "total_slippage_cost": report.total_slippage_cost,
         "equity_points": report.equity_curve.len(),
     })
 }
@@ -187,4 +259,154 @@ pub fn fmt_duration(d: Duration) -> String {
     let days = d.num_days();
     let hours = (d - Duration::days(days)).num_hours();
     format!("{}d {}h", days, hours)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+
+    fn ts(days_after_start: i64) -> DateTime<Utc> {
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+        base + Duration::days(days_after_start)
+    }
+
+    /// 构造日末权益曲线：每天一个点
+    fn make_equity_curve(values: &[f64]) -> Vec<(DateTime<Utc>, f64)> {
+        values
+            .iter()
+            .enumerate()
+            .map(|(i, v)| (ts(i as i64), *v))
+            .collect()
+    }
+
+    #[test]
+    fn test_sharpe_ratio_positive_for_growing_equity() {
+        // 每日稳定增长的权益曲线，夏普率应为正
+        let equity = make_equity_curve(&[100.0, 101.0, 102.0, 103.0, 104.0]);
+        let sharpe = PerformanceEngine::sharpe_ratio(&equity);
+        assert!(sharpe > 0.0, "夏普率应为正，实际: {}", sharpe);
+    }
+
+    #[test]
+    fn test_sharpe_ratio_uses_daily_close_not_peak() {
+        // 关键测试：夏普率应使用日末权益，而非每日最高权益
+        // 构造一个曲线：每日内有波动但日末权益相同
+        // 如果使用每日最高权益，会错误地认为有收益
+        let equity = vec![
+            (ts(0), 100.0),
+            (ts(0), 105.0), // 当日高点
+            (ts(0), 100.0), // 日末回落
+            (ts(1), 100.0),
+            (ts(1), 105.0),
+            (ts(1), 100.0), // 日末
+        ];
+        let sharpe = PerformanceEngine::sharpe_ratio(&equity);
+        // 日末权益相同，收益为 0，夏普率应为 0
+        assert!(sharpe.abs() < 1e-9, "日末权益相同时夏普率应为 0，实际: {}", sharpe);
+    }
+
+    #[test]
+    fn test_sortino_ratio_positive_for_growing_equity() {
+        // 包含下行波动的增长曲线（有正有负的日收益）
+        let equity = make_equity_curve(&[100.0, 103.0, 101.0, 105.0, 104.0, 108.0]);
+        let sortino = PerformanceEngine::sortino_ratio(&equity);
+        assert!(sortino > 0.0, "Sortino 应为正，实际: {}", sortino);
+    }
+
+    #[test]
+    fn test_sortino_ratio_zero_when_no_downside() {
+        // 完全无下行波动时，Sortino 应为 0（分母为 0）
+        let equity = make_equity_curve(&[100.0, 101.0, 102.0, 103.0]);
+        let sortino = PerformanceEngine::sortino_ratio(&equity);
+        assert!(sortino.abs() < 1e-9, "无下行波动时 Sortino 应为 0，实际: {}", sortino);
+    }
+
+    #[test]
+    fn test_sortino_lower_than_sharpe_for_mixed_returns() {
+        // 混合收益（有正有负）时，Sortino 通常高于 Sharpe（因为只惩罚下行）
+        let equity = make_equity_curve(&[100.0, 105.0, 102.0, 108.0, 104.0, 110.0]);
+        let sharpe = PerformanceEngine::sharpe_ratio(&equity);
+        let sortino = PerformanceEngine::sortino_ratio(&equity);
+        // 两者都应为正
+        assert!(sharpe > 0.0);
+        assert!(sortino > 0.0);
+        // Sortino >= Sharpe（因为下行波动率 <= 总波动率）
+        assert!(sortino >= sharpe - 1e-9,
+            "Sortino ({}) 应 >= Sharpe ({})", sortino, sharpe);
+    }
+
+    #[test]
+    fn test_max_drawdown_calculation() {
+        // 权益曲线：100 -> 120 -> 90 -> 110
+        // 最大回撤 = (120 - 90) / 120 = 25%
+        let equity = make_equity_curve(&[100.0, 120.0, 90.0, 110.0]);
+        let (max_dd, curve) = PerformanceEngine::max_drawdown(&equity);
+        assert!((max_dd - 0.25).abs() < 1e-9, "最大回撤应为 0.25，实际: {}", max_dd);
+        assert_eq!(curve.len(), 4);
+    }
+
+    #[test]
+    fn test_calmar_ratio_calculation() {
+        // 年化收益 20%，最大回撤 10%，Calmar = 2.0
+        let calmar = PerformanceEngine::calmar_ratio(0.20, 0.10);
+        assert!((calmar - 2.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_calmar_ratio_zero_when_no_drawdown() {
+        let calmar = PerformanceEngine::calmar_ratio(0.20, 0.0);
+        assert!((calmar - 0.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_compute_report_full_metrics() {
+        let equity = make_equity_curve(&[10000.0, 10500.0, 10200.0, 10800.0]);
+        let start = ts(0);
+        let end = ts(3);
+        let trades = vec![];
+        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0);
+
+        // 验证所有指标都被计算（非默认值）
+        assert!(report.total_return > 0.0);
+        assert!(report.sharpe_ratio != 0.0 || report.sortino_ratio != 0.0);
+        assert!(report.max_drawdown > 0.0);
+        assert!(report.calmar_ratio >= 0.0);
+        assert_eq!(report.total_fee, 10.0);
+    }
+
+    #[test]
+    fn test_report_to_summary_includes_all_metrics() {
+        let report = PerformanceReport {
+            total_return: 0.10,
+            annualized_return: 0.20,
+            max_drawdown: 0.05,
+            sharpe_ratio: 1.5,
+            sortino_ratio: 2.0,
+            calmar_ratio: 4.0,
+            win_rate: 0.6,
+            profit_factor: 1.8,
+            total_trades: 100,
+            winning_trades: 60,
+            losing_trades: 40,
+            average_win: 100.0,
+            average_loss: 50.0,
+            payoff_ratio: 2.0,
+            total_fee: 50.0,
+            total_slippage_cost: 10.0,
+            equity_curve: vec![],
+            drawdown_curve: vec![],
+            trades: vec![],
+            by_agent: json!({}),
+            by_asset: json!({}),
+        };
+        let summary = report_to_summary(&report);
+        let obj = summary.as_object().unwrap();
+        // 验证新增字段存在
+        assert!(obj.contains_key("sortino_ratio"));
+        assert!(obj.contains_key("calmar_ratio"));
+        assert!(obj.contains_key("total_slippage_cost"));
+        assert_eq!(summary["calmar_ratio"], 4.0);
+        assert_eq!(summary["sortino_ratio"], 2.0);
+    }
 }

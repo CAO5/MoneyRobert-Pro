@@ -409,6 +409,7 @@ pub struct PerformanceReport {
     pub max_drawdown: f64,
     pub sharpe_ratio: f64,
     pub sortino_ratio: f64,
+    pub calmar_ratio: f64,
     pub win_rate: f64,
     pub profit_factor: f64,
     pub total_trades: i64,
