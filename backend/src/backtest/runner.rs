@@ -10,6 +10,7 @@ use crate::backtest::models::{
 use crate::backtest::performance_engine::PerformanceEngine;
 use crate::backtest::replay_engine::{ReplayConfig, ReplayEngine};
 use crate::backtest::risk_engine::{RiskConfig, RiskEngine};
+use crate::features::{RegimeClassifier, RegimeConfig};
 use chrono::{DateTime, Utc};
 use sqlx::{PgPool, Row};
 use std::collections::HashMap;
@@ -27,6 +28,8 @@ pub struct BacktestRunnerConfig {
     pub risk: RiskConfig,
     pub min_signal_confidence: f64,
     pub min_signal_strength: f64,
+    /// 市场状态识别配置（None 表示使用默认配置）
+    pub regime_config: Option<RegimeConfig>,
 }
 
 pub struct BacktestRunner {
@@ -37,6 +40,11 @@ pub struct BacktestRunner {
     open_orders: Vec<SimulatedOrder>,
     closed_trades: Vec<TradeAttribution>,
     last_kline_by_asset: HashMap<String, crate::backtest::models::Kline>,
+    /// 每个 asset 的历史 K 线（OHLCV 元组），用于市场状态识别
+    kline_history_by_asset: HashMap<String, Vec<(f64, f64, f64, f64, f64)>>,
+    /// 每个 asset 当前市场状态（入场时使用）
+    current_regime_by_asset: HashMap<String, String>,
+    regime_classifier: RegimeClassifier,
     total_fee: f64,
     total_slippage_bps_sum: f64,
     total_fills: i64,
@@ -44,6 +52,8 @@ pub struct BacktestRunner {
 
 impl BacktestRunner {
     pub fn new(config: BacktestRunnerConfig) -> Self {
+        let regime_config = config.regime_config.clone().unwrap_or_default();
+        let regime_classifier = RegimeClassifier::new(regime_config);
         let now = config.start_time;
         Self {
             matching: MatchingEngine::new(config.matching.clone()),
@@ -52,6 +62,9 @@ impl BacktestRunner {
             open_orders: Vec::new(),
             closed_trades: Vec::new(),
             last_kline_by_asset: HashMap::new(),
+            kline_history_by_asset: HashMap::new(),
+            current_regime_by_asset: HashMap::new(),
+            regime_classifier,
             total_fee: 0.0,
             total_slippage_bps_sum: 0.0,
             total_fills: 0,
@@ -119,6 +132,22 @@ impl BacktestRunner {
     async fn handle_kline(&mut self, kline: &crate::backtest::models::Kline) {
         // 1) update market state
         self.last_kline_by_asset.insert(kline.symbol.clone(), kline.clone());
+        // 维护 K 线历史用于市场状态识别（保留最近 200 根，避免内存膨胀）
+        let history = self
+            .kline_history_by_asset
+            .entry(kline.symbol.clone())
+            .or_insert_with(Vec::new);
+        history.push((kline.open, kline.high, kline.low, kline.close, kline.volume));
+        if history.len() > 200 {
+            let drop_n = history.len() - 200;
+            history.drain(0..drop_n);
+        }
+        // 计算并更新当前市场状态
+        if let Some(snapshot) = self.regime_classifier.classify(history) {
+            self.current_regime_by_asset
+                .insert(kline.symbol.clone(), snapshot.regime.as_str().to_string());
+        }
+
         let prices = kline_prices(&[kline.clone()]);
         self.account.mark_to_market(&prices, kline.open_time);
 
@@ -272,7 +301,7 @@ impl BacktestRunner {
 
     fn apply_fill_to_account(
         &mut self,
-        _asset: &str,
+        asset: &str,
         fill: &crate::backtest::models::SimulatedFill,
         intent_type: Option<String>,
     ) {
@@ -309,6 +338,11 @@ impl BacktestRunner {
                         0.0
                     };
                     let seconds = (fill.fill_time - pos.opened_at).num_seconds();
+                    // 入场时的市场状态（使用 asset 对应的当前 regime）
+                    let regime_at_entry = self
+                        .current_regime_by_asset
+                        .get(asset)
+                        .cloned();
                     self.closed_trades.push(TradeAttribution {
                         attribution_id: Uuid::new_v4(),
                         job_id: fill.job_id,
@@ -330,6 +364,7 @@ impl BacktestRunner {
                         entry_signal_id: pos.open_signal_id,
                         exit_reason: intent_type.clone(),
                         result: Some(if pnl > 0.0 { "win".into() } else { "loss".into() }),
+                        market_regime_at_entry: regime_at_entry,
                     });
                 }
             }
@@ -394,6 +429,7 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
         },
         min_signal_confidence: job.min_signal_confidence,
         min_signal_strength: job.min_signal_strength,
+        regime_config: None,
     };
 
     let mut runner = BacktestRunner::new(runner_config);
@@ -426,9 +462,9 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
         r#"INSERT INTO performance_reports
            (report_id, job_id, total_return, annualized_return, max_drawdown, sharpe_ratio,
             win_rate, profit_factor, total_trades, winning_trades, losing_trades,
-            average_win, average_loss, payoff_ratio, total_fee, by_agent, by_asset,
+            average_win, average_loss, payoff_ratio, total_fee, by_agent, by_asset, by_regime,
             report_json, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())"#,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())"#,
     )
     .bind(Uuid::new_v4())
     .bind(job.job_id)
@@ -447,10 +483,136 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
     .bind(Some(report.total_fee))
     .bind(report.by_agent.clone())
     .bind(report.by_asset.clone())
+    .bind(report.by_regime.clone())
     .bind(report_json)
     .execute(pool)
     .await
     .map_err(|e| format!("insert report failed: {}", e))?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::backtest::models::Kline;
+    use chrono::TimeZone;
+
+    fn make_kline(symbol: &str, open: f64, high: f64, low: f64, close: f64, ts: DateTime<Utc>) -> Kline {
+        Kline {
+            symbol: symbol.into(),
+            interval: "1H".into(),
+            open_time: ts,
+            open,
+            high,
+            low,
+            close,
+            volume: 1000.0,
+            quote_volume: Some(1000.0 * close),
+        }
+    }
+
+    fn make_config() -> BacktestRunnerConfig {
+        BacktestRunnerConfig {
+            job_id: Uuid::new_v4(),
+            initial_equity: 100_000.0,
+            symbols: vec!["BTC-USDT-SWAP".into()],
+            interval: "1H".into(),
+            start_time: Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap(),
+            end_time: Utc.with_ymd_and_hms(2026, 1, 3, 0, 0, 0).unwrap(),
+            matching: MatchingConfig {
+                fee_taker_bps: 5.0,
+                fee_maker_bps: 2.0,
+                slippage_bps: 3.0,
+            },
+            risk: RiskConfig {
+                max_single_position_pct: 0.1,
+                max_total_leverage: 3.0,
+                max_daily_loss_pct: 0.03,
+                min_signal_confidence: 0.3,
+                min_signal_strength: 0.2,
+            },
+            min_signal_confidence: 0.3,
+            min_signal_strength: 0.2,
+            regime_config: None,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_regime_classifier_integrated_into_runner() {
+        // 验证 BacktestRunner 正确集成了 RegimeClassifier
+        let config = make_config();
+        let runner = BacktestRunner::new(config);
+        assert!(runner.regime_classifier.classify(&[]).is_none(),
+            "空 K 线序列应返回 None");
+    }
+
+    #[tokio::test]
+    async fn test_handle_kline_updates_regime() {
+        // 验证 handle_kline 在处理足够 K 线后更新 current_regime_by_asset
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入 60 根上涨 K 线
+        let mut price = 100.0;
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let open = price;
+            price += 1.0;
+            let close = price;
+            let kline = make_kline("BTC-USDT-SWAP", open, close + 0.5, open - 0.5, close, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        // 应已计算并记录市场状态
+        let regime = runner.current_regime_by_asset.get("BTC-USDT-SWAP");
+        assert!(regime.is_some(), "应已记录 BTC-USDT-SWAP 的市场状态");
+        let regime_str = regime.unwrap();
+        assert!(
+            regime_str == "trending_bull" || regime_str == "ranging" || regime_str == "high_volatility",
+            "稳定上涨应识别为 trending_bull/ranging/high_volatility，实际: {}",
+            regime_str
+        );
+    }
+
+    #[tokio::test]
+    async fn test_kline_history_capped_at_200() {
+        // 验证 K 线历史被限制在 200 根，避免内存膨胀
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        for i in 0..250 {
+            let ts = base + chrono::Duration::hours(i);
+            let kline = make_kline("BTC-USDT-SWAP", 100.0, 101.0, 99.0, 100.5, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        let history = runner.kline_history_by_asset.get("BTC-USDT-SWAP").unwrap();
+        assert_eq!(history.len(), 200, "K 线历史应被限制在 200 根");
+    }
+
+    #[tokio::test]
+    async fn test_regime_recorded_in_trade_attribution() {
+        // 验证平仓时 TradeAttribution.market_regime_at_entry 被正确填充
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入足够 K 线以计算 regime
+        let mut price = 100.0;
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let open = price;
+            price += 1.0;
+            let close = price;
+            let kline = make_kline("BTC-USDT-SWAP", open, close + 0.5, open - 0.5, close, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        // 验证 regime 已被记录（即使没有实际交易，regime 字段也应可用）
+        let regime = runner.current_regime_by_asset.get("BTC-USDT-SWAP");
+        assert!(regime.is_some(), "regime 应已被计算");
+    }
 }

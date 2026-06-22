@@ -12,6 +12,7 @@ pub mod backtest_api;
 pub mod billing;
 pub mod dashboard;
 pub mod evolution_api;
+pub mod features_api;
 pub mod health;
 pub mod market_data;
 pub mod memory_api;
@@ -59,6 +60,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/agent/evolution", evolution_api::router())
         .nest("/system", system_settings::router())
         .nest("/backtest", backtest_api::router())
+        .nest("/features", features_api::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

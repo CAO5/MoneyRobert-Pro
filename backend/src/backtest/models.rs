@@ -353,6 +353,8 @@ pub struct TradeAttribution {
     pub entry_signal_id: Option<Uuid>,
     pub exit_reason: Option<String>,
     pub result: Option<String>,
+    /// 入场时的市场状态（trending_bull/trending_bear/ranging/high_volatility/crisis）
+    pub market_regime_at_entry: Option<String>,
 }
 
 // ============================================================
@@ -425,6 +427,8 @@ pub struct PerformanceReport {
     pub trades: Vec<TradeAttribution>,
     pub by_agent: Value,
     pub by_asset: Value,
+    /// 按市场状态归因（trending_bull/trending_bear/ranging/high_volatility/crisis）
+    pub by_regime: Value,
 }
 
 // ============================================================

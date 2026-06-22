@@ -182,9 +182,10 @@ impl PerformanceEngine {
         let average_loss = if losing_trades > 0 { gross_loss / losing_trades as f64 } else { 0.0 };
         let payoff_ratio = if average_loss > 0.0 { average_win / average_loss } else { average_win };
 
-        // attribution by agent / asset
+        // attribution by agent / asset / regime
         let mut by_agent: HashMap<String, (i64, f64)> = HashMap::new();
         let mut by_asset: HashMap<String, (i64, f64)> = HashMap::new();
+        let mut by_regime: HashMap<String, (i64, f64)> = HashMap::new();
         for t in &trades {
             let agent = t.agent_id.clone().unwrap_or_else(|| "unknown".into());
             let entry = by_agent.entry(agent).or_insert((0, 0.0));
@@ -193,6 +194,14 @@ impl PerformanceEngine {
             let entry2 = by_asset.entry(t.asset.clone()).or_insert((0, 0.0));
             entry2.0 += 1;
             entry2.1 += t.pnl.unwrap_or(0.0);
+            // 按入场时市场状态归因
+            let regime = t
+                .market_regime_at_entry
+                .clone()
+                .unwrap_or_else(|| "unknown".into());
+            let entry3 = by_regime.entry(regime).or_insert((0, 0.0));
+            entry3.0 += 1;
+            entry3.1 += t.pnl.unwrap_or(0.0);
         }
 
         let to_json = |m: HashMap<String, (i64, f64)>| -> Value {
@@ -227,6 +236,7 @@ impl PerformanceEngine {
             trades,
             by_agent: to_json(by_agent),
             by_asset: to_json(by_asset),
+            by_regime: to_json(by_regime),
         }
     }
 }
@@ -251,6 +261,7 @@ pub fn report_to_summary(report: &PerformanceReport) -> Value {
         "total_fee": report.total_fee,
         "total_slippage_cost": report.total_slippage_cost,
         "equity_points": report.equity_curve.len(),
+        "by_regime": report.by_regime,
     })
 }
 
@@ -265,6 +276,7 @@ pub fn fmt_duration(d: Duration) -> String {
 mod tests {
     use super::*;
     use chrono::TimeZone;
+    use uuid::Uuid;
 
     fn ts(days_after_start: i64) -> DateTime<Utc> {
         let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
@@ -399,6 +411,7 @@ mod tests {
             trades: vec![],
             by_agent: json!({}),
             by_asset: json!({}),
+            by_regime: json!({}),
         };
         let summary = report_to_summary(&report);
         let obj = summary.as_object().unwrap();
@@ -406,7 +419,105 @@ mod tests {
         assert!(obj.contains_key("sortino_ratio"));
         assert!(obj.contains_key("calmar_ratio"));
         assert!(obj.contains_key("total_slippage_cost"));
+        assert!(obj.contains_key("by_regime"));
         assert_eq!(summary["calmar_ratio"], 4.0);
         assert_eq!(summary["sortino_ratio"], 2.0);
+    }
+
+    #[test]
+    fn test_by_regime_attribution_groups_trades() {
+        // 验证 by_regime 归因按市场状态分组统计交易
+        let start = ts(0);
+        let end = ts(10);
+        let equity = make_equity_curve(&[10000.0, 10500.0, 10200.0, 10800.0]);
+
+        let make_trade = |regime: &str, pnl: f64| TradeAttribution {
+            attribution_id: Uuid::new_v4(),
+            job_id: None,
+            asset: "BTC-USDT-SWAP".into(),
+            strategy_id: None,
+            agent_id: None,
+            direction: "long".into(),
+            entry_time: start,
+            exit_time: Some(end),
+            entry_price: 100.0,
+            exit_price: Some(105.0),
+            quantity: 1.0,
+            pnl: Some(pnl),
+            pnl_bps: Some(500.0),
+            fee_total: 1.0,
+            holding_period_sec: Some(3600),
+            signal_confidence: None,
+            signal_strength: None,
+            entry_signal_id: None,
+            exit_reason: None,
+            result: Some(if pnl > 0.0 { "win".into() } else { "loss".into() }),
+            market_regime_at_entry: Some(regime.into()),
+        };
+
+        let trades = vec![
+            make_trade("trending_bull", 100.0),
+            make_trade("trending_bull", 50.0),
+            make_trade("ranging", -30.0),
+            make_trade("crisis", -200.0),
+        ];
+
+        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0);
+        let by_regime = report.by_regime.as_object().unwrap();
+        assert!(by_regime.contains_key("trending_bull"));
+        assert!(by_regime.contains_key("ranging"));
+        assert!(by_regime.contains_key("crisis"));
+
+        // trending_bull: 2 笔交易，pnl = 150
+        let bull = &by_regime["trending_bull"];
+        assert_eq!(bull["trades"], 2);
+        assert_eq!(bull["pnl"], 150);
+
+        // ranging: 1 笔交易，pnl = -30
+        let ranging = &by_regime["ranging"];
+        assert_eq!(ranging["trades"], 1);
+        assert_eq!(ranging["pnl"], -30);
+
+        // crisis: 1 笔交易，pnl = -200
+        let crisis = &by_regime["crisis"];
+        assert_eq!(crisis["trades"], 1);
+        assert_eq!(crisis["pnl"], -200);
+    }
+
+    #[test]
+    fn test_by_regime_unknown_when_no_regime() {
+        // 验证无 regime 信息的交易被归入 "unknown"
+        let start = ts(0);
+        let end = ts(10);
+        let equity = make_equity_curve(&[10000.0, 10500.0]);
+
+        let trade = TradeAttribution {
+            attribution_id: Uuid::new_v4(),
+            job_id: None,
+            asset: "BTC-USDT-SWAP".into(),
+            strategy_id: None,
+            agent_id: None,
+            direction: "long".into(),
+            entry_time: start,
+            exit_time: Some(end),
+            entry_price: 100.0,
+            exit_price: Some(105.0),
+            quantity: 1.0,
+            pnl: Some(50.0),
+            pnl_bps: Some(500.0),
+            fee_total: 1.0,
+            holding_period_sec: Some(3600),
+            signal_confidence: None,
+            signal_strength: None,
+            entry_signal_id: None,
+            exit_reason: None,
+            result: Some("win".into()),
+            market_regime_at_entry: None,
+        };
+
+        let report = PerformanceEngine.compute_report(vec![trade], equity, start, end, 0.0);
+        let by_regime = report.by_regime.as_object().unwrap();
+        assert!(by_regime.contains_key("unknown"));
+        assert_eq!(by_regime["unknown"]["trades"], 1);
     }
 }
