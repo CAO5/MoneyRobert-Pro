@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ExecutionMode {
@@ -107,7 +107,7 @@ pub struct AiSimulationConfig {
     pub mode: String,
     pub level: i32,
     pub status: String,
-    
+
     pub initial_balance: f64,
     pub current_balance: f64,
     pub max_position_size_percent: f64,
@@ -122,7 +122,7 @@ pub struct AiSimulationConfig {
     pub allowed_symbols: Vec<String>,
     pub autonomous_mode_enabled: bool,
     pub requires_manual_confirm: bool,
-    
+
     pub total_trades: i32,
     pub winning_trades: i32,
     pub losing_trades: i32,
@@ -131,20 +131,20 @@ pub struct AiSimulationConfig {
     pub profit_loss_ratio: f64,
     pub max_drawdown_percent: f64,
     pub sharpe_ratio: f64,
-    
+
     pub weekly_pnl: f64,
     pub weekly_loss_percent: f64,
     pub daily_pnl: f64,
     pub daily_loss_percent: f64,
     pub consecutive_stop_losses: i32,
-    
+
     pub running_days: i32,
     pub last_trade_at: Option<DateTime<Utc>>,
     pub promotion_eligible: bool,
     pub risk_confirmation_signed: bool,
     pub risk_confirmation_signed_at: Option<DateTime<Utc>>,
     pub max_acceptable_loss_amount: Option<f64>,
-    
+
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -155,7 +155,7 @@ pub struct AiSimulationTrade {
     pub config_id: Uuid,
     pub symbol: String,
     pub mode: String,
-    
+
     pub direction: String,
     pub entry_price: f64,
     pub exit_price: Option<f64>,
@@ -163,20 +163,20 @@ pub struct AiSimulationTrade {
     pub leverage: i32,
     pub stop_loss: Option<f64>,
     pub take_profit: Option<f64>,
-    
+
     pub ai_confidence: Option<f64>,
     pub ai_reasoning: Option<serde_json::Value>,
     pub agent_session_id: Option<Uuid>,
-    
+
     pub pnl: Option<f64>,
     pub pnl_percent: Option<f64>,
     pub fee_percent: f64,
     pub net_pnl_percent: Option<f64>,
-    
+
     pub status: String,
     pub close_reason: Option<String>,
     pub holding_duration_minutes: Option<i32>,
-    
+
     pub opened_at: DateTime<Utc>,
     pub closed_at: Option<DateTime<Utc>>,
 }
@@ -302,59 +302,59 @@ pub enum NotificationLevel {
 /// Multi-dimensional market context for decision making
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MarketContext {
-    pub trend: String,           // "bull", "bear", "range"
-    pub volatility: String,      // "low", "medium", "high"
-    pub volume_profile: String,   // "increasing", "decreasing", "stable"
-    pub key_levels: Vec<f64>,     // key support/resistance levels
-    pub trend_strength: f64,     // 0.0 - 1.0
+    pub trend: String,          // "bull", "bear", "range"
+    pub volatility: String,     // "low", "medium", "high"
+    pub volume_profile: String, // "increasing", "decreasing", "stable"
+    pub key_levels: Vec<f64>,   // key support/resistance levels
+    pub trend_strength: f64,    // 0.0 - 1.0
 }
 
 /// Multi-timeframe data for comprehensive analysis
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MultiTimeframeData {
-    pub m5_trend: String,         // 5-minute trend
-    pub m15_trend: String,        // 15-minute trend
-    pub h1_trend: String,        // 1-hour trend
-    pub h4_trend: String,        // 4-hour trend
-    pub d1_trend: String,        // Daily trend
-    pub alignment: f64,           // Multi-timeframe alignment score (0.0 - 1.0)
+    pub m5_trend: String,          // 5-minute trend
+    pub m15_trend: String,         // 15-minute trend
+    pub h1_trend: String,          // 1-hour trend
+    pub h4_trend: String,          // 4-hour trend
+    pub d1_trend: String,          // Daily trend
+    pub alignment: f64,            // Multi-timeframe alignment score (0.0 - 1.0)
     pub alignment_details: String, // Description of alignment
 }
 
 /// Position quality assessment
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionQuality {
-    pub direction_correct: bool,      // Direction correctness
-    pub entry_timing_score: f64,     // Entry timing score (0.0 - 1.0)
-    pub risk_reward_ratio: f64,      // Risk/reward ratio
-    pub holding_duration_fit: bool,  // Holding duration appropriateness
-    pub leverage_fit: bool,          // Leverage appropriateness
-    pub multi_timeframe_fit: bool,   // Multi-TF alignment fit
-    pub overall_score: f64,          // Overall quality score (0.0 - 1.0)
+    pub direction_correct: bool,    // Direction correctness
+    pub entry_timing_score: f64,    // Entry timing score (0.0 - 1.0)
+    pub risk_reward_ratio: f64,     // Risk/reward ratio
+    pub holding_duration_fit: bool, // Holding duration appropriateness
+    pub leverage_fit: bool,         // Leverage appropriateness
+    pub multi_timeframe_fit: bool,  // Multi-TF alignment fit
+    pub overall_score: f64,         // Overall quality score (0.0 - 1.0)
 }
 
 /// Agent performance by market context
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentContextAccuracy {
-    pub trend_accuracy: f64,         // Accuracy in trending markets
-    pub volatility_accuracy: f64,   // Accuracy by volatility level
-    pub volume_accuracy: f64,        // Accuracy by volume profile
-    pub timing_accuracy: f64,        // Entry timing accuracy
+    pub trend_accuracy: f64,           // Accuracy in trending markets
+    pub volatility_accuracy: f64,      // Accuracy by volatility level
+    pub volume_accuracy: f64,          // Accuracy by volume profile
+    pub timing_accuracy: f64,          // Entry timing accuracy
     pub multi_timeframe_accuracy: f64, // Multi-timeframe accuracy
-    pub weighted_accuracy: f64,      // Decay-weighted accuracy
-    pub total_predictions: i32,      // Total predictions made
-    pub prediction_decay_rate: f64,  // Decay rate for old predictions
+    pub weighted_accuracy: f64,        // Decay-weighted accuracy
+    pub total_predictions: i32,        // Total predictions made
+    pub prediction_decay_rate: f64,    // Decay rate for old predictions
 }
 
 /// Enhanced confidence calculation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnhancedConfidence {
-    pub base_confidence: f64,        // Base confidence from debate
-    pub historical_accuracy: f64,   // Historical accuracy factor
-    pub market_volatility: f64,    // Market volatility factor
-    pub agent_agreement: f64,        // Agent consensus factor
-    pub market_context_fit: f64,    // How well context fits
-    pub final_confidence: f64,       // Final calibrated confidence
+    pub base_confidence: f64,         // Base confidence from debate
+    pub historical_accuracy: f64,     // Historical accuracy factor
+    pub market_volatility: f64,       // Market volatility factor
+    pub agent_agreement: f64,         // Agent consensus factor
+    pub market_context_fit: f64,      // How well context fits
+    pub final_confidence: f64,        // Final calibrated confidence
     pub confidence_reasoning: String, // Explanation of confidence adjustment
 }
 

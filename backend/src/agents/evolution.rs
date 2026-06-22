@@ -163,7 +163,11 @@ impl PromptVersionStore {
         Ok(row.map(|r| self.row_to_version(&r)))
     }
 
-    pub async fn list_by_agent(&self, agent_id: &str, limit: i64) -> AgentResult<Vec<PromptVersion>> {
+    pub async fn list_by_agent(
+        &self,
+        agent_id: &str,
+        limit: i64,
+    ) -> AgentResult<Vec<PromptVersion>> {
         let rows = sqlx::query(
             r#"SELECT id, agent_id, version_number, prompt_text, description,
                       change_reason, performance_score, status, parent_version_id,
@@ -249,22 +253,19 @@ impl PromptVersionStore {
         let mut tx = self.db_pool.begin().await?;
 
         // Get version info
-        let row = sqlx::query(
-            r#"SELECT agent_id, parent_version_id FROM prompt_versions WHERE id = $1"#,
-        )
-        .bind(id)
-        .fetch_one(&mut *tx)
-        .await?;
+        let row =
+            sqlx::query(r#"SELECT agent_id, parent_version_id FROM prompt_versions WHERE id = $1"#)
+                .bind(id)
+                .fetch_one(&mut *tx)
+                .await?;
         let agent_id: String = row.get("agent_id");
         let parent_id: Option<Uuid> = row.get("parent_version_id");
 
         // Mark current as rolled_back
-        sqlx::query(
-            r#"UPDATE prompt_versions SET status = 'rolled_back' WHERE id = $1"#,
-        )
-        .bind(id)
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query(r#"UPDATE prompt_versions SET status = 'rolled_back' WHERE id = $1"#)
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
 
         // Reactivate parent if exists
         if let Some(parent) = parent_id {
@@ -1052,7 +1053,8 @@ impl EvolutionEngine {
         }
 
         // Analyze by market trend
-        let mut trend_accuracy: std::collections::HashMap<String, (i32, i32)> = std::collections::HashMap::new();
+        let mut trend_accuracy: std::collections::HashMap<String, (i32, i32)> =
+            std::collections::HashMap::new();
         for d in decisions {
             let trend: Option<String> = d.get("market_trend");
             let correct: Option<bool> = d.get("was_correct");
@@ -1117,36 +1119,31 @@ impl EvolutionEngine {
 
     /// Get evolution statistics.
     pub async fn get_stats(&self) -> AgentResult<serde_json::Value> {
-        let prompt_versions: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM prompt_versions")
+        let prompt_versions: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM prompt_versions")
+            .fetch_one(&self.db_pool)
+            .await
+            .unwrap_or(0);
+
+        let strategy_versions: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM strategy_versions")
+            .fetch_one(&self.db_pool)
+            .await
+            .unwrap_or(0);
+
+        let reflections: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM reflection_logs")
+            .fetch_one(&self.db_pool)
+            .await
+            .unwrap_or(0);
+
+        let evolutions: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM evolution_logs")
+            .fetch_one(&self.db_pool)
+            .await
+            .unwrap_or(0);
+
+        let rolled_back: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM evolution_logs WHERE rolled_back = TRUE")
                 .fetch_one(&self.db_pool)
                 .await
                 .unwrap_or(0);
-
-        let strategy_versions: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM strategy_versions")
-                .fetch_one(&self.db_pool)
-                .await
-                .unwrap_or(0);
-
-        let reflections: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM reflection_logs")
-                .fetch_one(&self.db_pool)
-                .await
-                .unwrap_or(0);
-
-        let evolutions: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM evolution_logs")
-                .fetch_one(&self.db_pool)
-                .await
-                .unwrap_or(0);
-
-        let rolled_back: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM evolution_logs WHERE rolled_back = TRUE",
-        )
-        .fetch_one(&self.db_pool)
-        .await
-        .unwrap_or(0);
 
         Ok(serde_json::json!({
             "prompt_versions": prompt_versions,
@@ -1201,7 +1198,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_core_rules_validation() {
-        let engine = EvolutionEngine::new(PgPool::connect_lazy("postgres://localhost/test").unwrap());
+        let engine =
+            EvolutionEngine::new(PgPool::connect_lazy("postgres://localhost/test").unwrap());
         let valid_change = serde_json::json!({"adjust": "confidence_threshold"});
         assert!(engine.validate_against_core_rules(&valid_change));
 

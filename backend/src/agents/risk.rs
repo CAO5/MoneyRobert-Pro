@@ -71,9 +71,7 @@ impl RiskChecker {
                 risk_level = std::cmp::max(risk_level, daily_trades_check.risk_level);
             }
 
-            let consecutive_losses_check = self
-                .check_consecutive_losses(user_id, cfg_id)
-                .await?;
+            let consecutive_losses_check = self.check_consecutive_losses(user_id, cfg_id).await?;
             if !consecutive_losses_check.passed {
                 alerts.extend(consecutive_losses_check.alerts);
                 risk_level = std::cmp::max(risk_level, consecutive_losses_check.risk_level);
@@ -304,12 +302,11 @@ impl RiskChecker {
     }
 
     async fn check_emergency_stop(&self, config_id: uuid::Uuid) -> AgentResult<RiskCheckResult> {
-        let row = sqlx::query(
-            r#"SELECT autonomous_config FROM ai_simulation_configs WHERE id = $1"#,
-        )
-        .bind(config_id)
-        .fetch_optional(&self.db)
-        .await?;
+        let row =
+            sqlx::query(r#"SELECT autonomous_config FROM ai_simulation_configs WHERE id = $1"#)
+                .bind(config_id)
+                .fetch_optional(&self.db)
+                .await?;
 
         if let Some(row) = row {
             let autonomous_config: Option<serde_json::Value> = row.get("autonomous_config");
@@ -319,7 +316,9 @@ impl RiskChecker {
                     if emergency_stop {
                         return Ok(RiskCheckResult {
                             passed: false,
-                            alerts: vec!["Emergency stop is active - all trading halted".to_string()],
+                            alerts: vec![
+                                "Emergency stop is active - all trading halted".to_string()
+                            ],
                             risk_level: RiskLevel::Critical,
                         });
                     }
@@ -349,7 +348,11 @@ impl RiskChecker {
         Ok(config)
     }
 
-    pub async fn trigger_emergency_stop(&self, config_id: uuid::Uuid, reason: &str) -> AgentResult<()> {
+    pub async fn trigger_emergency_stop(
+        &self,
+        config_id: uuid::Uuid,
+        reason: &str,
+    ) -> AgentResult<()> {
         sqlx::query(
             r#"UPDATE ai_simulation_configs
                SET autonomous_config = jsonb_set(
@@ -364,7 +367,11 @@ impl RiskChecker {
         .execute(&self.db)
         .await?;
 
-        tracing::warn!("Emergency stop triggered for config {}: {}", config_id, reason);
+        tracing::warn!(
+            "Emergency stop triggered for config {}: {}",
+            config_id,
+            reason
+        );
         Ok(())
     }
 

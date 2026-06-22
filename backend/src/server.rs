@@ -5,6 +5,7 @@ use tokio::signal;
 use tokio::time::{Duration, MissedTickBehavior};
 use uuid::Uuid;
 
+use crate::agents::{EvolutionEngine, MemoryManager};
 use crate::auth::Claims;
 use crate::error::{AppError, Result};
 use crate::extractors::auth_middleware;
@@ -178,9 +179,18 @@ fn spawn_news_refresh_loop(state: AppState) {
             interval.tick().await;
             match refresh_news(&state).await {
                 Ok(summary) => tracing::info!(
-                    status = summary.get("status").and_then(|value| value.as_str()).unwrap_or("unknown"),
-                    fetched = summary.get("fetched").and_then(|value| value.as_u64()).unwrap_or(0),
-                    inserted = summary.get("inserted").and_then(|value| value.as_u64()).unwrap_or(0),
+                    status = summary
+                        .get("status")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("unknown"),
+                    fetched = summary
+                        .get("fetched")
+                        .and_then(|value| value.as_u64())
+                        .unwrap_or(0),
+                    inserted = summary
+                        .get("inserted")
+                        .and_then(|value| value.as_u64())
+                        .unwrap_or(0),
                     "Automatic news refresh completed"
                 ),
                 Err(error) => tracing::warn!("Automatic news refresh failed: {}", error),
@@ -189,10 +199,55 @@ fn spawn_news_refresh_loop(state: AppState) {
     });
 }
 
+fn spawn_agent_reflection_loop(state: AppState) {
+    let interval_hours = std::env::var("AGENT_REFLECTION_INTERVAL_HOURS")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(24);
+
+    if interval_hours == 0 {
+        tracing::info!("Automatic agent reflection is disabled");
+        return;
+    }
+
+    let interval_hours = interval_hours.clamp(1, 168);
+    tracing::info!(
+        "Automatic agent reflection scheduled every {} hour(s)",
+        interval_hours
+    );
+
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(interval_hours * 3_600));
+        interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
+        // Consume the immediate first tick. Reflections need completed outcomes,
+        // so running on every process restart would create duplicate lessons.
+        interval.tick().await;
+
+        loop {
+            interval.tick().await;
+
+            let memory = MemoryManager::new(state.db_pool.clone());
+            if let Err(error) = memory.run_reflection_cycle().await {
+                tracing::warn!("Automatic memory reflection failed: {}", error);
+            }
+
+            let evolution = EvolutionEngine::new(state.db_pool.clone());
+            match evolution.run_daily_reflection().await {
+                Ok(log) => tracing::info!(
+                    reflection_id = %log.id,
+                    status = %log.status,
+                    "Automatic evolution reflection created for human review"
+                ),
+                Err(error) => tracing::warn!("Automatic evolution reflection failed: {}", error),
+            }
+        }
+    });
+}
 pub async fn run_server(state: AppState) -> anyhow::Result<()> {
     // Resume any simulation loops that were running before restart
     resume_simulation_loops(&state).await;
     spawn_news_refresh_loop(state.clone());
+    spawn_agent_reflection_loop(state.clone());
 
     let app = create_app(state.clone());
 

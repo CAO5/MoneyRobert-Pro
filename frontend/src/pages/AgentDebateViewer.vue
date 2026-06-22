@@ -45,6 +45,11 @@ interface DeptReport {
   consensus: string
   bull_summary: string
   bear_summary: string
+  bullish_score?: number
+  bearish_score?: number
+  neutral_score?: number
+  directional_edge?: number
+  data_quality?: number
 }
 
 interface FundManagerDecision {
@@ -55,6 +60,22 @@ interface FundManagerDecision {
   take_profit: number[]
   leverage: number
   reasoning: string
+  decision_status?: string
+  model_action?: string | null
+  llm_status?: string
+  evidence_score?: {
+    bullish_score: number
+    bearish_score: number
+    neutral_score: number
+    directional_edge: number
+    data_quality: number
+    valid_opinions: number
+    recommended_action: string
+    score_status: string
+    minimum_edge?: number
+    reliability_agents?: number
+  }
+  trade_plan_status?: string
 }
 
 interface DebateHistoryItem {
@@ -610,7 +631,27 @@ onUnmounted(() => {})
           </div>
         </div>
 
-        <div class="fund-stats">
+        <div v-if="fundManagerDecision.evidence_score" class="evidence-panel">
+          <div class="evidence-header">
+            <span>Evidence score</span>
+            <span class="evidence-status">{{ fundManagerDecision.decision_status }}</span>
+          </div>
+          <div class="evidence-grid">
+            <div><span>Bull</span><strong>{{ (fundManagerDecision.evidence_score.bullish_score * 100).toFixed(1) }}%</strong></div>
+            <div><span>Bear</span><strong>{{ (fundManagerDecision.evidence_score.bearish_score * 100).toFixed(1) }}%</strong></div>
+            <div><span>Edge</span><strong>{{ (fundManagerDecision.evidence_score.directional_edge * 100).toFixed(1) }}%</strong></div>
+            <div><span>Data quality</span><strong>{{ (fundManagerDecision.evidence_score.data_quality * 100).toFixed(1) }}%</strong></div>
+            <div v-if="fundManagerDecision.evidence_score.minimum_edge != null"><span>Required edge</span><strong>{{ (fundManagerDecision.evidence_score.minimum_edge * 100).toFixed(1) }}%</strong></div>
+            <div v-if="fundManagerDecision.evidence_score.reliability_agents != null"><span>Learned agents</span><strong>{{ fundManagerDecision.evidence_score.reliability_agents }}</strong></div>
+          </div>
+          <div v-if="fundManagerDecision.llm_status !== 'ok'" class="evidence-warning">
+            LLM status: {{ fundManagerDecision.llm_status }}; deterministic score was used.
+          </div>
+          <div v-else-if="fundManagerDecision.model_action && fundManagerDecision.model_action !== fundManagerDecision.action" class="evidence-warning">
+            Model suggested {{ fundManagerDecision.model_action }}, evidence guard selected {{ fundManagerDecision.action }}.
+          </div>
+        </div>
+        <div v-if="fundManagerDecision.action !== 'hold'" class="fund-stats">
           <div class="stat-card">
             <div class="stat-label">入场区间</div>
             <div class="stat-value text-lg">{{ fundManagerDecision.entry_range?.low }} - {{ fundManagerDecision.entry_range?.high }}</div>
@@ -627,6 +668,9 @@ onUnmounted(() => {})
             <div class="stat-label">杠杆</div>
             <div class="stat-value text-lg">{{ fundManagerDecision.leverage }}x</div>
           </div>
+        </div>
+        <div v-else class="hold-plan-note">
+          当前为观望决策，不生成入场、止损、止盈或杠杆计划。
         </div>
 
         <div class="fund-reasoning">
@@ -1291,6 +1335,62 @@ onUnmounted(() => {})
   opacity: 0.8;
 }
 
+.evidence-panel {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-tertiary);
+}
+
+.evidence-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.evidence-status {
+  color: var(--primary);
+  font-family: var(--font-mono);
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.evidence-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.evidence-grid strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.evidence-warning {
+  margin-top: 10px;
+  color: var(--warning);
+  font-size: 12px;
+}
+.hold-plan-note {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  background: var(--surface-tertiary);
+  font-size: 13px;
+}
 .fund-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

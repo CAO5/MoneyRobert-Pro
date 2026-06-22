@@ -157,7 +157,7 @@ impl SimulationEngine {
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'open', NOW())
             RETURNING *
-            "#
+            "#,
         )
         .bind(config.id)
         .bind(&config.symbol)
@@ -182,7 +182,7 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
-            "#
+            "#,
         )
         .bind(config.id)
         .fetch_one(&mut *tx)
@@ -254,10 +254,7 @@ impl SimulationEngine {
         };
 
         let order_response = okx_client.place_order(&order_request).await.map_err(|e| {
-            crate::agents::errors::AgentError::ExecutionError(format!(
-                "OKX order failed: {}",
-                e
-            ))
+            crate::agents::errors::AgentError::ExecutionError(format!("OKX order failed: {}", e))
         })?;
 
         if order_response.s_code != "0" {
@@ -289,7 +286,7 @@ impl SimulationEngine {
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'open', NOW())
             RETURNING *
-            "#
+            "#,
         )
         .bind(config.id)
         .bind(&config.symbol)
@@ -314,7 +311,7 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
-            "#
+            "#,
         )
         .bind(config.id)
         .fetch_one(&mut *tx)
@@ -344,7 +341,7 @@ impl SimulationEngine {
         let mut tx = self.pool.begin().await?;
 
         let trade = sqlx::query_as::<_, AiSimulationTrade>(
-            "SELECT * FROM ai_simulation_trades WHERE id = $1"
+            "SELECT * FROM ai_simulation_trades WHERE id = $1",
         )
         .bind(trade_id)
         .fetch_one(&mut *tx)
@@ -426,7 +423,7 @@ impl SimulationEngine {
                 closed_at = NOW()
             WHERE id = $7
             RETURNING *
-            "#
+            "#,
         )
         .bind(exit_price)
         .bind(pnl)
@@ -439,7 +436,7 @@ impl SimulationEngine {
         .await?;
 
         let config = sqlx::query_as::<_, AiSimulationConfig>(
-            "SELECT * FROM ai_simulation_configs WHERE id = $1"
+            "SELECT * FROM ai_simulation_configs WHERE id = $1",
         )
         .bind(trade.config_id)
         .fetch_one(&mut *tx)
@@ -469,7 +466,7 @@ impl SimulationEngine {
                 updated_at = NOW()
             WHERE id = $5
             RETURNING *
-            "#
+            "#,
         )
         .bind(new_balance)
         .bind(winning_trades)
@@ -482,12 +479,9 @@ impl SimulationEngine {
         self.update_rolling_stats(&mut *tx, config.id).await?;
 
         // === Learning Feedback: Update agent_performance and decision_memory ===
-        if let Err(e) = Self::record_trade_outcome(
-            &mut *tx,
-            &updated_trade,
-            &config,
-            net_pnl > 0.0,
-        ).await {
+        if let Err(e) =
+            Self::record_trade_outcome(&mut *tx, &updated_trade, &config, net_pnl > 0.0).await
+        {
             warn!("Failed to record trade outcome for learning: {}", e);
         }
 
@@ -512,7 +506,7 @@ impl SimulationEngine {
         market_snapshot: &MarketSnapshot,
     ) -> AgentResult<(Vec<StopLossTrigger>, Vec<TakeProfitTrigger>)> {
         let open_trades = sqlx::query_as::<_, AiSimulationTrade>(
-            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open'"
+            "SELECT * FROM ai_simulation_trades WHERE config_id = $1 AND status = 'open'",
         )
         .bind(config_id)
         .fetch_all(&self.pool)
@@ -523,8 +517,11 @@ impl SimulationEngine {
 
         for trade in open_trades {
             if let Some(sl) = trade.stop_loss {
-                if Self::should_trigger_stop_loss(&trade.direction, sl, market_snapshot.current_price)
-                {
+                if Self::should_trigger_stop_loss(
+                    &trade.direction,
+                    sl,
+                    market_snapshot.current_price,
+                ) {
                     stop_loss_triggers.push(StopLossTrigger {
                         trade_id: trade.id,
                         trigger_price: sl,
@@ -612,8 +609,7 @@ impl SimulationEngine {
         entry_price: f64,
         stop_loss: f64,
     ) -> AgentResult<f64> {
-        let risk_amount =
-            config.current_balance * (config.max_single_trade_loss_percent / 100.0);
+        let risk_amount = config.current_balance * (config.max_single_trade_loss_percent / 100.0);
         let price_risk = (entry_price - stop_loss).abs();
 
         if price_risk == 0.0 {
@@ -654,7 +650,10 @@ impl SimulationEngine {
         Ok(total_eq)
     }
 
-    pub async fn get_okx_positions(&self, inst_type: Option<&str>) -> AgentResult<Vec<crate::exchanges::okx::OkxPosition>> {
+    pub async fn get_okx_positions(
+        &self,
+        inst_type: Option<&str>,
+    ) -> AgentResult<Vec<crate::exchanges::okx::OkxPosition>> {
         let okx_client = self.okx_client.as_ref().ok_or_else(|| {
             crate::agents::errors::AgentError::ExecutionError(
                 "OKX client not configured".to_string(),
@@ -669,7 +668,10 @@ impl SimulationEngine {
         })
     }
 
-    pub async fn get_okx_ticker(&self, inst_id: &str) -> AgentResult<crate::exchanges::okx::OkxTicker> {
+    pub async fn get_okx_ticker(
+        &self,
+        inst_id: &str,
+    ) -> AgentResult<crate::exchanges::okx::OkxTicker> {
         let okx_client = self.okx_client.as_ref().ok_or_else(|| {
             crate::agents::errors::AgentError::ExecutionError(
                 "OKX client not configured".to_string(),
@@ -684,7 +686,10 @@ impl SimulationEngine {
         })
     }
 
-    pub async fn sync_okx_positions_to_db(&self, config_id: Uuid) -> AgentResult<Vec<AiSimulationTrade>> {
+    pub async fn sync_okx_positions_to_db(
+        &self,
+        config_id: Uuid,
+    ) -> AgentResult<Vec<AiSimulationTrade>> {
         let okx_client = self.okx_client.as_ref().ok_or_else(|| {
             crate::agents::errors::AgentError::ExecutionError(
                 "OKX client not configured".to_string(),
@@ -701,21 +706,44 @@ impl SimulationEngine {
         let mut synced_trades = Vec::new();
 
         for pos in &positions {
-            let direction = if pos.pos.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0) > 0.0 {
+            let direction = if pos
+                .pos
+                .as_deref()
+                .unwrap_or("0")
+                .parse::<f64>()
+                .unwrap_or(0.0)
+                > 0.0
+            {
                 "long"
             } else {
                 "short"
             };
 
-            let quantity = pos.pos.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0).abs();
-            let entry_price = pos.avg_px.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
-            let leverage = pos.lever.as_deref().unwrap_or("1").parse::<i32>().unwrap_or(1);
+            let quantity = pos
+                .pos
+                .as_deref()
+                .unwrap_or("0")
+                .parse::<f64>()
+                .unwrap_or(0.0)
+                .abs();
+            let entry_price = pos
+                .avg_px
+                .as_deref()
+                .unwrap_or("0")
+                .parse::<f64>()
+                .unwrap_or(0.0);
+            let leverage = pos
+                .lever
+                .as_deref()
+                .unwrap_or("1")
+                .parse::<i32>()
+                .unwrap_or(1);
 
             let existing = sqlx::query(
                 r#"
                 SELECT id FROM ai_simulation_trades
                 WHERE config_id = $1 AND symbol = $2 AND direction = $3 AND status = 'open'
-                "#
+                "#,
             )
             .bind(config_id)
             .bind(pos.inst_id.as_deref().unwrap_or(""))
@@ -732,7 +760,7 @@ impl SimulationEngine {
                     )
                     VALUES ($1, $2, 'live', $3, $4, $5, $6, 'open', NOW())
                     RETURNING *
-                    "#
+                    "#,
                 )
                 .bind(config_id)
                 .bind(pos.inst_id.as_deref().unwrap_or(""))
@@ -789,14 +817,18 @@ impl SimulationEngine {
         }
     }
 
-    async fn update_rolling_stats(&self, tx: &mut sqlx::PgConnection, config_id: Uuid) -> AgentResult<()> {
+    async fn update_rolling_stats(
+        &self,
+        tx: &mut sqlx::PgConnection,
+        config_id: Uuid,
+    ) -> AgentResult<()> {
         let trades = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
             SELECT * FROM ai_simulation_trades
             WHERE config_id = $1 AND status = 'closed'
             ORDER BY opened_at DESC
             LIMIT 50
-            "#
+            "#,
         )
         .bind(config_id)
         .fetch_all(&mut *tx)
@@ -807,10 +839,17 @@ impl SimulationEngine {
         }
 
         let _total_pnl: f64 = trades.iter().filter_map(|t| t.pnl).sum();
-        let winning_trades: Vec<_> = trades.iter().filter(|t| t.pnl.unwrap_or(0.0) > 0.0).collect();
-        let losing_trades: Vec<_> = trades.iter().filter(|t| t.pnl.unwrap_or(0.0) < 0.0).collect();
+        let winning_trades: Vec<_> = trades
+            .iter()
+            .filter(|t| t.pnl.unwrap_or(0.0) > 0.0)
+            .collect();
+        let losing_trades: Vec<_> = trades
+            .iter()
+            .filter(|t| t.pnl.unwrap_or(0.0) < 0.0)
+            .collect();
 
-        let avg_pnl_percent = trades.iter().filter_map(|t| t.pnl_percent).sum::<f64>() / trades.len() as f64;
+        let avg_pnl_percent =
+            trades.iter().filter_map(|t| t.pnl_percent).sum::<f64>() / trades.len() as f64;
         let win_rate = winning_trades.len() as f64 / trades.len() as f64;
 
         let avg_win = if !winning_trades.is_empty() {
@@ -820,7 +859,12 @@ impl SimulationEngine {
         };
 
         let avg_loss = if !losing_trades.is_empty() {
-            losing_trades.iter().filter_map(|t| t.pnl).map(|p| p.abs()).sum::<f64>() / losing_trades.len() as f64
+            losing_trades
+                .iter()
+                .filter_map(|t| t.pnl)
+                .map(|p| p.abs())
+                .sum::<f64>()
+                / losing_trades.len() as f64
         } else {
             0.0
         };
@@ -838,7 +882,7 @@ impl SimulationEngine {
                 profit_loss_ratio = $2,
                 updated_at = NOW()
             WHERE id = $3
-            "#
+            "#,
         )
         .bind(avg_pnl_percent)
         .bind(profit_loss_ratio)
@@ -858,54 +902,68 @@ impl SimulationEngine {
     ) -> AgentResult<()> {
         // 1. Update decision_memory with actual outcome and market context
         if let Some(reasoning_val) = &trade.ai_reasoning {
-            let debate_session_id = reasoning_val.get("debate_session_id")
+            let debate_session_id = reasoning_val
+                .get("debate_session_id")
                 .and_then(|v| v.as_str())
                 .and_then(|s| s.parse::<Uuid>().ok());
 
-            let agent_opinions = reasoning_val.get("agent_opinions")
+            let agent_opinions = reasoning_val
+                .get("agent_opinions")
                 .cloned()
                 .unwrap_or(json!([]));
-            let department_reports = reasoning_val.get("department_reports")
+            let department_reports = reasoning_val
+                .get("department_reports")
                 .cloned()
                 .unwrap_or(json!([]));
-            let reasoning = reasoning_val.get("reasoning")
+            let reasoning = reasoning_val
+                .get("reasoning")
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
 
             // Extract market context from reasoning
-            let market_trend = reasoning_val.get("market_context")
+            let market_trend = reasoning_val
+                .get("market_context")
                 .and_then(|v| v.get("trend"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("unknown");
-            let volatility = reasoning_val.get("market_context")
+            let volatility = reasoning_val
+                .get("market_context")
                 .and_then(|v| v.get("volatility"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("medium");
-            let volume_profile = reasoning_val.get("market_context")
+            let volume_profile = reasoning_val
+                .get("market_context")
                 .and_then(|v| v.get("volume_profile"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("stable");
 
             // Extract multi-timeframe data
-            let mtf_alignment = reasoning_val.get("multi_timeframe")
+            let mtf_alignment = reasoning_val
+                .get("multi_timeframe")
                 .and_then(|v| v.get("alignment"))
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.5);
 
             // Calculate entry timing score based on proximity to key levels
-            let entry_timing_score = if let Some(key_levels) = reasoning_val.get("market_context")
+            let entry_timing_score = if let Some(key_levels) = reasoning_val
+                .get("market_context")
                 .and_then(|v| v.get("key_levels"))
-                .and_then(|v| v.as_array()) {
+                .and_then(|v| v.as_array())
+            {
                 let entry = trade.entry_price;
                 let mut min_dist = f64::MAX;
                 for level in key_levels {
                     if let Some(price) = level.as_f64() {
                         let dist = ((entry - price) / entry).abs();
-                        if dist < min_dist { min_dist = dist; }
+                        if dist < min_dist {
+                            min_dist = dist;
+                        }
                     }
                 }
                 (1.0 - min_dist.min(0.05) * 20.0).max(0.0)
-            } else { 0.5 };
+            } else {
+                0.5
+            };
 
             // Calculate leverage fit based on volatility
             let leverage_fit = match volatility {
@@ -916,11 +974,18 @@ impl SimulationEngine {
             };
 
             // Calculate position quality score
-            let risk_reward_ratio = if let (Some(sl), Some(tp)) = (trade.stop_loss, trade.take_profit) {
-                let risk = ((trade.entry_price - sl) / trade.entry_price).abs();
-                let reward = ((tp - trade.entry_price) / trade.entry_price).abs();
-                if risk > 0.0 { reward / risk } else { 1.0 }
-            } else { 1.0 };
+            let risk_reward_ratio =
+                if let (Some(sl), Some(tp)) = (trade.stop_loss, trade.take_profit) {
+                    let risk = ((trade.entry_price - sl) / trade.entry_price).abs();
+                    let reward = ((tp - trade.entry_price) / trade.entry_price).abs();
+                    if risk > 0.0 {
+                        reward / risk
+                    } else {
+                        1.0
+                    }
+                } else {
+                    1.0
+                };
             let rr_score = (risk_reward_ratio / 2.0).min(1.0);
             let direction_score = if is_win { 1.0 } else { 0.0 };
             let position_quality_score = direction_score * 0.40 +
@@ -993,17 +1058,23 @@ impl SimulationEngine {
 
         // 2. Update agent_performance for each agent that contributed to this trade
         if let Some(reasoning_val) = &trade.ai_reasoning {
-            if let Some(opinions) = reasoning_val.get("agent_opinions").and_then(|v| v.as_array()) {
+            if let Some(opinions) = reasoning_val
+                .get("agent_opinions")
+                .and_then(|v| v.as_array())
+            {
                 let trade_direction = &trade.direction;
 
                 for opinion in opinions {
-                    let agent_name = opinion.get("agent_name")
+                    let agent_name = opinion
+                        .get("agent_name")
                         .and_then(|v| v.as_str())
                         .unwrap_or("unknown");
-                    let department = opinion.get("department")
+                    let department = opinion
+                        .get("department")
                         .and_then(|v| v.as_str())
                         .unwrap_or("unknown");
-                    let agent_sentiment = opinion.get("sentiment")
+                    let agent_sentiment = opinion
+                        .get("sentiment")
                         .and_then(|v| v.as_str())
                         .unwrap_or("neutral");
 
@@ -1028,26 +1099,40 @@ impl SimulationEngine {
                     .await?;
 
                     match existing {
-                        Some((total, correct, _accuracy, credibility, calibration,
-                              trend_acc, vol_acc, vol_profile_acc, timing_acc, weighted_acc)) => {
+                        Some((
+                            total,
+                            correct,
+                            _accuracy,
+                            credibility,
+                            calibration,
+                            trend_acc,
+                            vol_acc,
+                            vol_profile_acc,
+                            timing_acc,
+                            weighted_acc,
+                        )) => {
                             let new_total = total + 1;
                             let new_correct = correct + if predicted_correct { 1 } else { 0 };
                             let new_accuracy = new_correct as f64 / new_total as f64;
 
                             // Extract market context from reasoning
-                            let market_trend = reasoning_val.get("market_context")
+                            let market_trend = reasoning_val
+                                .get("market_context")
                                 .and_then(|v| v.get("trend"))
                                 .and_then(|v| v.as_str())
                                 .unwrap_or("unknown");
-                            let volatility = reasoning_val.get("market_context")
+                            let volatility = reasoning_val
+                                .get("market_context")
                                 .and_then(|v| v.get("volatility"))
                                 .and_then(|v| v.as_str())
                                 .unwrap_or("medium");
-                            let volume_profile = reasoning_val.get("market_context")
+                            let volume_profile = reasoning_val
+                                .get("market_context")
                                 .and_then(|v| v.get("volume_profile"))
                                 .and_then(|v| v.as_str())
                                 .unwrap_or("stable");
-                            let mtf_alignment = reasoning_val.get("multi_timeframe")
+                            let mtf_alignment = reasoning_val
+                                .get("multi_timeframe")
                                 .and_then(|v| v.get("alignment"))
                                 .and_then(|v| v.as_f64())
                                 .unwrap_or(0.5);
@@ -1059,7 +1144,8 @@ impl SimulationEngine {
                             // Update trend accuracy
                             let new_trend_acc = if market_trend != "unknown" {
                                 let trend_weight = decay_rate.powi((total - 1) as i32);
-                                (trend_acc * (1.0 - trend_weight) + if predicted_correct { 1.0 } else { 0.0 } * trend_weight)
+                                (trend_acc * (1.0 - trend_weight)
+                                    + if predicted_correct { 1.0 } else { 0.0 } * trend_weight)
                             } else {
                                 trend_acc
                             };
@@ -1067,7 +1153,8 @@ impl SimulationEngine {
                             // Update volatility accuracy
                             let new_vol_acc = if volatility != "medium" {
                                 let vol_weight = decay_rate.powi((total - 1) as i32);
-                                (vol_acc * (1.0 - vol_weight) + if predicted_correct { 1.0 } else { 0.0 } * vol_weight)
+                                (vol_acc * (1.0 - vol_weight)
+                                    + if predicted_correct { 1.0 } else { 0.0 } * vol_weight)
                             } else {
                                 vol_acc
                             };
@@ -1075,7 +1162,9 @@ impl SimulationEngine {
                             // Update volume accuracy
                             let new_vol_profile_acc = if volume_profile != "stable" {
                                 let vol_profile_weight = decay_rate.powi((total - 1) as i32);
-                                (vol_profile_acc * (1.0 - vol_profile_weight) + if predicted_correct { 1.0 } else { 0.0 } * vol_profile_weight)
+                                (vol_profile_acc * (1.0 - vol_profile_weight)
+                                    + if predicted_correct { 1.0 } else { 0.0 }
+                                        * vol_profile_weight)
                             } else {
                                 vol_profile_acc
                             };
@@ -1083,28 +1172,35 @@ impl SimulationEngine {
                             // Update timing accuracy based on multi-timeframe alignment
                             let new_timing_acc = if mtf_alignment > 0.7 {
                                 let timing_weight = decay_rate.powi((total - 1) as i32);
-                                (timing_acc * (1.0 - timing_weight) + if predicted_correct { 1.0 } else { 0.0 } * timing_weight)
+                                (timing_acc * (1.0 - timing_weight)
+                                    + if predicted_correct { 1.0 } else { 0.0 } * timing_weight)
                             } else {
                                 timing_acc
                             };
 
                             // Calculate weighted accuracy with decay
                             let new_weighted_acc = if total > 0 {
-                                (weighted_acc * (total - 1) as f64 * decay_rate + weighted_correct) / (total as f64)
+                                (weighted_acc * (total - 1) as f64 * decay_rate + weighted_correct)
+                                    / (total as f64)
                             } else {
                                 weighted_correct
                             };
 
                             // Smoothed credibility with context awareness
                             // 70% performance + 15% trend accuracy + 15% weighted accuracy
-                            let new_credibility = (new_accuracy * 0.7) + (new_trend_acc * 0.15) + (new_weighted_acc * 0.15);
+                            let new_credibility = (new_accuracy * 0.7)
+                                + (new_trend_acc * 0.15)
+                                + (new_weighted_acc * 0.15);
 
                             // Calibration: how well confidence matches reality
-                            let agent_confidence = opinion.get("confidence")
+                            let agent_confidence = opinion
+                                .get("confidence")
                                 .and_then(|v| v.as_f64())
                                 .unwrap_or(0.5);
                             let new_calibration = if new_total > 5 {
-                                (calibration * (new_total - 1) as f64 + (1.0 - (agent_confidence - new_accuracy).abs())) / new_total as f64
+                                (calibration * (new_total - 1) as f64
+                                    + (1.0 - (agent_confidence - new_accuracy).abs()))
+                                    / new_total as f64
                             } else {
                                 calibration
                             };
@@ -1197,41 +1293,81 @@ mod tests {
 
     #[test]
     fn test_should_trigger_stop_loss_long() {
-        assert!(SimulationEngine::should_trigger_stop_loss("long", 95.0, 94.0));
-        assert!(!SimulationEngine::should_trigger_stop_loss("long", 95.0, 96.0));
+        assert!(SimulationEngine::should_trigger_stop_loss(
+            "long", 95.0, 94.0
+        ));
+        assert!(!SimulationEngine::should_trigger_stop_loss(
+            "long", 95.0, 96.0
+        ));
     }
 
     #[test]
     fn test_should_trigger_stop_loss_short() {
-        assert!(SimulationEngine::should_trigger_stop_loss("short", 105.0, 106.0));
-        assert!(!SimulationEngine::should_trigger_stop_loss("short", 105.0, 104.0));
+        assert!(SimulationEngine::should_trigger_stop_loss(
+            "short", 105.0, 106.0
+        ));
+        assert!(!SimulationEngine::should_trigger_stop_loss(
+            "short", 105.0, 104.0
+        ));
     }
 
     #[test]
     fn test_should_trigger_take_profit_long() {
-        assert!(SimulationEngine::should_trigger_take_profit("long", 110.0, 111.0));
-        assert!(!SimulationEngine::should_trigger_take_profit("long", 110.0, 109.0));
+        assert!(SimulationEngine::should_trigger_take_profit(
+            "long", 110.0, 111.0
+        ));
+        assert!(!SimulationEngine::should_trigger_take_profit(
+            "long", 110.0, 109.0
+        ));
     }
 
     #[test]
     fn test_should_trigger_take_profit_short() {
-        assert!(SimulationEngine::should_trigger_take_profit("short", 90.0, 89.0));
-        assert!(!SimulationEngine::should_trigger_take_profit("short", 90.0, 91.0));
+        assert!(SimulationEngine::should_trigger_take_profit(
+            "short", 90.0, 89.0
+        ));
+        assert!(!SimulationEngine::should_trigger_take_profit(
+            "short", 90.0, 91.0
+        ));
     }
 
     #[test]
     fn test_parse_execution_mode() {
-        assert_eq!(SimulationEngine::parse_execution_mode("paper"), ExecutionMode::Paper);
-        assert_eq!(SimulationEngine::parse_execution_mode("demo"), ExecutionMode::Demo);
-        assert_eq!(SimulationEngine::parse_execution_mode("live"), ExecutionMode::Live);
-        assert_eq!(SimulationEngine::parse_execution_mode("Paper"), ExecutionMode::Paper);
-        assert_eq!(SimulationEngine::parse_execution_mode("unknown"), ExecutionMode::Paper);
+        assert_eq!(
+            SimulationEngine::parse_execution_mode("paper"),
+            ExecutionMode::Paper
+        );
+        assert_eq!(
+            SimulationEngine::parse_execution_mode("demo"),
+            ExecutionMode::Demo
+        );
+        assert_eq!(
+            SimulationEngine::parse_execution_mode("live"),
+            ExecutionMode::Live
+        );
+        assert_eq!(
+            SimulationEngine::parse_execution_mode("Paper"),
+            ExecutionMode::Paper
+        );
+        assert_eq!(
+            SimulationEngine::parse_execution_mode("unknown"),
+            ExecutionMode::Paper
+        );
     }
 
     #[test]
     fn test_execution_mode_to_string() {
-        assert_eq!(SimulationEngine::execution_mode_to_string(&ExecutionMode::Paper), "paper");
-        assert_eq!(SimulationEngine::execution_mode_to_string(&ExecutionMode::Demo), "demo");
-        assert_eq!(SimulationEngine::execution_mode_to_string(&ExecutionMode::Live), "live");
+        assert_eq!(
+            SimulationEngine::execution_mode_to_string(&ExecutionMode::Paper),
+            "paper"
+        );
+        assert_eq!(
+            SimulationEngine::execution_mode_to_string(&ExecutionMode::Demo),
+            "demo"
+        );
+        assert_eq!(
+            SimulationEngine::execution_mode_to_string(&ExecutionMode::Live),
+            "live"
+        );
     }
 }

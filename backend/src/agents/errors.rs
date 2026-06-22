@@ -1,5 +1,5 @@
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 pub type AgentResult<T> = Result<T, AgentError>;
 
@@ -7,49 +7,49 @@ pub type AgentResult<T> = Result<T, AgentError>;
 pub enum AgentError {
     #[error("Database error: {0}")]
     DatabaseError(String),
-    
+
     #[error("Market data error: {0}")]
     MarketDataError(String),
-    
+
     #[error("Debate error: {0}")]
     DebateError(String),
-    
+
     #[error("Decision error: {0}")]
     DecisionError(String),
-    
+
     #[error("Risk check failed: {0}")]
     RiskCheckFailed(String),
-    
+
     #[error("Simulation error: {0}")]
     SimulationError(String),
-    
+
     #[error("Promotion check error: {0}")]
     PromotionError(String),
-    
+
     #[error("Configuration error: {0}")]
     ConfigurationError(String),
-    
+
     #[error("Insufficient data: {0}")]
     InsufficientData(String),
-    
+
     #[error("Authentication error: {0}")]
     AuthenticationError(String),
-    
+
     #[error("External API error: {0}")]
     ExternalApiError(String),
-    
+
     #[error("Execution error: {0}")]
     ExecutionError(String),
-    
+
     #[error("Emergency stop triggered: {0}")]
     EmergencyStop(String),
-    
+
     #[error("Level restriction: {0}")]
     LevelRestriction(String),
-    
+
     #[error("Not found: {0}")]
     NotFound(String),
-    
+
     #[error("Validation error: {0}")]
     ValidationError(String),
 

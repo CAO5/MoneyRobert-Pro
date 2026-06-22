@@ -222,12 +222,12 @@ impl MarketWatcher {
 
     pub async fn watch(&self) -> AgentResult<()> {
         info!("MarketWatcher starting");
-        
+
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
-        
+
         loop {
             interval.tick().await;
-            
+
             for symbol in &self.config.allowed_symbols {
                 if let Err(e) = self.fetch_market_data(symbol).await {
                     warn!("Failed to fetch market data for {}: {}", symbol, e);
@@ -244,7 +244,7 @@ impl MarketWatcher {
                 self.generate_sample_snapshot(symbol)
             }
         };
-        
+
         if let Some(prev_price) = self.last_prices.get(symbol) {
             if (snapshot.current_price - *prev_price).abs() > *prev_price * 0.001 {
                 let event = MarketEvent {
@@ -261,35 +261,66 @@ impl MarketWatcher {
                 let _ = self.market_events_tx.send(event);
             }
         }
-        
-        self.last_prices.insert(symbol.to_string(), snapshot.current_price);
+
+        self.last_prices
+            .insert(symbol.to_string(), snapshot.current_price);
         self.snapshots.insert(symbol.to_string(), snapshot);
-        
+
         Ok(())
     }
 
     async fn fetch_snapshot_from_okx(&self, symbol: &str) -> AgentResult<MarketSnapshot> {
         let okx_client = match &self.okx_client_provider {
             Some(provider) => provider()?,
-            None => return Err(AgentError::ExternalApiError("OKX client provider not set".to_string())),
+            None => {
+                return Err(AgentError::ExternalApiError(
+                    "OKX client provider not set".to_string(),
+                ))
+            }
         };
 
-        let ticker = okx_client.get_ticker(symbol).await
+        let ticker = okx_client
+            .get_ticker(symbol)
+            .await
             .map_err(|e| AgentError::ExternalApiError(e.to_string()))?;
-        
-        let current_price = ticker.last.as_deref().unwrap_or("0").parse::<f64>()
+
+        let current_price = ticker
+            .last
+            .as_deref()
+            .unwrap_or("0")
+            .parse::<f64>()
             .map_err(|e| AgentError::ExternalApiError(format!("Failed to parse price: {}", e)))?;
-        let open_24h = ticker.open_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
-        let high_24h = ticker.high_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
-        let low_24h = ticker.low_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(current_price);
-        let volume_24h = ticker.vol_24h.as_deref().unwrap_or("0").parse::<f64>().unwrap_or(0.0);
-        
+        let open_24h = ticker
+            .open_24h
+            .as_deref()
+            .unwrap_or("0")
+            .parse::<f64>()
+            .unwrap_or(current_price);
+        let high_24h = ticker
+            .high_24h
+            .as_deref()
+            .unwrap_or("0")
+            .parse::<f64>()
+            .unwrap_or(current_price);
+        let low_24h = ticker
+            .low_24h
+            .as_deref()
+            .unwrap_or("0")
+            .parse::<f64>()
+            .unwrap_or(current_price);
+        let volume_24h = ticker
+            .vol_24h
+            .as_deref()
+            .unwrap_or("0")
+            .parse::<f64>()
+            .unwrap_or(0.0);
+
         let price_change_percent_24h = if open_24h > 0.0 {
             (current_price - open_24h) / open_24h * 100.0
         } else {
             0.0
         };
-        
+
         Ok(MarketSnapshot {
             symbol: symbol.to_string(),
             current_price,
@@ -309,9 +340,13 @@ impl MarketWatcher {
     }
 
     fn generate_sample_snapshot(&self, symbol: &str) -> MarketSnapshot {
-        let base_price = if symbol.contains("DOGE") { 0.22 } else { 42000.0 };
+        let base_price = if symbol.contains("DOGE") {
+            0.22
+        } else {
+            42000.0
+        };
         let noise = (rand::random::<f64>() - 0.5) * 0.02 * base_price;
-        
+
         MarketSnapshot {
             symbol: symbol.to_string(),
             current_price: base_price + noise,
@@ -358,7 +393,7 @@ impl OpportunityScanner {
 
     pub async fn scan(&self) -> AgentResult<()> {
         info!("OpportunityScanner starting");
-        
+
         loop {
             match self.market_events_rx.lock().await.recv().await {
                 Ok(event) => {
@@ -375,66 +410,102 @@ impl OpportunityScanner {
                 }
             }
         }
-        
+
         Ok(())
     }
 
     async fn analyze_event(&self, event: &MarketEvent) -> AgentResult<()> {
         debug!("Analyzing market event: {:?}", event);
-        
+
         let opportunity = self.detect_opportunity(event).await?;
-        
+
         if let Some(opp) = opportunity {
-            info!("Opportunity detected: {:?} for {}", opp.opportunity_type, opp.symbol);
-            
+            info!(
+                "Opportunity detected: {:?} for {}",
+                opp.opportunity_type, opp.symbol
+            );
+
             if !self.opportunities.contains_key(&opp.symbol) {
                 self.opportunities.insert(opp.symbol.clone(), Vec::new());
             }
-            
+
             if let Some(mut opps) = self.opportunities.get_mut(&opp.symbol) {
                 opps.push(opp.clone());
             }
-            
+
             let _ = self.opportunities_tx.send(opp).await;
         }
-        
+
         Ok(())
     }
 
     async fn detect_opportunity(&self, event: &MarketEvent) -> AgentResult<Option<Opportunity>> {
         // Real market-driven opportunity detection (no more rand mock)
         // Based on price change, volume, and technical indicators from the market event data
-        let new_price = event.data.get("new_price").and_then(|v| v.as_f64()).unwrap_or(0.0);
-        let price_change_pct = event.data.get("change_percent").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let new_price = event
+            .data
+            .get("new_price")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let price_change_pct = event
+            .data
+            .get("change_percent")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
         let funding_rate = event.data.get("funding_rate").and_then(|v| v.as_f64());
-        let rsi = event.data.get("rsi_14").and_then(|v| v.as_f64()).unwrap_or(50.0);
+        let rsi = event
+            .data
+            .get("rsi_14")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(50.0);
 
         // RSI-based signal: oversold (<30) → Long, overbought (>70) → Short
         let (opportunity_type, base_confidence, description) = if rsi < 30.0 {
-            (OpportunityType::Long, 0.7_f64, format!("RSI oversold ({:.1}), potential reversal up", rsi))
+            (
+                OpportunityType::Long,
+                0.7_f64,
+                format!("RSI oversold ({:.1}), potential reversal up", rsi),
+            )
         } else if rsi > 70.0 {
-            (OpportunityType::Short, 0.7_f64, format!("RSI overbought ({:.1}), potential reversal down", rsi))
+            (
+                OpportunityType::Short,
+                0.7_f64,
+                format!("RSI overbought ({:.1}), potential reversal down", rsi),
+            )
         } else if price_change_pct < -5.0 {
             // Significant dip - potential bounce
-            (OpportunityType::Long, 0.65_f64, format!("Price dropped {:.1}%, potential bounce", price_change_pct))
+            (
+                OpportunityType::Long,
+                0.65_f64,
+                format!("Price dropped {:.1}%, potential bounce", price_change_pct),
+            )
         } else if price_change_pct > 5.0 {
             // Significant pump - potential correction
-            (OpportunityType::Short, 0.65_f64, format!("Price pumped {:.1}%, potential correction", price_change_pct))
+            (
+                OpportunityType::Short,
+                0.65_f64,
+                format!(
+                    "Price pumped {:.1}%, potential correction",
+                    price_change_pct
+                ),
+            )
         } else {
             // No clear signal
             return Ok(None);
         };
 
         // Adjust confidence based on funding rate (contrarian signal)
-        let funding_adjustment: f64 = funding_rate.map(|fr| {
-            if fr > 0.001 && opportunity_type == OpportunityType::Long {
-                -0.1 // High positive funding: longs paying shorts, bearish for longs
-            } else if fr < -0.001 && opportunity_type == OpportunityType::Short {
-                -0.1 // High negative funding: shorts paying longs, bullish for shorts
-            } else {
-                0.0
-            }
-        }).unwrap_or(0.0);
+        let funding_adjustment: f64 = funding_rate
+            .map(|fr| {
+                if fr > 0.001 && opportunity_type == OpportunityType::Long {
+                    -0.1 // High positive funding: longs paying shorts, bearish for longs
+                } else if fr < -0.001 && opportunity_type == OpportunityType::Short {
+                    -0.1 // High negative funding: shorts paying longs, bullish for shorts
+                } else {
+                    0.0
+                }
+            })
+            .unwrap_or(0.0);
 
         let confidence: f64 = (base_confidence + funding_adjustment).clamp(0.0, 1.0);
 
@@ -442,14 +513,12 @@ impl OpportunityScanner {
             return Ok(None);
         }
 
-        let signals = vec![
-            Signal {
-                source: "Technical Analysis".to_string(),
-                signal_type: SignalType::Technical,
-                strength: confidence,
-                description: description.clone(),
-            },
-        ];
+        let signals = vec![Signal {
+            source: "Technical Analysis".to_string(),
+            signal_type: SignalType::Technical,
+            strength: confidence,
+            description: description.clone(),
+        }];
 
         let target_price = match opportunity_type {
             OpportunityType::Long => Some(new_price * 1.05),
@@ -507,16 +576,16 @@ impl RiskWatchdog {
 
     pub async fn monitor(&self) -> AgentResult<()> {
         info!("RiskWatchdog starting");
-        
+
         let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(5));
-        
+
         loop {
             interval.tick().await;
-            
+
             if let Err(e) = self.check_risk_parameters().await {
                 error!("Risk check failed: {}", e);
             }
-            
+
             if let Err(e) = self.check_circuit_breaker().await {
                 error!("Circuit breaker check failed: {}", e);
             }
@@ -525,7 +594,7 @@ impl RiskWatchdog {
 
     async fn check_risk_parameters(&self) -> AgentResult<()> {
         let portfolio = self.portfolio.read().await;
-        
+
         if portfolio.daily_loss_percent >= self.config.max_daily_loss_percent * 0.8 {
             self.emit_risk_alert(RiskAlert {
                 id: Uuid::new_v4(),
@@ -533,21 +602,25 @@ impl RiskWatchdog {
                 severity: RiskSeverity::High,
                 alert_type: RiskAlertType::DrawdownWarning,
                 symbol: None,
-                message: format!("Daily loss approaching limit: {:.2}%", portfolio.daily_loss_percent),
+                message: format!(
+                    "Daily loss approaching limit: {:.2}%",
+                    portfolio.daily_loss_percent
+                ),
                 details: serde_json::json!({
                     "current": portfolio.daily_loss_percent,
                     "limit": self.config.max_daily_loss_percent
                 }),
-            }).await?;
+            })
+            .await?;
         }
-        
+
         Ok(())
     }
 
     async fn check_circuit_breaker(&self) -> AgentResult<()> {
         let mut cb_state = self.circuit_breaker_state.write().await;
         let portfolio = self.portfolio.read().await;
-        
+
         if cb_state.tripped {
             if let Some(trip_time) = cb_state.trip_time {
                 let elapsed = Utc::now().signed_duration_since(trip_time);
@@ -560,22 +633,25 @@ impl RiskWatchdog {
             }
             return Ok(());
         }
-        
+
         if portfolio.daily_loss_percent >= self.circuit_breaker_config.max_daily_loss_percent {
-            self.trip_circuit_breaker(&mut cb_state, "Daily loss limit exceeded".to_string()).await?;
+            self.trip_circuit_breaker(&mut cb_state, "Daily loss limit exceeded".to_string())
+                .await?;
             return Ok(());
         }
-        
+
         if cb_state.consecutive_losses >= self.circuit_breaker_config.max_consecutive_losses {
-            self.trip_circuit_breaker(&mut cb_state, "Max consecutive losses exceeded".to_string()).await?;
+            self.trip_circuit_breaker(&mut cb_state, "Max consecutive losses exceeded".to_string())
+                .await?;
             return Ok(());
         }
-        
+
         if portfolio.current_drawdown_percent >= self.circuit_breaker_config.max_drawdown_percent {
-            self.trip_circuit_breaker(&mut cb_state, "Max drawdown exceeded".to_string()).await?;
+            self.trip_circuit_breaker(&mut cb_state, "Max drawdown exceeded".to_string())
+                .await?;
             return Ok(());
         }
-        
+
         Ok(())
     }
 
@@ -587,9 +663,9 @@ impl RiskWatchdog {
         cb_state.tripped = true;
         cb_state.trip_time = Some(Utc::now());
         cb_state.trip_reason = Some(reason.clone());
-        
+
         error!("Circuit breaker tripped: {}", reason);
-        
+
         self.emit_risk_alert(RiskAlert {
             id: Uuid::new_v4(),
             timestamp: Utc::now(),
@@ -601,8 +677,9 @@ impl RiskWatchdog {
                 "reason": reason,
                 "cool_down_seconds": self.circuit_breaker_config.cool_down_period_seconds
             }),
-        }).await?;
-        
+        })
+        .await?;
+
         Ok(())
     }
 
@@ -612,10 +689,14 @@ impl RiskWatchdog {
         Ok(())
     }
 
-    pub async fn record_trade_outcome(&self, success: bool, pnl_percent: Option<f64>) -> AgentResult<()> {
+    pub async fn record_trade_outcome(
+        &self,
+        success: bool,
+        pnl_percent: Option<f64>,
+    ) -> AgentResult<()> {
         let mut cb_state = self.circuit_breaker_state.write().await;
         cb_state.total_trades += 1;
-        
+
         if success {
             cb_state.winning_trades += 1;
             cb_state.consecutive_losses = 0;
@@ -623,13 +704,13 @@ impl RiskWatchdog {
             cb_state.losing_trades += 1;
             cb_state.consecutive_losses += 1;
         }
-        
+
         if let Some(pnl) = pnl_percent {
             if pnl < 0.0 {
                 cb_state.daily_loss_percent += pnl.abs();
             }
         }
-        
+
         Ok(())
     }
 
@@ -657,14 +738,14 @@ impl DecisionLogger {
 
     pub async fn log(&self, log: DecisionLog) -> AgentResult<()> {
         info!("Logging decision: {:?}", log.decision_type);
-        
+
         let mut logs = self.logs.write().await;
         logs.push(log);
-        
+
         if logs.len() > self.max_logs {
             logs.remove(0);
         }
-        
+
         Ok(())
     }
 
@@ -730,31 +811,28 @@ pub struct AutonomousEngine {
 }
 
 impl AutonomousEngine {
-    pub fn new(
-        config: AutonomousConfig,
-        circuit_breaker_config: CircuitBreakerConfig,
-    ) -> Self {
+    pub fn new(config: AutonomousConfig, circuit_breaker_config: CircuitBreakerConfig) -> Self {
         let (emergency_stop_tx, _) = broadcast::channel(10);
-        
+
         let market_watcher = Arc::new(MarketWatcher::new(config.clone()));
         let market_events_rx = market_watcher.subscribe();
-        
+
         let (opportunities_tx, opportunities_rx) = mpsc::channel(100);
         let opportunity_scanner = Arc::new(OpportunityScanner::new(
             config.clone(),
             market_events_rx,
             opportunities_tx,
         ));
-        
+
         let portfolio = Arc::new(RwLock::new(PortfolioContext::default()));
         let risk_watchdog = Arc::new(RiskWatchdog::new(
             config.clone(),
             circuit_breaker_config,
             portfolio.clone(),
         ));
-        
+
         let decision_logger = Arc::new(DecisionLogger::new(1000));
-        
+
         Self {
             state: Arc::new(RwLock::new(EngineState::Stopped)),
             config,
@@ -780,24 +858,26 @@ impl AutonomousEngine {
 
     pub async fn start(&self) -> AgentResult<()> {
         info!("Starting autonomous engine");
-        
+
         let mut state = self.state.write().await;
         if *state != EngineState::Stopped {
-            return Err(AgentError::ConfigurationError("Engine already running".to_string()));
+            return Err(AgentError::ConfigurationError(
+                "Engine already running".to_string(),
+            ));
         }
         *state = EngineState::Starting;
         drop(state);
-        
+
         let mut status = self.status.write().await;
         status.running = true;
         drop(status);
-        
+
         let mw = self.market_watcher.clone();
         let os = self.opportunity_scanner.clone();
         let rw = self.risk_watchdog.clone();
-        
+
         let mut emergency_rx = self.emergency_stop_tx.subscribe();
-        
+
         tokio::spawn(async move {
             tokio::select! {
                 _ = mw.watch() => {}
@@ -806,7 +886,7 @@ impl AutonomousEngine {
                 }
             }
         });
-        
+
         let mut emergency_rx = self.emergency_stop_tx.subscribe();
         tokio::spawn(async move {
             tokio::select! {
@@ -816,7 +896,7 @@ impl AutonomousEngine {
                 }
             }
         });
-        
+
         let mut emergency_rx = self.emergency_stop_tx.subscribe();
         tokio::spawn(async move {
             tokio::select! {
@@ -826,88 +906,90 @@ impl AutonomousEngine {
                 }
             }
         });
-        
+
         let mut state = self.state.write().await;
         *state = EngineState::Running;
         drop(state);
-        
+
         info!("Autonomous engine started successfully");
-        
+
         self.process_opportunities().await?;
-        
+
         Ok(())
     }
 
     pub async fn stop(&self) -> AgentResult<()> {
         info!("Stopping autonomous engine");
-        
+
         let mut state = self.state.write().await;
         if *state == EngineState::Stopped {
             return Ok(());
         }
         *state = EngineState::Stopped;
         drop(state);
-        
+
         let mut status = self.status.write().await;
         status.running = false;
         drop(status);
-        
+
         let _ = self.emergency_stop_tx.send(());
-        
+
         Ok(())
     }
 
     pub async fn emergency_stop(&self) -> AgentResult<()> {
         error!("EMERGENCY STOP ACTIVATED");
-        
+
         let mut state = self.state.write().await;
         *state = EngineState::EmergencyStopped;
         drop(state);
-        
+
         let mut status = self.status.write().await;
         status.running = false;
         status.paused = true;
         drop(status);
-        
+
         let _ = self.emergency_stop_tx.send(());
-        
-        self.decision_logger.log(DecisionLog {
-            id: Uuid::new_v4(),
-            timestamp: Utc::now(),
-            decision_type: DecisionType::EmergencyAction,
-            symbol: None,
-            action: None,
-            reasoning: "Emergency stop activated".to_string(),
-            context: serde_json::json!({}),
-            outcome: None,
-        }).await?;
-        
+
+        self.decision_logger
+            .log(DecisionLog {
+                id: Uuid::new_v4(),
+                timestamp: Utc::now(),
+                decision_type: DecisionType::EmergencyAction,
+                symbol: None,
+                action: None,
+                reasoning: "Emergency stop activated".to_string(),
+                context: serde_json::json!({}),
+                outcome: None,
+            })
+            .await?;
+
         Ok(())
     }
 
     async fn process_opportunities(&self) -> AgentResult<()> {
         info!("Starting opportunity processing loop");
-        
+
         loop {
             let opportunity = {
                 let mut rx = self.opportunities_rx.lock().await;
                 rx.recv().await
             };
-            
+
             match opportunity {
                 Some(opportunity) => {
                     if self.risk_watchdog.is_circuit_breaker_tripped().await {
                         warn!("Circuit breaker tripped, skipping opportunity");
                         continue;
                     }
-                    
+
                     let state = self.state.read().await;
                     if *state != EngineState::Running {
                         debug!("Engine not running, skipping opportunity");
                         continue;
                     }
                     drop(state);
-                    
+
                     if let Err(e) = self.evaluate_and_execute(&opportunity).await {
                         error!("Failed to execute opportunity: {}", e);
                     }
@@ -918,37 +1000,39 @@ impl AutonomousEngine {
                 }
             }
         }
-        
+
         Ok(())
     }
 
     async fn evaluate_and_execute(&self, opportunity: &Opportunity) -> AgentResult<()> {
         info!("Evaluating opportunity: {:?}", opportunity);
-        
+
         let passed_risk_checks = self.perform_risk_checks(opportunity).await?;
-        
+
         if !passed_risk_checks {
-            self.decision_logger.log(DecisionLog {
-                id: Uuid::new_v4(),
-                timestamp: Utc::now(),
-                decision_type: DecisionType::OpportunityPass,
-                symbol: Some(opportunity.symbol.clone()),
-                action: None,
-                reasoning: "Risk checks failed".to_string(),
-                context: serde_json::json!({
-                    "opportunity_id": opportunity.id,
-                    "opportunity_type": opportunity.opportunity_type,
-                    "confidence": opportunity.confidence,
-                }),
-                outcome: None,
-            }).await?;
-            
+            self.decision_logger
+                .log(DecisionLog {
+                    id: Uuid::new_v4(),
+                    timestamp: Utc::now(),
+                    decision_type: DecisionType::OpportunityPass,
+                    symbol: Some(opportunity.symbol.clone()),
+                    action: None,
+                    reasoning: "Risk checks failed".to_string(),
+                    context: serde_json::json!({
+                        "opportunity_id": opportunity.id,
+                        "opportunity_type": opportunity.opportunity_type,
+                        "confidence": opportunity.confidence,
+                    }),
+                    outcome: None,
+                })
+                .await?;
+
             return Ok(());
         }
-        
+
         let status = self.status.read().await;
         let now = Utc::now();
-        
+
         if let Some(last_trade) = status.last_trade_at {
             let elapsed = now.signed_duration_since(last_trade);
             if elapsed.num_seconds() < self.config.min_trade_interval_seconds {
@@ -956,16 +1040,16 @@ impl AutonomousEngine {
                 return Ok(());
             }
         }
-        
+
         if status.daily_trade_count >= self.config.max_daily_trades {
             warn!("Daily trade limit reached");
             return Ok(());
         }
-        
+
         drop(status);
-        
+
         self.execute_trade(opportunity).await?;
-        
+
         Ok(())
     }
 
@@ -973,16 +1057,19 @@ impl AutonomousEngine {
         if opportunity.confidence < self.config.high_confidence_threshold {
             return Ok(false);
         }
-        
+
         if !self.config.allowed_symbols.contains(&opportunity.symbol) {
             return Ok(false);
         }
-        
+
         Ok(true)
     }
 
     async fn execute_trade(&self, opportunity: &Opportunity) -> AgentResult<()> {
-        info!("Executing trade for {} ({:?})", opportunity.symbol, opportunity.opportunity_type);
+        info!(
+            "Executing trade for {} ({:?})",
+            opportunity.symbol, opportunity.opportunity_type
+        );
 
         let start_time = Utc::now();
 
@@ -997,16 +1084,21 @@ impl AutonomousEngine {
         // In production, this would call SimulationEngine or OKX client
         // For now, we record the trade decision with actual market price
         let entry_price = opportunity.price_level;
-        let position_size = (opportunity.confidence * self.config.max_position_size_percent).min(self.config.max_position_size_percent);
+        let position_size = (opportunity.confidence * self.config.max_position_size_percent)
+            .min(self.config.max_position_size_percent);
 
-        let execution_time = Utc::now().signed_duration_since(start_time).num_milliseconds();
+        let execution_time = Utc::now()
+            .signed_duration_since(start_time)
+            .num_milliseconds();
 
         // Record trade outcome as pending (will be updated when position closes)
         // No more random success/pnl - real outcome determined by market movement
         let success = true; // Trade was executed successfully
         let pnl_percent: Option<f64> = None; // PnL unknown until position closes
 
-        self.risk_watchdog.record_trade_outcome(success, pnl_percent).await?;
+        self.risk_watchdog
+            .record_trade_outcome(success, pnl_percent)
+            .await?;
 
         let mut status = self.status.write().await;
         status.last_trade_at = Some(Utc::now());
@@ -1022,29 +1114,31 @@ impl AutonomousEngine {
         portfolio.last_trade_at = Some(Utc::now());
         drop(portfolio);
 
-        self.decision_logger.log(DecisionLog {
-            id: Uuid::new_v4(),
-            timestamp: Utc::now(),
-            decision_type: DecisionType::TradeExecution,
-            symbol: Some(opportunity.symbol.clone()),
-            action: Some(action),
-            reasoning: opportunity.reasoning.clone(),
-            context: serde_json::json!({
-                "opportunity_id": opportunity.id,
-                "confidence": opportunity.confidence,
-                "signals": opportunity.signals,
-                "price_level": opportunity.price_level,
-                "target_price": opportunity.target_price,
-                "stop_loss": opportunity.stop_loss,
-                "position_size_percent": position_size,
-            }),
-            outcome: Some(DecisionOutcome {
-                success,
-                pnl_percent,
-                execution_time_ms: Some(execution_time),
-                error_message: None,
-            }),
-        }).await?;
+        self.decision_logger
+            .log(DecisionLog {
+                id: Uuid::new_v4(),
+                timestamp: Utc::now(),
+                decision_type: DecisionType::TradeExecution,
+                symbol: Some(opportunity.symbol.clone()),
+                action: Some(action),
+                reasoning: opportunity.reasoning.clone(),
+                context: serde_json::json!({
+                    "opportunity_id": opportunity.id,
+                    "confidence": opportunity.confidence,
+                    "signals": opportunity.signals,
+                    "price_level": opportunity.price_level,
+                    "target_price": opportunity.target_price,
+                    "stop_loss": opportunity.stop_loss,
+                    "position_size_percent": position_size,
+                }),
+                outcome: Some(DecisionOutcome {
+                    success,
+                    pnl_percent,
+                    execution_time_ms: Some(execution_time),
+                    error_message: None,
+                }),
+            })
+            .await?;
 
         Ok(())
     }
@@ -1079,7 +1173,7 @@ mod tests {
         let config = AutonomousConfig::default();
         let cb_config = CircuitBreakerConfig::default();
         let mut engine = AutonomousEngine::new(config, cb_config);
-        
+
         let okx_client = Arc::new(OkxClient::new(
             "test_key".to_string(),
             "test_secret".to_string(),
@@ -1087,7 +1181,7 @@ mod tests {
             true,
         ));
         engine.set_okx_client_provider(move || Ok(okx_client.clone()));
-        
+
         assert_eq!(engine.get_state().await, EngineState::Stopped);
     }
 }

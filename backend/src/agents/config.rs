@@ -102,17 +102,13 @@ impl AgentConfig {
 
         if let Ok(val) = env::var("AGENT_BOLLINGER_BANDS_PERIOD") {
             config.bollinger_bands_period = val.parse().map_err(|_| {
-                AgentError::ConfigurationError(
-                    "Invalid AGENT_BOLLINGER_BANDS_PERIOD".to_string(),
-                )
+                AgentError::ConfigurationError("Invalid AGENT_BOLLINGER_BANDS_PERIOD".to_string())
             })?;
         }
 
         if let Ok(val) = env::var("AGENT_BOLLINGER_BANDS_STD_DEV") {
             config.bollinger_bands_std_dev = val.parse().map_err(|_| {
-                AgentError::ConfigurationError(
-                    "Invalid AGENT_BOLLINGER_BANDS_STD_DEV".to_string(),
-                )
+                AgentError::ConfigurationError("Invalid AGENT_BOLLINGER_BANDS_STD_DEV".to_string())
             })?;
         }
 
@@ -142,9 +138,7 @@ impl AgentConfig {
 
         if let Ok(val) = env::var("AGENT_MAX_DAILY_LOSS_PERCENT") {
             config.autonomous.max_daily_loss_percent = val.parse().map_err(|_| {
-                AgentError::ConfigurationError(
-                    "Invalid AGENT_MAX_DAILY_LOSS_PERCENT".to_string(),
-                )
+                AgentError::ConfigurationError("Invalid AGENT_MAX_DAILY_LOSS_PERCENT".to_string())
             })?;
         }
 

@@ -6,6 +6,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
 
+use crate::agents::DecisionTuningConfig;
 use crate::error::{AppError, Result};
 use crate::extractors::{require_role, CurrentUser};
 use crate::state::AppState;
@@ -52,11 +53,88 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/proxy", get(get_proxy_config).put(update_proxy_config))
         .route("/proxy/test", put(test_proxy))
+        .route(
+            "/decision-tuning",
+            get(get_decision_tuning).put(update_decision_tuning),
+        )
         .route("/all", get(get_all_settings))
         .route("/{key}", get(get_setting).put(update_setting))
 }
 
 // ===== Handlers =====
+
+async fn get_decision_tuning(
+    State(state): State<AppState>,
+    user: CurrentUser,
+) -> Result<Json<DecisionTuningConfig>> {
+    require_role(user, "admin").await?;
+    Ok(Json(DecisionTuningConfig::load(&state.db_pool).await))
+}
+
+async fn update_decision_tuning(
+    State(state): State<AppState>,
+    user: CurrentUser,
+    Json(config): Json<DecisionTuningConfig>,
+) -> Result<Json<DecisionTuningConfig>> {
+    require_role(user, "admin").await?;
+    config.validate().map_err(AppError::Validation)?;
+
+    let serialized = serde_json::to_string(&config)
+        .map_err(|error| AppError::Internal(format!("序列化决策调优配置失败: {}", error)))?;
+    let parameters = serde_json::to_value(&config)
+        .map_err(|error| AppError::Internal(format!("序列化策略版本失败: {}", error)))?;
+
+    let mut tx = state.db_pool.begin().await.map_err(AppError::Database)?;
+    sqlx::query(
+        r#"INSERT INTO system_settings
+           (key, value, value_type, category, description, updated_at, updated_by)
+           VALUES ('decision_tuning', $1, 'json', 'ai', 'AI辩论决策手动调优参数', NOW(), 'admin')
+           ON CONFLICT (key) DO UPDATE
+           SET value = EXCLUDED.value, value_type = 'json', category = 'ai',
+               description = EXCLUDED.description, updated_at = NOW(), updated_by = 'admin'"#,
+    )
+    .bind(&serialized)
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    let next_version: i32 = sqlx::query_scalar(
+        r#"SELECT COALESCE(MAX(version_number), 0) + 1
+           FROM strategy_versions WHERE name = 'decision_tuning'"#,
+    )
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    sqlx::query(
+        "UPDATE strategy_versions SET status = 'deprecated' WHERE name = 'decision_tuning' AND status = 'active'",
+    )
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    sqlx::query(
+        r#"INSERT INTO strategy_versions
+           (id, name, version_number, strategy_type, parameters, risk_params,
+            description, change_reason, status, created_by, activated_at)
+           VALUES (gen_random_uuid(), 'decision_tuning', $1, 'decision_policy', $2,
+                   $3, '手动决策调优配置', '管理员在决策调优台保存', 'active', 'admin', NOW())"#,
+    )
+    .bind(next_version)
+    .bind(&parameters)
+    .bind(serde_json::json!({
+        "minimum_data_quality": config.minimum_data_quality,
+        "minimum_edge_floor": config.minimum_edge_floor,
+        "minimum_edge_ceiling": config.minimum_edge_ceiling,
+        "conflict_policy": config.conflict_policy,
+    }))
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::Database)?;
+
+    tx.commit().await.map_err(AppError::Database)?;
+    Ok(Json(config))
+}
 
 /// GET /system/proxy - 获取代理配置
 async fn get_proxy_config(

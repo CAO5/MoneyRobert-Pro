@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
-import { Settings, Key, Trash2, RefreshCw, CheckCircle, XCircle, Loader2, Eye, EyeOff, Brain, Edit2, Star, Zap, Plus, ChevronDown, Globe, Wifi, WifiOff } from 'lucide-vue-next'
+import { Settings, Key, Trash2, RefreshCw, CheckCircle, XCircle, Loader2, Eye, EyeOff, Brain, Edit2, Star, Zap, Plus, ChevronDown, Globe, Wifi, WifiOff, SlidersHorizontal, RotateCcw } from 'lucide-vue-next'
 
 interface ApiKey {
   id: string
@@ -97,6 +97,76 @@ interface ProxyTestResult {
   latency_ms: number | null
 }
 
+interface DecisionTuningConfig {
+  technical_weight: number
+  capital_weight: number
+  news_weight: number
+  minimum_edge_floor: number
+  minimum_edge_ceiling: number
+  minimum_data_quality: number
+  reliability_strength: number
+  conflict_policy: 'score_wins' | 'hold_on_conflict'
+}
+
+const defaultDecisionTuning = (): DecisionTuningConfig => ({
+  technical_weight: 0.35,
+  capital_weight: 0.35,
+  news_weight: 0.30,
+  minimum_edge_floor: 0.06,
+  minimum_edge_ceiling: 0.12,
+  minimum_data_quality: 0.35,
+  reliability_strength: 1,
+  conflict_policy: 'score_wins'
+})
+
+const decisionTuning = ref<DecisionTuningConfig>(defaultDecisionTuning())
+const tuningLoading = ref(true)
+const tuningSaving = ref(false)
+const tuningMessage = ref('')
+const tuningWeightTotal = computed(() =>
+  decisionTuning.value.technical_weight +
+  decisionTuning.value.capital_weight +
+  decisionTuning.value.news_weight
+)
+
+async function loadDecisionTuning() {
+  tuningLoading.value = true
+  try {
+    const { data } = await api.get('/system/decision-tuning')
+    decisionTuning.value = data
+  } catch (e) {
+    console.error('Failed to load decision tuning', e)
+  } finally {
+    tuningLoading.value = false
+  }
+}
+
+async function saveDecisionTuning() {
+  if (Math.abs(tuningWeightTotal.value - 1) > 0.001) {
+    alert('部门权重之和必须为100%，当前为' + (tuningWeightTotal.value * 100).toFixed(1) + '%')
+    return
+  }
+  if (decisionTuning.value.minimum_edge_floor > decisionTuning.value.minimum_edge_ceiling) {
+    alert('最低方向优势不能高于最高方向优势')
+    return
+  }
+  tuningSaving.value = true
+  tuningMessage.value = ''
+  try {
+    const { data } = await api.put('/system/decision-tuning', decisionTuning.value)
+    decisionTuning.value = data
+    tuningMessage.value = '配置已生效，并已生成可审计的策略版本'
+  } catch (e: any) {
+    alert('保存失败: ' + (e.response?.data?.message || e.message))
+  } finally {
+    tuningSaving.value = false
+  }
+}
+
+function resetDecisionTuning() {
+  decisionTuning.value = defaultDecisionTuning()
+  tuningMessage.value = '已恢复默认值，点击保存后生效'
+}
 const proxyConfig = ref<ProxyConfig>({ enabled: false, url: '', proxy_type: 'socks5', test_url: 'https://www.okx.com' })
 const proxyLoading = ref(true)
 const proxySaving = ref(false)
@@ -202,7 +272,7 @@ async function setDefaultProvider(id: string) {
 function formatDate(dateStr: string) { return dateStr ? new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '' }
 function maskKey(key: string) { return !key || key.length < 8 ? '****' : key.slice(0, 8) + '****' }
 
-onMounted(() => { loadApiKeys(); loadAiProviders(); loadProxyConfig() })
+onMounted(() => { loadApiKeys(); loadAiProviders(); loadProxyConfig(); loadDecisionTuning() })
 
 async function loadProxyConfig() {
   try {
@@ -247,6 +317,101 @@ async function testProxyConnection() {
       <p class="text-sm mt-1" style="color: var(--text-secondary)">管理代理配置、API 密钥和 AI 模型配置</p>
     </div>
 
+    <!-- Decision Tuning Workbench -->
+    <div class="card">
+      <div class="flex items-center justify-between p-5" style="border-bottom: 1px solid var(--border)">
+        <div class="flex items-center gap-2">
+          <SlidersHorizontal class="w-5 h-5" style="color: var(--primary)" />
+          <div>
+            <h2 class="text-lg font-semibold" style="color: var(--text-primary)">决策调优台</h2>
+            <p class="text-xs mt-1" style="color: var(--text-muted)">调整程序评分与 AI 分歧处理；保存后实时辩论和模拟交易同时生效</p>
+          </div>
+        </div>
+        <span class="badge badge-warning">管理员</span>
+      </div>
+
+      <div v-if="tuningLoading" class="p-5">
+        <div class="h-32 rounded-lg animate-pulse" style="background: var(--surface-tertiary)"></div>
+      </div>
+
+      <div v-else class="p-5 space-y-6">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold" style="color: var(--text-primary)">部门证据权重</h3>
+            <span class="text-sm font-mono" :style="{ color: Math.abs(tuningWeightTotal - 1) < 0.001 ? 'var(--profit)' : 'var(--loss)' }">
+              合计 {{ (tuningWeightTotal * 100).toFixed(1) }}%
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="label">技术分析</label>
+              <input v-model.number="decisionTuning.technical_weight" type="number" min="0" max="1" step="0.05" class="input" />
+            </div>
+            <div>
+              <label class="label">资金分析</label>
+              <input v-model.number="decisionTuning.capital_weight" type="number" min="0" max="1" step="0.05" class="input" />
+            </div>
+            <div>
+              <label class="label">新闻分析</label>
+              <input v-model.number="decisionTuning.news_weight" type="number" min="0" max="1" step="0.05" class="input" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-semibold mb-3" style="color: var(--text-primary)">交易与数据门槛</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="label">最低方向优势</label>
+              <input v-model.number="decisionTuning.minimum_edge_floor" type="number" min="0" max="0.5" step="0.01" class="input" />
+              <p class="text-xs mt-1" style="color: var(--text-muted)">高质量数据下允许的最低多空差</p>
+            </div>
+            <div>
+              <label class="label">最高方向优势</label>
+              <input v-model.number="decisionTuning.minimum_edge_ceiling" type="number" min="0" max="0.5" step="0.01" class="input" />
+              <p class="text-xs mt-1" style="color: var(--text-muted)">低质量数据下要求更大的多空差</p>
+            </div>
+            <div>
+              <label class="label">最低数据质量</label>
+              <input v-model.number="decisionTuning.minimum_data_quality" type="number" min="0" max="1" step="0.05" class="input" />
+              <p class="text-xs mt-1" style="color: var(--text-muted)">低于该值直接观望</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="label">历史可靠度影响强度</label>
+            <input v-model.number="decisionTuning.reliability_strength" type="range" min="0" max="1" step="0.1" class="w-full" style="accent-color: var(--primary)" />
+            <div class="flex justify-between text-xs mt-1" style="color: var(--text-muted)">
+              <span>忽略历史</span><strong>{{ (decisionTuning.reliability_strength * 100).toFixed(0) }}%</strong><span>完全启用</span>
+            </div>
+          </div>
+          <div>
+            <label class="label">AI 与评分器冲突时</label>
+            <select v-model="decisionTuning.conflict_policy" class="input">
+              <option value="score_wins">评分器结果优先</option>
+              <option value="hold_on_conflict">自动观望并记录冲突</option>
+            </select>
+            <p class="text-xs mt-1" style="color: var(--text-muted)">不会允许 AI 绕过硬风控直接下单</p>
+          </div>
+        </div>
+
+        <div v-if="tuningMessage" class="p-3 rounded-lg text-sm" style="color: var(--profit); background: rgba(0,200,83,0.1)">
+          {{ tuningMessage }}
+        </div>
+
+        <div class="flex gap-2">
+          <button @click="saveDecisionTuning" class="btn btn-primary" :disabled="tuningSaving">
+            <Loader2 v-if="tuningSaving" class="w-4 h-4 animate-spin" />
+            {{ tuningSaving ? '保存中...' : '保存并生效' }}
+          </button>
+          <button @click="resetDecisionTuning" class="btn btn-secondary">
+            <RotateCcw class="w-4 h-4" /> 恢复默认值
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- Proxy Configuration Section -->
     <div class="card">
       <div class="flex items-center justify-between p-5" style="border-bottom: 1px solid var(--border)">

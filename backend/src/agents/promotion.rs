@@ -205,10 +205,7 @@ impl PromotionSystem {
         })
     }
 
-    pub async fn initiate_promotion(
-        &self,
-        config_id: Uuid,
-    ) -> AgentResult<PromotionAudit> {
+    pub async fn initiate_promotion(&self, config_id: Uuid) -> AgentResult<PromotionAudit> {
         let config = sqlx::query_as::<_, AiSimulationConfig>(
             "SELECT * FROM ai_simulation_configs WHERE id = $1",
         )
@@ -257,16 +254,12 @@ impl PromotionSystem {
         Ok(audit)
     }
 
-    pub async fn check_observation_period(
-        &self,
-        audit_id: Uuid,
-    ) -> AgentResult<bool> {
-        let audit = sqlx::query_as::<_, PromotionAudit>(
-            "SELECT * FROM promotion_audits WHERE id = $1",
-        )
-        .bind(audit_id)
-        .fetch_one(&self.pool)
-        .await?;
+    pub async fn check_observation_period(&self, audit_id: Uuid) -> AgentResult<bool> {
+        let audit =
+            sqlx::query_as::<_, PromotionAudit>("SELECT * FROM promotion_audits WHERE id = $1")
+                .bind(audit_id)
+                .fetch_one(&self.pool)
+                .await?;
 
         if audit.status != "pending" || audit.review_step != 1 {
             return Ok(false);
@@ -312,12 +305,11 @@ impl PromotionSystem {
         reviewed_by: Option<String>,
         review_comment: Option<String>,
     ) -> AgentResult<AiSimulationConfig> {
-        let audit = sqlx::query_as::<_, PromotionAudit>(
-            "SELECT * FROM promotion_audits WHERE id = $1",
-        )
-        .bind(audit_id)
-        .fetch_one(&self.pool)
-        .await?;
+        let audit =
+            sqlx::query_as::<_, PromotionAudit>("SELECT * FROM promotion_audits WHERE id = $1")
+                .bind(audit_id)
+                .fetch_one(&self.pool)
+                .await?;
 
         let mut tx = self.pool.begin().await?;
 
@@ -409,8 +401,7 @@ impl PromotionSystem {
         if config.max_drawdown_percent > requirements.max_drawdown_percent * 1.5 {
             reason = Some(format!(
                 "Drawdown exceeds limit: {:.1}% (limit: {:.1}%)",
-                config.max_drawdown_percent,
-                requirements.max_drawdown_percent
+                config.max_drawdown_percent, requirements.max_drawdown_percent
             ));
         }
 
@@ -421,8 +412,7 @@ impl PromotionSystem {
             ));
         }
 
-        let current_balance_percent =
-            (config.current_balance / config.initial_balance) * 100.0;
+        let current_balance_percent = (config.current_balance / config.initial_balance) * 100.0;
         if current_balance_percent < 50.0 {
             reason = Some(format!(
                 "Balance dropped below 50%: {:.1}%",

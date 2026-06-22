@@ -122,11 +122,7 @@ impl DatabaseNotificationService {
         Ok(notification_id)
     }
 
-    fn send_websocket_notification(
-        &self,
-        user_id: Option<i64>,
-        notification: &Notification,
-    ) {
+    fn send_websocket_notification(&self, user_id: Option<i64>, notification: &Notification) {
         let message = serde_json::json!({
             "type": "notification",
             "data": notification,
@@ -348,13 +344,12 @@ impl NotificationService for DatabaseNotificationService {
     }
 
     async fn delete_notification(&self, notification_id: Uuid, user_id: i64) -> AgentResult<()> {
-        let row = sqlx::query(
-            r#"SELECT is_read FROM notifications WHERE id = $1 AND user_id = $2"#,
-        )
-        .bind(notification_id)
-        .bind(user_id)
-        .fetch_optional(&self.db)
-        .await?;
+        let row =
+            sqlx::query(r#"SELECT is_read FROM notifications WHERE id = $1 AND user_id = $2"#)
+                .bind(notification_id)
+                .bind(user_id)
+                .fetch_optional(&self.db)
+                .await?;
 
         let was_unread = row.map(|r| !r.get::<bool, _>("is_read")).unwrap_or(false);
 
@@ -433,9 +428,9 @@ impl NotificationBuilder {
         let title = self
             .title
             .ok_or_else(|| AgentError::ValidationError("Notification title is required".into()))?;
-        let content = self
-            .content
-            .ok_or_else(|| AgentError::ValidationError("Notification content is required".into()))?;
+        let content = self.content.ok_or_else(|| {
+            AgentError::ValidationError("Notification content is required".into())
+        })?;
 
         service
             .send_notification(

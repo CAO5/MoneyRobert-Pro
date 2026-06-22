@@ -50,7 +50,8 @@ impl Default for LlmConfig {
                 "claude-3-haiku-20240307".to_string(),
             ),
             LlmProvider::Custom => (
-                env::var("LLM_BASE_URL").unwrap_or_else(|_| "http://localhost:11434/v1".to_string()),
+                env::var("LLM_BASE_URL")
+                    .unwrap_or_else(|_| "http://localhost:11434/v1".to_string()),
                 env::var("LLM_MODEL").unwrap_or_else(|_| "local-model".to_string()),
             ),
         };
@@ -122,8 +123,7 @@ impl LlmClient {
     }
 
     pub fn new_with_proxy(config: LlmConfig, proxy_url: Option<String>) -> Self {
-        let mut builder = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(120));
+        let mut builder = reqwest::Client::builder().timeout(std::time::Duration::from_secs(120));
 
         // Use provided proxy URL first, then fall back to environment variables
         if let Some(url) = proxy_url {
@@ -137,16 +137,16 @@ impl LlmClient {
             .or_else(|_| std::env::var("HTTPS_PROXY"))
             .or_else(|_| std::env::var("HTTP_PROXY"))
         {
-            let proxy_url = proxy_url.replace("socks5h://", "socks5://").replace("https://", "http://");
+            let proxy_url = proxy_url
+                .replace("socks5h://", "socks5://")
+                .replace("https://", "http://");
             if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
                 tracing::info!("LLM client using proxy: {}", proxy_url);
                 builder = builder.proxy(proxy);
             }
         }
 
-        let http = builder
-            .build()
-            .expect("Failed to create HTTP client");
+        let http = builder.build().expect("Failed to create HTTP client");
 
         Self {
             config,
@@ -164,7 +164,8 @@ impl LlmClient {
         let config = LlmConfig::default();
         if config.api_key.is_empty() && config.provider != LlmProvider::Custom {
             return Err(AgentError::ConfigurationError(
-                "LLM_API_KEY is not set. Please configure it in environment variables or .env file".to_string(),
+                "LLM_API_KEY is not set. Please configure it in environment variables or .env file"
+                    .to_string(),
             ));
         }
         Ok(Self::new(config))
@@ -178,7 +179,11 @@ impl LlmClient {
             temperature: Some(self.config.temperature),
         };
 
-        debug!("LLM request: model={}, messages_count={}", self.config.model, request.messages.len());
+        debug!(
+            "LLM request: model={}, messages_count={}",
+            self.config.model,
+            request.messages.len()
+        );
 
         let url = format!("{}/chat/completions", self.config.base_url);
 
@@ -193,13 +198,16 @@ impl LlmClient {
             .map_err(|e| AgentError::ExternalApiError(format!("LLM API request failed: {}", e)))?;
 
         let status = response.status();
-        let body = response
-            .text()
-            .await
-            .map_err(|e| AgentError::ExternalApiError(format!("Failed to read LLM response: {}", e)))?;
+        let body = response.text().await.map_err(|e| {
+            AgentError::ExternalApiError(format!("Failed to read LLM response: {}", e))
+        })?;
 
         if !status.is_success() {
-            warn!("LLM API error: status={}, body={}", status, &body[..body.len().min(500)]);
+            warn!(
+                "LLM API error: status={}, body={}",
+                status,
+                &body[..body.len().min(500)]
+            );
             return Err(AgentError::ExternalApiError(format!(
                 "LLM API returned {}: {}",
                 status,
@@ -207,8 +215,9 @@ impl LlmClient {
             )));
         }
 
-        let completion: ChatCompletionResponse = serde_json::from_str(&body)
-            .map_err(|e| AgentError::ExternalApiError(format!("Failed to parse LLM response: {}", e)))?;
+        let completion: ChatCompletionResponse = serde_json::from_str(&body).map_err(|e| {
+            AgentError::ExternalApiError(format!("Failed to parse LLM response: {}", e))
+        })?;
 
         let content = completion
             .choices
@@ -227,7 +236,11 @@ impl LlmClient {
         Ok(content)
     }
 
-    pub async fn chat_with_system(&self, system_prompt: &str, user_message: &str) -> AgentResult<String> {
+    pub async fn chat_with_system(
+        &self,
+        system_prompt: &str,
+        user_message: &str,
+    ) -> AgentResult<String> {
         let messages = vec![
             ChatMessage {
                 role: "system".to_string(),
@@ -300,13 +313,16 @@ impl LlmClient {
             .trim_end_matches("```")
             .trim();
 
-        let parsed: serde_json::Value = serde_json::from_str(cleaned)
-            .map_err(|e| AgentError::ExternalApiError(format!(
+        let parsed: serde_json::Value = serde_json::from_str(cleaned).map_err(|e| {
+            AgentError::ExternalApiError(format!(
                 "Failed to parse agent analysis JSON: {}. Response: {}",
-                e, &cleaned[..cleaned.len().min(200)]
-            )))?;
+                e,
+                &cleaned[..cleaned.len().min(200)]
+            ))
+        })?;
 
-        let sentiment_str = parsed.get("sentiment")
+        let sentiment_str = parsed
+            .get("sentiment")
             .and_then(|v| v.as_str())
             .unwrap_or("neutral");
 
@@ -317,17 +333,20 @@ impl LlmClient {
             _ => AgentSentimentType::Neutral,
         };
 
-        let confidence = parsed.get("confidence")
+        let confidence = parsed
+            .get("confidence")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.5)
             .clamp(0.0, 1.0);
 
-        let analysis = parsed.get("analysis")
+        let analysis = parsed
+            .get("analysis")
             .and_then(|v| v.as_str())
             .unwrap_or("分析结果解析失败")
             .to_string();
 
-        let key_factors = parsed.get("key_factors")
+        let key_factors = parsed
+            .get("key_factors")
             .and_then(|v| v.as_array())
             .map(|arr| {
                 arr.iter()
@@ -367,9 +386,14 @@ impl LlmClient {
         }
     }
 
-    pub async fn get_user_api_key(&self, db: &PgPool, user_id: i64, key_name: &str) -> AgentResult<Option<String>> {
+    pub async fn get_user_api_key(
+        &self,
+        db: &PgPool,
+        user_id: i64,
+        key_name: &str,
+    ) -> AgentResult<Option<String>> {
         let row = sqlx::query_scalar::<_, String>(
-            r#"SELECT secret FROM api_keys WHERE user_id = $1 AND name = $2 AND is_active = true"#
+            r#"SELECT secret FROM api_keys WHERE user_id = $1 AND name = $2 AND is_active = true"#,
         )
         .bind(user_id)
         .bind(key_name)
@@ -436,7 +460,9 @@ mod tests {
     fn test_parse_agent_analysis_bullish() {
         let client = LlmClient::new(LlmConfig::default());
         let json = r#"{"sentiment": "bullish", "confidence": 0.85, "analysis": "看多", "key_factors": ["RSI超卖"]}"#;
-        let result = client.parse_agent_analysis(json, "test", &AgentDepartment::Technical).unwrap();
+        let result = client
+            .parse_agent_analysis(json, "test", &AgentDepartment::Technical)
+            .unwrap();
         assert!(matches!(result.sentiment, AgentSentimentType::Bullish));
         assert!((result.confidence - 0.85).abs() < 0.01);
     }
@@ -444,8 +470,11 @@ mod tests {
     #[test]
     fn test_parse_agent_analysis_bearish() {
         let client = LlmClient::new(LlmConfig::default());
-        let json = r#"{"sentiment": "bearish", "confidence": 0.7, "analysis": "看空", "key_factors": []}"#;
-        let result = client.parse_agent_analysis(json, "test", &AgentDepartment::Capital).unwrap();
+        let json =
+            r#"{"sentiment": "bearish", "confidence": 0.7, "analysis": "看空", "key_factors": []}"#;
+        let result = client
+            .parse_agent_analysis(json, "test", &AgentDepartment::Capital)
+            .unwrap();
         assert!(matches!(result.sentiment, AgentSentimentType::Bearish));
     }
 
@@ -453,7 +482,9 @@ mod tests {
     fn test_parse_agent_analysis_with_markdown() {
         let client = LlmClient::new(LlmConfig::default());
         let json = "```json\n{\"sentiment\": \"neutral\", \"confidence\": 0.5, \"analysis\": \"中性\"}\n```";
-        let result = client.parse_agent_analysis(json, "test", &AgentDepartment::News).unwrap();
+        let result = client
+            .parse_agent_analysis(json, "test", &AgentDepartment::News)
+            .unwrap();
         assert!(matches!(result.sentiment, AgentSentimentType::Neutral));
     }
 

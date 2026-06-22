@@ -188,7 +188,9 @@ impl EpisodicMemoryStore {
         .bind(id)
         .fetch_optional(&self.db_pool)
         .await
-        .map_err(|e| AgentError::DatabaseError(format!("Failed to fetch episodic memory: {}", e)))?;
+        .map_err(|e| {
+            AgentError::DatabaseError(format!("Failed to fetch episodic memory: {}", e))
+        })?;
 
         Ok(row.map(|r| self.row_to_episodic(&r)))
     }
@@ -842,11 +844,10 @@ impl MemoryManager {
                 .await
                 .unwrap_or(0);
 
-        let calibration_count: i64 =
-            sqlx::query_scalar("SELECT COUNT(*) FROM agent_calibration")
-                .fetch_one(self.calibration.db_pool_ref())
-                .await
-                .unwrap_or(0);
+        let calibration_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM agent_calibration")
+            .fetch_one(self.calibration.db_pool_ref())
+            .await
+            .unwrap_or(0);
 
         let reflection_count: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM memory_reflection_log")
@@ -1129,10 +1130,7 @@ mod tests {
     fn test_short_term_memory_basic() {
         let store = ShortTermMemoryStore::new();
         store.set("key1", serde_json::json!({"value": 42}));
-        assert_eq!(
-            store.get("key1"),
-            Some(serde_json::json!({"value": 42}))
-        );
+        assert_eq!(store.get("key1"), Some(serde_json::json!({"value": 42})));
         store.remove("key1");
         assert_eq!(store.get("key1"), None);
     }
