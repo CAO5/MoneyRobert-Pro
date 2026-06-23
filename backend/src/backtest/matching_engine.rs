@@ -30,14 +30,17 @@ impl MatchingEngine {
 
     /// Apply slippage to price based on order side.
     /// 买入: price * (1 + slippage_bps / 10000); 卖出: price * (1 - slippage_bps / 10000)
-    pub fn apply_slippage(&self, side: &str, base_price: f64) -> (f64, f64) {
+    /// 返回 (成交价, 滑点基点, 滑点成本金额)
+    pub fn apply_slippage(&self, side: &str, base_price: f64, quantity: f64) -> (f64, f64, f64) {
         let s = self.config.slippage_bps / 10000.0;
         let filled = if side.eq_ignore_ascii_case("buy") {
             base_price * (1.0 + s)
         } else {
             base_price * (1.0 - s)
         };
-        (filled, self.config.slippage_bps)
+        let notional = filled * quantity;
+        let slippage_cost = notional * self.config.slippage_bps / 10000.0;
+        (filled, self.config.slippage_bps, slippage_cost)
     }
 
     /// Compute fee on notional (USDT).
@@ -61,7 +64,8 @@ impl MatchingEngine {
         if base_price <= 0.0 {
             return None;
         }
-        let (filled_price, slippage_bps) = self.apply_slippage(&order.side, base_price);
+        let (filled_price, slippage_bps, slippage_cost) =
+            self.apply_slippage(&order.side, base_price, order.quantity);
         let notional = filled_price * order.quantity;
         let fee = self.compute_fee(notional, false);
 
@@ -77,6 +81,7 @@ impl MatchingEngine {
             notional: Some(notional),
             fee,
             slippage_bps: Some(slippage_bps),
+            slippage_cost: Some(slippage_cost),
             maker_taker: "taker".into(),
             signal_id: order.source_signal_id,
             strategy_id: order.strategy_id.clone(),
@@ -121,6 +126,7 @@ impl MatchingEngine {
             notional: Some(notional),
             fee,
             slippage_bps: Some(0.0),
+            slippage_cost: Some(0.0),
             maker_taker: "maker".into(),
             signal_id: order.source_signal_id,
             strategy_id: order.strategy_id.clone(),
@@ -277,7 +283,8 @@ impl MatchingEngine {
     ) -> SimulatedFill {
         let (side, _avg) = (position.side.clone(), position.avg_entry_price);
         let fill_side = if side == "long" { "sell" } else { "buy" };
-        let (filled_price, slippage_bps) = self.apply_slippage(fill_side, price);
+        let (filled_price, slippage_bps, slippage_cost) =
+            self.apply_slippage(fill_side, price, position.quantity);
         let notional = filled_price * position.quantity;
         let fee = self.compute_fee(notional, false);
 
@@ -293,6 +300,7 @@ impl MatchingEngine {
             notional: Some(notional),
             fee,
             slippage_bps: Some(slippage_bps),
+            slippage_cost: Some(slippage_cost),
             maker_taker: "taker".into(),
             signal_id: position.open_signal_id,
             strategy_id: position.strategy_id.clone(),
@@ -336,6 +344,7 @@ mod tests {
             notional: Some(price * qty),
             fee,
             slippage_bps: Some(0.0),
+            slippage_cost: Some(0.0),
             maker_taker: "taker".into(),
             signal_id: None,
             strategy_id: None,
@@ -348,10 +357,71 @@ mod tests {
     #[test]
     fn test_slippage_buy_sell() {
         let eng = MatchingEngine::new(MatchingConfig::default());
-        let (buy, _) = eng.apply_slippage("buy", 100.0);
-        let (sell, _) = eng.apply_slippage("sell", 100.0);
+        let (buy, _, buy_cost) = eng.apply_slippage("buy", 100.0, 1.0);
+        let (sell, _, sell_cost) = eng.apply_slippage("sell", 100.0, 1.0);
         assert!(buy > 100.0);
         assert!(sell < 100.0);
+        // 滑点成本金额应为正
+        assert!(buy_cost > 0.0);
+        assert!(sell_cost > 0.0);
+    }
+
+    /// 验证市价单成交保存了滑点成本金额
+    #[test]
+    fn test_market_fill_saves_slippage_cost() {
+        let eng = make_engine();
+        let kline = Kline {
+            symbol: "BTC".into(),
+            interval: "1m".into(),
+            open_time: Utc::now(),
+            open: 100.0,
+            high: 105.0,
+            low: 95.0,
+            close: 102.0,
+            volume: 1000.0,
+            quote_volume: Some(100000.0),
+        };
+        let order = SimulatedOrder {
+            order_id: Uuid::new_v4(),
+            job_id: Some(Uuid::new_v4()),
+            intent_id: None,
+            source_signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            asset: "BTC".into(),
+            exchange: Some("OKX".into()),
+            side: "buy".into(),
+            order_type: "market".into(),
+            price: Some(100.0),
+            quantity: 2.0,
+            notional: None,
+            filled_quantity: 0.0,
+            filled_price: None,
+            fee: 0.0,
+            slippage_bps: None,
+            leverage: 1,
+            stop_loss: None,
+            take_profit: None,
+            status: "pending".into(),
+            submitted_at: Utc::now(),
+            filled_at: None,
+        };
+
+        let fill = eng.fill_market_order(&order, &kline, Utc::now());
+        assert!(fill.is_some());
+        let fill = fill.unwrap();
+        // 滑点成本金额应被保存且大于 0
+        assert!(fill.slippage_cost.is_some());
+        let cost = fill.slippage_cost.unwrap();
+        assert!(cost > 0.0, "滑点成本应大于 0，实际: {}", cost);
+        // 验证成本计算正确: notional * slippage_bps / 10000
+        let expected_cost = fill.notional.unwrap() * 3.0 / 10000.0;
+        assert!(
+            (cost - expected_cost).abs() < 1e-9,
+            "滑点成本应为 {}，实际: {}",
+            expected_cost,
+            cost
+        );
     }
 
     /// 资金守恒：开多仓后，cash 减少等于 notional + fee

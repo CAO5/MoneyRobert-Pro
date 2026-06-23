@@ -21,6 +21,7 @@ pub mod notifications;
 pub mod paper_trading;
 pub mod reports;
 pub mod sentiment_data;
+pub mod signals_api;
 pub mod strategies;
 pub mod system_settings;
 pub mod tasks;
@@ -44,10 +45,10 @@ pub fn api_router() -> Router<AppState> {
         .nest("/reports", reports::router())
         .nest("/admin", admin::router())
         .nest("/billing", billing::router())
+        .nest("/ai/providers", ai_providers::router())
+        .nest("/ai/prediction", ai_predictions::router())
         .nest("/ai", ai_analysis::router())
         .nest("/chat", ai_chat::router())
-        .nest("/ai/prediction", ai_predictions::router())
-        .nest("/ai/providers", ai_providers::router())
         .nest("/auto-trading", auto_trading::router())
         .nest("/api-keys", api_keys::router())
         .nest("/papers", paper_trading::router())
@@ -61,6 +62,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/system", system_settings::router())
         .nest("/backtest", backtest_api::router())
         .nest("/features", features_api::router())
+        .nest("/signals", signals_api::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

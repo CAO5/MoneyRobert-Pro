@@ -25,6 +25,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/definitions", get(list_definitions))
         .route("/values", get(query_values))
+        .route("/quality", get(query_quality))
         .route("/regimes/history", get(query_regimes))
         .route("/regimes/latest/{symbol}", get(latest_regime))
         .route("/regimes/aggregate-daily", post(aggregate_daily))
@@ -299,4 +300,125 @@ async fn aggregate_daily(
         symbol: params.symbol,
         rows_affected: n,
     }))
+}
+
+// =========================================================
+// 数据质量查询（data_quality_snapshots）
+// =========================================================
+
+/// 数据质量查询参数
+/// - symbol: 必填，标的符号
+/// - start_time / end_time: 可选，时间范围；若均未提供则返回最新一条快照
+#[derive(Debug, Deserialize)]
+struct QueryQualityParams {
+    symbol: String,
+    start_time: Option<String>,
+    end_time: Option<String>,
+}
+
+/// 数据质量快照响应
+#[derive(Debug, Serialize)]
+struct DataQualityResponse {
+    symbol: String,
+    data_source: String,
+    snapshot_time: String,
+    period_start: String,
+    period_end: String,
+    /// 数据新鲜度（秒），距上次更新经过的时间
+    freshness_sec: Option<f64>,
+    gap_count: i32,
+    /// 缺口率（0~1）
+    gap_ratio: f64,
+    outlier_count: i32,
+    /// 异常值率（0~1）
+    outlier_ratio: f64,
+    expected_points: i32,
+    actual_points: i32,
+    /// 覆盖率（0~1）
+    coverage_ratio: f64,
+    backfill_status: String,
+    last_backfill_time: Option<String>,
+    /// 质量等级：excellent / good / fair / poor / unknown
+    quality_grade: String,
+    metadata: Option<serde_json::Value>,
+}
+
+impl From<crate::features::DataQualitySnapshot> for DataQualityResponse {
+    fn from(s: crate::features::DataQualitySnapshot) -> Self {
+        Self {
+            symbol: s.symbol,
+            data_source: s.data_source,
+            snapshot_time: s.snapshot_time.to_rfc3339(),
+            period_start: s.period_start.to_rfc3339(),
+            period_end: s.period_end.to_rfc3339(),
+            freshness_sec: s.freshness_sec,
+            gap_count: s.gap_count,
+            gap_ratio: s.gap_ratio,
+            outlier_count: s.outlier_count,
+            outlier_ratio: s.outlier_ratio,
+            expected_points: s.expected_points,
+            actual_points: s.actual_points,
+            coverage_ratio: s.coverage_ratio,
+            backfill_status: s.backfill_status,
+            last_backfill_time: s.last_backfill_time.map(|t| t.to_rfc3339()),
+            quality_grade: s.quality_grade,
+            metadata: s.metadata,
+        }
+    }
+}
+
+/// 查询数据质量快照
+///
+/// 行为：
+/// - 若提供 start_time 与 end_time，返回该时间范围内的所有快照（按时间倒序）
+/// - 若未提供时间范围，返回该 symbol 的最新一条快照
+///
+/// 用途：在决策卡与回测可信等级评估中作为 data_freshness 门禁的数据来源。
+async fn query_quality(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Query(params): Query<QueryQualityParams>,
+) -> Result<Json<serde_json::Value>> {
+    // 分支：未提供时间范围，返回最新一条
+    if params.start_time.is_none() && params.end_time.is_none() {
+        let snapshot = FeatureStore::get_latest_data_quality(&state.db_pool, &params.symbol)
+            .await
+            .map_err(|e| AppError::Internal(format!("query latest data quality failed: {}", e)))?;
+
+        return Ok(Json(serde_json::json!({
+            "symbol": params.symbol,
+            "latest": snapshot.map(DataQualityResponse::from),
+        })));
+    }
+
+    // 分支：提供时间范围，返回历史快照列表
+    let now = Utc::now();
+    let start: DateTime<Utc> = match params.start_time.as_deref() {
+        Some(s) => s
+            .parse()
+            .map_err(|e| AppError::Validation(format!("invalid start_time: {}", e)))?,
+        None => now - chrono::Duration::days(30),
+    };
+    let end: DateTime<Utc> = match params.end_time.as_deref() {
+        Some(s) => s
+            .parse()
+            .map_err(|e| AppError::Validation(format!("invalid end_time: {}", e)))?,
+        None => now,
+    };
+
+    if end < start {
+        return Err(AppError::Validation("end_time must be >= start_time".into()));
+    }
+
+    let snapshots = FeatureStore::query_data_quality(&state.db_pool, &params.symbol, start, end)
+        .await
+        .map_err(|e| AppError::Internal(format!("query data quality failed: {}", e)))?;
+
+    let resp: Vec<DataQualityResponse> = snapshots.into_iter().map(DataQualityResponse::from).collect();
+    Ok(Json(serde_json::json!({
+        "symbol": params.symbol,
+        "start_time": start.to_rfc3339(),
+        "end_time": end.to_rfc3339(),
+        "snapshots": resp,
+    })))
 }

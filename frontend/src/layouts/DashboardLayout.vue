@@ -6,7 +6,7 @@ import {
   LayoutDashboard, TrendingUp, LineChart, Bot, Settings, LogOut,
   Menu, X, ChevronDown, User, Bell, Wallet, Brain, MessageSquare,
   BookOpen, Newspaper, FileText, BarChart3, Shield, Target,
-  ChevronRight, Swords
+  ChevronRight, Swords, Layers, FlaskConical
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -44,6 +44,13 @@ const navigation = [
       { name: 'AI 分析', path: '/ai', icon: Brain },
       { name: 'AI 对话', path: '/ai/chat', icon: MessageSquare },
       { name: 'AI 预测', path: '/ai/predictions', icon: Wallet },
+    ]
+  },
+  {
+    group: '量化信号',
+    items: [
+      { name: '概率决策卡', path: '/signals/decision-card', icon: Layers },
+      { name: '回测中心', path: '/backtest', icon: FlaskConical },
     ]
   },
   {

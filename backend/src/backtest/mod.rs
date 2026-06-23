@@ -8,3 +8,4 @@ pub mod performance_engine;
 pub mod replay_engine;
 pub mod risk_engine;
 pub mod runner;
+pub mod trust_engine;

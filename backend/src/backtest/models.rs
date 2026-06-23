@@ -190,7 +190,10 @@ pub struct SimulatedFill {
     pub filled_price: f64,
     pub notional: Option<f64>,
     pub fee: f64,
+    /// 滑点（基点）
     pub slippage_bps: Option<f64>,
+    /// 滑点成本金额（= notional * slippage_bps / 10000），用于绩效归因
+    pub slippage_cost: Option<f64>,
     pub maker_taker: String,
     pub signal_id: Option<Uuid>,
     pub strategy_id: Option<String>,

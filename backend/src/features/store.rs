@@ -5,6 +5,8 @@
 //! - 按 symbol + 时间范围查询特征值
 //! - 批量写入特征值（用于特征计算管线）
 //! - 查询特征定义
+//! - 特征血缘记录与查询（feature_lineage）
+//! - 数据质量快照记录与查询（data_quality_snapshots）
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -35,6 +37,90 @@ pub struct FeatureDefinition {
     pub parameters: serde_json::Value,
     pub unit: Option<String>,
     pub is_active: bool,
+}
+
+/// 特征血缘记录
+/// 记录每个特征值的数据源、计算版本、参数 hash，确保可追溯可复现
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeatureLineage {
+    pub lineage_id: i64,
+    pub feature_id: Uuid,
+    pub symbol: String,
+    pub timestamp: DateTime<Utc>,
+    pub data_source: String,
+    pub source_time_start: Option<DateTime<Utc>>,
+    pub source_time_end: Option<DateTime<Utc>>,
+    pub calc_version: String,
+    pub parameters_hash: String,
+    pub parameters: serde_json::Value,
+    pub upstream_feature_ids: Vec<Uuid>,
+    pub raw_data_refs: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// 数据质量快照
+/// 记录数据新鲜度、缺口率、异常值率、覆盖率
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataQualitySnapshot {
+    pub snapshot_id: i64,
+    pub symbol: String,
+    pub data_source: String,
+    pub snapshot_time: DateTime<Utc>,
+    pub period_start: DateTime<Utc>,
+    pub period_end: DateTime<Utc>,
+    pub freshness_sec: Option<f64>,
+    pub gap_count: i32,
+    pub gap_ratio: f64,
+    pub outlier_count: i32,
+    pub outlier_ratio: f64,
+    pub expected_points: i32,
+    pub actual_points: i32,
+    pub coverage_ratio: f64,
+    pub backfill_status: String,
+    pub last_backfill_time: Option<DateTime<Utc>>,
+    pub quality_grade: String,
+    pub metadata: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// 数据质量等级
+/// 依据覆盖率、缺口率、异常值率综合评定
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum QualityGrade {
+    Excellent,
+    Good,
+    Fair,
+    Poor,
+    Unknown,
+}
+
+impl QualityGrade {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Excellent => "excellent",
+            Self::Good => "good",
+            Self::Fair => "fair",
+            Self::Poor => "poor",
+            Self::Unknown => "unknown",
+        }
+    }
+
+    /// 根据覆盖率、缺口率、异常值率综合评定质量等级
+    pub fn from_metrics(coverage: f64, gap_ratio: f64, outlier_ratio: f64) -> Self {
+        // 覆盖率 >= 99% 且缺口率 < 1% 且异常值率 < 1%
+        if coverage >= 0.99 && gap_ratio < 0.01 && outlier_ratio < 0.01 {
+            Self::Excellent
+        // 覆盖率 >= 95% 且缺口率 < 5% 且异常值率 < 3%
+        } else if coverage >= 0.95 && gap_ratio < 0.05 && outlier_ratio < 0.03 {
+            Self::Good
+        // 覆盖率 >= 80% 且缺口率 < 20% 且异常值率 < 5%
+        } else if coverage >= 0.80 && gap_ratio < 0.20 && outlier_ratio < 0.05 {
+            Self::Fair
+        // 其他情况
+        } else {
+            Self::Poor
+        }
+    }
 }
 
 /// 特征存储
@@ -282,6 +368,248 @@ impl FeatureStore {
         .execute(pool)
         .await?;
         Ok(result.rows_affected())
+    }
+
+    // =========================================================
+    // 特征血缘（feature_lineage）
+    // =========================================================
+
+    /// 写入特征血缘记录（upsert）
+    /// 每个特征值记录数据源、计算版本、参数 hash，确保可追溯可复现
+    pub async fn upsert_feature_lineage(
+        pool: &PgPool,
+        feature_id: Uuid,
+        symbol: &str,
+        timestamp: DateTime<Utc>,
+        data_source: &str,
+        source_time_start: Option<DateTime<Utc>>,
+        source_time_end: Option<DateTime<Utc>>,
+        calc_version: &str,
+        parameters_hash: &str,
+        parameters: &serde_json::Value,
+        upstream_feature_ids: &[Uuid],
+        raw_data_refs: Option<&serde_json::Value>,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"INSERT INTO feature_lineage
+               (feature_id, symbol, timestamp, data_source, source_time_start, source_time_end,
+                calc_version, parameters_hash, parameters, upstream_feature_ids, raw_data_refs)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+               ON CONFLICT (feature_id, symbol, timestamp)
+               DO UPDATE SET data_source = EXCLUDED.data_source,
+                             source_time_start = EXCLUDED.source_time_start,
+                             source_time_end = EXCLUDED.source_time_end,
+                             calc_version = EXCLUDED.calc_version,
+                             parameters_hash = EXCLUDED.parameters_hash,
+                             parameters = EXCLUDED.parameters,
+                             upstream_feature_ids = EXCLUDED.upstream_feature_ids,
+                             raw_data_refs = EXCLUDED.raw_data_refs"#,
+        )
+        .bind(feature_id)
+        .bind(symbol)
+        .bind(timestamp)
+        .bind(data_source)
+        .bind(source_time_start)
+        .bind(source_time_end)
+        .bind(calc_version)
+        .bind(parameters_hash)
+        .bind(parameters)
+        .bind(upstream_feature_ids)
+        .bind(raw_data_refs)
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+
+    /// 查询特征血缘
+    pub async fn query_feature_lineage(
+        pool: &PgPool,
+        feature_id: Uuid,
+        symbol: &str,
+        start_time: DateTime<Utc>,
+        end_time: DateTime<Utc>,
+    ) -> Result<Vec<FeatureLineage>, sqlx::Error> {
+        let rows = sqlx::query(
+            r#"SELECT lineage_id, feature_id, symbol, timestamp, data_source,
+                      source_time_start, source_time_end, calc_version, parameters_hash,
+                      parameters, upstream_feature_ids, raw_data_refs, created_at
+               FROM feature_lineage
+               WHERE feature_id = $1 AND symbol = $2
+                 AND timestamp >= $3 AND timestamp <= $4
+               ORDER BY timestamp ASC"#,
+        )
+        .bind(feature_id)
+        .bind(symbol)
+        .bind(start_time)
+        .bind(end_time)
+        .fetch_all(pool)
+        .await?;
+
+        let lineages = rows
+            .into_iter()
+            .map(|row| FeatureLineage {
+                lineage_id: row.get("lineage_id"),
+                feature_id: row.get("feature_id"),
+                symbol: row.get("symbol"),
+                timestamp: row.get("timestamp"),
+                data_source: row.get("data_source"),
+                source_time_start: row.get("source_time_start"),
+                source_time_end: row.get("source_time_end"),
+                calc_version: row.get("calc_version"),
+                parameters_hash: row.get("parameters_hash"),
+                parameters: row.get("parameters"),
+                upstream_feature_ids: row.get("upstream_feature_ids"),
+                raw_data_refs: row.get("raw_data_refs"),
+                created_at: row.get("created_at"),
+            })
+            .collect();
+        Ok(lineages)
+    }
+
+    // =========================================================
+    // 数据质量快照（data_quality_snapshots）
+    // =========================================================
+
+    /// 写入数据质量快照
+    pub async fn upsert_data_quality_snapshot(
+        pool: &PgPool,
+        symbol: &str,
+        data_source: &str,
+        snapshot_time: DateTime<Utc>,
+        period_start: DateTime<Utc>,
+        period_end: DateTime<Utc>,
+        freshness_sec: Option<f64>,
+        gap_count: i32,
+        gap_ratio: f64,
+        outlier_count: i32,
+        outlier_ratio: f64,
+        expected_points: i32,
+        actual_points: i32,
+        coverage_ratio: f64,
+        backfill_status: &str,
+        quality_grade: &str,
+        metadata: Option<&serde_json::Value>,
+    ) -> Result<i64, sqlx::Error> {
+        let row = sqlx::query(
+            r#"INSERT INTO data_quality_snapshots
+               (symbol, data_source, snapshot_time, period_start, period_end,
+                freshness_sec, gap_count, gap_ratio, outlier_count, outlier_ratio,
+                expected_points, actual_points, coverage_ratio,
+                backfill_status, quality_grade, metadata)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+               RETURNING snapshot_id"#,
+        )
+        .bind(symbol)
+        .bind(data_source)
+        .bind(snapshot_time)
+        .bind(period_start)
+        .bind(period_end)
+        .bind(freshness_sec)
+        .bind(gap_count)
+        .bind(gap_ratio)
+        .bind(outlier_count)
+        .bind(outlier_ratio)
+        .bind(expected_points)
+        .bind(actual_points)
+        .bind(coverage_ratio)
+        .bind(backfill_status)
+        .bind(quality_grade)
+        .bind(metadata)
+        .fetch_one(pool)
+        .await?;
+
+        Ok(row.get::<i64, _>("snapshot_id"))
+    }
+
+    /// 查询数据质量快照
+    pub async fn query_data_quality(
+        pool: &PgPool,
+        symbol: &str,
+        start_time: DateTime<Utc>,
+        end_time: DateTime<Utc>,
+    ) -> Result<Vec<DataQualitySnapshot>, sqlx::Error> {
+        let rows = sqlx::query(
+            r#"SELECT snapshot_id, symbol, data_source, snapshot_time, period_start, period_end,
+                      freshness_sec, gap_count, gap_ratio, outlier_count, outlier_ratio,
+                      expected_points, actual_points, coverage_ratio, backfill_status,
+                      last_backfill_time, quality_grade, metadata, created_at
+               FROM data_quality_snapshots
+               WHERE symbol = $1 AND snapshot_time >= $2 AND snapshot_time <= $3
+               ORDER BY snapshot_time DESC"#,
+        )
+        .bind(symbol)
+        .bind(start_time)
+        .bind(end_time)
+        .fetch_all(pool)
+        .await?;
+
+        let snapshots = rows
+            .into_iter()
+            .map(|row| DataQualitySnapshot {
+                snapshot_id: row.get("snapshot_id"),
+                symbol: row.get("symbol"),
+                data_source: row.get("data_source"),
+                snapshot_time: row.get("snapshot_time"),
+                period_start: row.get("period_start"),
+                period_end: row.get("period_end"),
+                freshness_sec: row.get("freshness_sec"),
+                gap_count: row.get("gap_count"),
+                gap_ratio: row.get("gap_ratio"),
+                outlier_count: row.get("outlier_count"),
+                outlier_ratio: row.get("outlier_ratio"),
+                expected_points: row.get("expected_points"),
+                actual_points: row.get("actual_points"),
+                coverage_ratio: row.get("coverage_ratio"),
+                backfill_status: row.get("backfill_status"),
+                last_backfill_time: row.get("last_backfill_time"),
+                quality_grade: row.get("quality_grade"),
+                metadata: row.get("metadata"),
+                created_at: row.get("created_at"),
+            })
+            .collect();
+        Ok(snapshots)
+    }
+
+    /// 查询最新数据质量快照
+    pub async fn get_latest_data_quality(
+        pool: &PgPool,
+        symbol: &str,
+    ) -> Result<Option<DataQualitySnapshot>, sqlx::Error> {
+        let row = sqlx::query(
+            r#"SELECT snapshot_id, symbol, data_source, snapshot_time, period_start, period_end,
+                      freshness_sec, gap_count, gap_ratio, outlier_count, outlier_ratio,
+                      expected_points, actual_points, coverage_ratio, backfill_status,
+                      last_backfill_time, quality_grade, metadata, created_at
+               FROM data_quality_snapshots
+               WHERE symbol = $1
+               ORDER BY snapshot_time DESC
+               LIMIT 1"#,
+        )
+        .bind(symbol)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(row.map(|row| DataQualitySnapshot {
+            snapshot_id: row.get("snapshot_id"),
+            symbol: row.get("symbol"),
+            data_source: row.get("data_source"),
+            snapshot_time: row.get("snapshot_time"),
+            period_start: row.get("period_start"),
+            period_end: row.get("period_end"),
+            freshness_sec: row.get("freshness_sec"),
+            gap_count: row.get("gap_count"),
+            gap_ratio: row.get("gap_ratio"),
+            outlier_count: row.get("outlier_count"),
+            outlier_ratio: row.get("outlier_ratio"),
+            expected_points: row.get("expected_points"),
+            actual_points: row.get("actual_points"),
+            coverage_ratio: row.get("coverage_ratio"),
+            backfill_status: row.get("backfill_status"),
+            last_backfill_time: row.get("last_backfill_time"),
+            quality_grade: row.get("quality_grade"),
+            metadata: row.get("metadata"),
+            created_at: row.get("created_at"),
+        }))
     }
 }
 

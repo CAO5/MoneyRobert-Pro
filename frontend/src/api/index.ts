@@ -362,4 +362,292 @@ export class AgentApi {
   }
 }
 
+// =========================================================
+// 概率信号与决策卡 API（/signals/*）
+// =========================================================
+
+/// 创建决策卡请求
+export interface CreateDecisionCardRequest {
+  symbol: string
+  /// 预测周期（秒）
+  target_horizon_sec: number
+  /// 概率分布（p_up + p_down + p_flat = 1）
+  p_up: number
+  p_down: number
+  p_flat: number
+  /// 收益分位数
+  q10?: number
+  q50?: number
+  q90?: number
+  /// 预期波动率
+  expected_volatility?: number
+  /// 模型版本
+  model_version: string
+  /// 市场状态
+  market_regime?: string
+  /// 净期望 EV（扣除费用/滑点/资金费率后）
+  expected_value: number
+  /// 仓位建议（0-1）
+  position_suggestion: number
+  /// 最坏情形（CVaR 口径）
+  worst_case?: number
+  /// 已用风险预算
+  risk_budget_used?: number
+  /// 数据新鲜度（秒）
+  data_freshness_sec?: number
+  /// 支持证据
+  supporting_evidence?: Record<string, unknown>
+  /// 反对证据
+  opposing_evidence?: Record<string, unknown>
+  /// 样本表现
+  sample_performance?: Record<string, unknown>
+  /// 数据血缘
+  data_lineage?: Record<string, unknown>
+  /// 失效条件
+  invalidation_conditions?: Record<string, unknown>
+}
+
+/// 决策卡响应
+export interface DecisionCardResponse {
+  card_id: string
+  symbol: string
+  generated_at: string
+  /// 建议动作：open_long / open_short / close / hold / reduce
+  suggested_action: string
+  target_horizon_sec: number
+  p_up: number
+  p_down: number
+  p_flat: number
+  q10?: number
+  q50?: number
+  q90?: number
+  /// 净期望 EV
+  expected_value: number
+  /// 最坏情形（CVaR）
+  worst_case?: number
+  /// 仓位建议（0-1）
+  position_suggestion: number
+  /// 已用风险预算
+  risk_budget_used?: number
+  /// 适用市场状态
+  applicable_regime?: string
+  /// 数据新鲜度（秒）
+  data_freshness_sec?: number
+  /// 失效条件
+  invalidation_conditions?: Record<string, unknown>
+  /// 模型版本
+  model_version: string
+}
+
+/// 校准报告响应
+export interface CalibrationResponse {
+  report_id: string
+  model_version: string
+  symbol?: string
+  market_regime?: string
+  eval_start: string
+  eval_end: string
+  brier_score: number
+  log_loss: number
+  accuracy: number
+  calibration_error?: number
+  calibration_curve: unknown
+  sample_count: number
+  is_well_calibrated: boolean
+  degradation_detected: boolean
+}
+
+export class SignalApi {
+  /// 生成概率决策卡
+  static async createDecisionCard(req: CreateDecisionCardRequest) {
+    const { data } = await api.post<DecisionCardResponse>('/signals/decision-card', req)
+    return data
+  }
+
+  /// 查询用户决策卡列表
+  static async listDecisionCards(limit = 20) {
+    const { data } = await api.get<DecisionCardResponse[]>('/signals/decision-cards', {
+      params: { limit },
+    })
+    return data
+  }
+
+  /// 查询概率校准报告
+  static async getCalibration(modelVersion: string) {
+    const { data } = await api.get<CalibrationResponse>('/signals/calibration', {
+      params: { model_version: modelVersion },
+    })
+    return data
+  }
+
+  /// 触发校准计算
+  static async computeCalibration(req: {
+    model_version: string
+    symbol?: string
+    start_time: string
+    end_time: string
+  }) {
+    const { data } = await api.post<CalibrationResponse>('/signals/calibration/compute', req)
+    return data
+  }
+}
+
+// =========================================================
+// 回测与可信等级 API（/backtest/*）
+// =========================================================
+
+/// 回测任务摘要（列表项）
+export interface BacktestJobSummary {
+  job_id: string
+  job_name: string
+  strategy_id?: string
+  status: string
+  progress: number
+  start_time: string
+  end_time: string
+  initial_equity: number
+  total_trades?: number
+  total_return_pct?: number
+  sharpe_ratio?: number
+  max_drawdown_pct?: number
+  created_at: string
+}
+
+/// 回测任务详情
+export interface BacktestJobDetail extends BacktestJobSummary {
+  winning_trades?: number
+  fee_total?: number
+  slippage_total?: number
+  completed_at?: string
+  mode: string
+  data_frequency: string
+  fee_taker_bps: number
+  fee_maker_bps: number
+  slippage_bps: number
+  max_single_position_pct: number
+  max_total_leverage: number
+  max_daily_loss_pct: number
+  assets: string[]
+}
+
+/// 回测绩效报告
+export interface BacktestReport {
+  report_id: string
+  total_return?: number
+  annualized_return?: number
+  max_drawdown?: number
+  sharpe_ratio?: number
+  win_rate?: number
+  profit_factor?: number
+  total_trades?: number
+  winning_trades?: number
+  losing_trades?: number
+  average_win?: number
+  average_loss?: number
+  payoff_ratio?: number
+  total_fee?: number
+  by_agent?: Record<string, unknown>
+  by_asset?: Record<string, unknown>
+  report?: Record<string, unknown>
+}
+
+/// 回测可信等级评估
+export interface TrustLevelResponse {
+  assessment_id: string
+  job_id: string
+  /// 可信等级：display_only / comparable / promotion_eligible
+  trust_level: string
+  test_coverage_passed: boolean
+  capital_conservation_passed: boolean
+  slippage_accounted: boolean
+  data_quality_grade: string
+  sample_size_sufficient: boolean
+  walk_forward_validated: boolean
+  calibration_healthy: boolean
+  total_trades: number
+  test_pass_rate: number
+  data_coverage_ratio: number
+  issues: unknown
+  recommendations: unknown
+  promotion_eligible: boolean
+  promotion_blockers: unknown
+  assessed_at: string
+}
+
+/// 创建回测任务请求
+export interface CreateBacktestJobRequest {
+  job_name: string
+  strategy_id?: string
+  assets: string[]
+  exchanges?: string[]
+  start_time: string
+  end_time: string
+  initial_equity?: number
+  data_frequency?: string
+  fee_taker_bps?: number
+  fee_maker_bps?: number
+  slippage_bps?: number
+  max_single_position_pct?: number
+  max_total_leverage?: number
+  max_daily_loss_pct?: number
+  min_signal_confidence?: number
+  min_signal_strength?: number
+}
+
+export class BacktestApi {
+  /// 查询回测任务列表
+  static async listJobs() {
+    const { data } = await api.get<{ jobs: BacktestJobSummary[] }>('/backtest/jobs')
+    return data.jobs || []
+  }
+
+  /// 查询回测任务详情
+  static async getJob(jobId: string) {
+    const { data } = await api.get<BacktestJobDetail>(`/backtest/jobs/${jobId}`)
+    return data
+  }
+
+  /// 创建回测任务
+  static async createJob(req: CreateBacktestJobRequest) {
+    const { data } = await api.post<{ job_id: string; status: string; job_name: string }>(
+      '/backtest/jobs',
+      req,
+    )
+    return data
+  }
+
+  /// 启动回测任务
+  static async startJob(jobId: string) {
+    const { data } = await api.post(`/backtest/jobs/${jobId}/start`)
+    return data
+  }
+
+  /// 查询回测绩效报告
+  static async getReport(jobId: string) {
+    const { data } = await api.get<BacktestReport>(`/backtest/jobs/${jobId}/report`)
+    return data
+  }
+
+  /// 查询回测可信等级
+  static async getTrustLevel(jobId: string) {
+    const { data } = await api.get<TrustLevelResponse>(`/backtest/jobs/${jobId}/trust-level`)
+    return data
+  }
+
+  /// 触发回测可信等级评估
+  static async assessTrustLevel(
+    jobId: string,
+    params?: {
+      test_pass_rate?: number
+      data_coverage_ratio?: number
+      data_quality_grade?: string
+      walk_forward_validated?: boolean
+      calibration_healthy?: boolean
+    },
+  ) {
+    const { data } = await api.post<TrustLevelResponse>(`/backtest/jobs/${jobId}/trust-level`, params || {})
+    return data
+  }
+}
+
 export default api

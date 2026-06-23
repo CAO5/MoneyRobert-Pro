@@ -20,6 +20,7 @@ interface ApiKey {
 interface AiProvider {
   id: string
   provider: string
+  name?: string
   api_key: string
   base_url: string
   model: string
@@ -72,6 +73,7 @@ const providerTestResult = ref<{ id: string; success: boolean; message: string }
 
 const providerForm = ref({
   provider: 'openai',
+  name: '',
   api_key: '',
   base_url: 'https://api.openai.com/v1',
   model: 'gpt-4o-mini',
@@ -224,10 +226,10 @@ async function testKey(id: string) {
 function openProviderForm(provider?: AiProvider) {
   if (provider) {
     editingProviderId.value = provider.id
-    providerForm.value = { provider: provider.provider, api_key: provider.api_key, base_url: provider.base_url, model: provider.model, max_tokens: provider.max_tokens, temperature: provider.temperature }
+    providerForm.value = { provider: provider.provider, name: provider.name || provider.provider, api_key: provider.api_key, base_url: provider.base_url, model: provider.model, max_tokens: provider.max_tokens, temperature: provider.temperature }
   } else {
     editingProviderId.value = null
-    providerForm.value = { provider: 'openai', api_key: '', base_url: 'https://api.openai.com/v1', model: 'gpt-4o-mini', max_tokens: 4096, temperature: 0.7 }
+    providerForm.value = { provider: 'openai', name: '', api_key: '', base_url: 'https://api.openai.com/v1', model: 'gpt-4o-mini', max_tokens: 4096, temperature: 0.7 }
   }
   showProviderForm.value = true
 }

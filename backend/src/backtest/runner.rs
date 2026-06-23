@@ -1,4 +1,4 @@
-﻿//! End-to-end backtest runner: orchestrates replay, strategy, risk, matching, account, performance.
+//! End-to-end backtest runner: orchestrates replay, strategy, risk, matching, account, performance.
 //! 端到端回测运行器
 
 use crate::backtest::account_engine::{kline_prices, AccountEngine};
@@ -389,11 +389,13 @@ impl BacktestRunner {
 
         self.total_fee += fill.fee;
         self.total_slippage_bps_sum += fill.slippage_bps.unwrap_or(0.0);
-        self.total_slippage_cost += fill
-            .notional
-            .unwrap_or(fill.filled_price * fill.filled_quantity)
-            * fill.slippage_bps.unwrap_or(0.0)
-            / 10000.0;
+        // 优先使用成交时保存的滑点成本金额，确保每笔成交的滑点可追溯
+        self.total_slippage_cost += fill.slippage_cost.unwrap_or_else(|| {
+            fill.notional
+                .unwrap_or(fill.filled_price * fill.filled_quantity)
+                * fill.slippage_bps.unwrap_or(0.0)
+                / 10000.0
+        });
         self.total_fills += 1;
 
         // recompute equity

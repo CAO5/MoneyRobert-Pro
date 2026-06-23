@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import api from '@/api'
-import { BarChart3, TrendingUp, TrendingDown, RefreshCw, Wifi, WifiOff, ChevronDown } from 'lucide-vue-next'
+import { BarChart3, TrendingUp, TrendingDown, RefreshCw, Wifi, WifiOff, ChevronDown, Activity, ShieldCheck } from 'lucide-vue-next'
 import CandlestickChart from '@/components/CandlestickChart.vue'
 import IndicatorChart from '@/components/IndicatorChart.vue'
 import { useWebSocket } from '@/composables/useWebSocket'
@@ -19,6 +19,25 @@ const chartLoading = ref(false)
 const selectedSymbol = ref('BTC-USDT-SWAP')
 const selectedInterval = ref('1H')
 const lastUpdateTime = ref<Date | null>(null)
+
+// 市场状态识别（/features/regimes/latest/{symbol}）
+const marketRegime = ref<{
+  regime: string
+  confidence: number
+  adx: number
+  volatility_percentile: number
+  return_percentile: number
+  timestamp?: string
+} | null>(null)
+
+// 数据质量快照（/features/quality）
+const dataQuality = ref<{
+  quality_grade: string
+  freshness_sec?: number
+  coverage_ratio: number
+  gap_ratio: number
+  outlier_ratio: number
+} | null>(null)
 
 const intervals = ['1m', '5m', '15m', '30m', '1H', '4H', '1D']
 
@@ -90,6 +109,48 @@ async function loadMarketData() {
   }
 }
 
+/// 获取市场状态识别（/features/regimes/latest/{symbol}）
+async function loadRegime() {
+  try {
+    const { data } = await api.get(`/features/regimes/latest/${selectedSymbol.value}`)
+    marketRegime.value = data
+  } catch {
+    marketRegime.value = null
+  }
+}
+
+/// 获取数据质量快照（/features/quality）
+async function loadDataQuality() {
+  try {
+    const { data } = await api.get('/features/quality', { params: { symbol: selectedSymbol.value } })
+    dataQuality.value = data.latest || null
+  } catch {
+    dataQuality.value = null
+  }
+}
+
+/// 市场状态中文映射与颜色
+function regimeMeta(regime: string): { label: string; color: string } {
+  switch (regime) {
+    case 'trending': return { label: '趋势', color: 'var(--profit)' }
+    case 'ranging': return { label: '震荡', color: 'var(--text-muted)' }
+    case 'volatile': return { label: '高波动', color: 'var(--warning)' }
+    case 'breakout': return { label: '突破', color: 'var(--profit)' }
+    default: return { label: '未知', color: 'var(--text-muted)' }
+  }
+}
+
+/// 数据质量等级中文映射与颜色
+function qualityMeta(grade: string): { label: string; color: string } {
+  switch (grade) {
+    case 'excellent': return { label: '优秀', color: 'var(--profit)' }
+    case 'good': return { label: '良好', color: 'var(--profit)' }
+    case 'fair': return { label: '一般', color: 'var(--warning)' }
+    case 'poor': return { label: '较差', color: 'var(--loss)' }
+    default: return { label: '未知', color: 'var(--text-muted)' }
+  }
+}
+
 async function loadChartData() {
   chartLoading.value = true
   try {
@@ -156,12 +217,18 @@ function formatLastUpdate() {
   return lastUpdateTime.value.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-watch([selectedSymbol, selectedInterval], () => loadChartData())
+watch([selectedSymbol, selectedInterval], () => {
+  loadChartData()
+  loadRegime()
+  loadDataQuality()
+})
 watch(wsConnected, (val) => { if (val) stopPolling(); else startPolling() })
 
 onMounted(async () => {
   await loadMarketData()
   loadChartData()
+  loadRegime()
+  loadDataQuality()
   wsOn('ticker', onWsTicker)
   wsOn('kline_update', onWsKlineUpdate)
   wsOn('funding_rate', onWsFundingRate)
@@ -192,10 +259,89 @@ onUnmounted(() => {
           <WifiOff v-else class="w-3.5 h-3.5" />
           {{ wsConnected ? '实时连接' : '轮询模式' }}
         </div>
-        <button @click="loadMarketData(); loadChartData()" class="btn btn-secondary">
+        <button @click="loadMarketData(); loadChartData(); loadRegime(); loadDataQuality()" class="btn btn-secondary">
           <RefreshCw class="w-4 h-4" />
           刷新
         </button>
+      </div>
+    </div>
+
+    <!-- 市场状态与数据质量 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- 市场状态识别 -->
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold flex items-center gap-2" style="color: var(--text-primary)">
+            <Activity class="w-4 h-4" />
+            市场状态
+          </h3>
+          <span v-if="marketRegime" class="text-xs" style="color: var(--text-muted)">{{ formatSymbol(selectedSymbol) }}</span>
+        </div>
+        <div v-if="marketRegime" class="flex items-center gap-4">
+          <div
+            class="px-3 py-1.5 rounded-lg text-sm font-semibold"
+            :style="{ background: regimeMeta(marketRegime.regime).color + '20', color: regimeMeta(marketRegime.regime).color }"
+          >
+            {{ regimeMeta(marketRegime.regime).label }}
+          </div>
+          <div class="flex-1 grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <div style="color: var(--text-muted)">置信度</div>
+              <div class="font-mono font-semibold" style="color: var(--text-primary)">{{ (marketRegime.confidence * 100).toFixed(0) }}%</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted)">ADX</div>
+              <div class="font-mono font-semibold" style="color: var(--text-primary)">{{ marketRegime.adx.toFixed(1) }}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted)">波动分位</div>
+              <div class="font-mono font-semibold" style="color: var(--text-primary)">{{ (marketRegime.volatility_percentile * 100).toFixed(0) }}%</div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="py-3 text-center">
+          <p class="text-xs" style="color: var(--text-muted)">暂无市场状态数据</p>
+        </div>
+      </div>
+
+      <!-- 数据质量 -->
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold flex items-center gap-2" style="color: var(--text-primary)">
+            <ShieldCheck class="w-4 h-4" />
+            数据质量
+          </h3>
+          <span v-if="dataQuality" class="text-xs" style="color: var(--text-muted)">{{ formatSymbol(selectedSymbol) }}</span>
+        </div>
+        <div v-if="dataQuality" class="flex items-center gap-4">
+          <div
+            class="px-3 py-1.5 rounded-lg text-sm font-semibold"
+            :style="{ background: qualityMeta(dataQuality.quality_grade).color + '20', color: qualityMeta(dataQuality.quality_grade).color }"
+          >
+            {{ qualityMeta(dataQuality.quality_grade).label }}
+          </div>
+          <div class="flex-1 grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <div style="color: var(--text-muted)">覆盖率</div>
+              <div class="font-mono font-semibold" style="color: var(--text-primary)">{{ (dataQuality.coverage_ratio * 100).toFixed(1) }}%</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted)">缺口率</div>
+              <div class="font-mono font-semibold" :style="{ color: dataQuality.gap_ratio < 0.05 ? 'var(--profit)' : 'var(--loss)' }">
+                {{ (dataQuality.gap_ratio * 100).toFixed(2) }}%
+              </div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted)">新鲜度</div>
+              <div class="font-mono font-semibold" style="color: var(--text-primary)">
+                {{ dataQuality.freshness_sec != null ? Math.round(dataQuality.freshness_sec) + 's' : '—' }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="py-3 text-center">
+          <p class="text-xs" style="color: var(--text-muted)">暂无数据质量快照</p>
+        </div>
       </div>
     </div>
 

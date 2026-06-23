@@ -6,6 +6,7 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::Row;
+use uuid::Uuid;
 
 use crate::agents::llm_client::{LlmClient, LlmConfig, LlmProvider};
 use crate::error::{AppError, Result};
@@ -33,6 +34,7 @@ fn mask_api_key(value: &str) -> String {
 #[derive(Debug, Deserialize)]
 struct CreateProviderRequest {
     provider: Option<String>,
+    name: Option<String>,
     api_key: String,
     base_url: Option<String>,
     model: Option<String>,
@@ -44,6 +46,7 @@ struct CreateProviderRequest {
 #[derive(Debug, Deserialize)]
 struct UpdateProviderRequest {
     provider: Option<String>,
+    name: Option<String>,
     api_key: Option<String>,
     base_url: Option<String>,
     model: Option<String>,
@@ -74,7 +77,7 @@ async fn list_providers(
             let masked_key = mask_api_key(&decrypted_key);
 
             json!({
-                "id": row.get::<i32, _>("id"),
+                "id": row.get::<Uuid, _>("id").to_string(),
                 "provider": row.try_get::<String, _>("provider").unwrap_or_else(|_| "openai".to_string()),
                 "api_key": masked_key,
                 "base_url": row.try_get::<Option<String>, _>("base_url").unwrap_or(None),
@@ -98,6 +101,7 @@ async fn create_provider(
     Json(req): Json<CreateProviderRequest>,
 ) -> Result<Json<Value>> {
     let provider_str = req.provider.unwrap_or_else(|| "openai".to_string());
+    let name = req.name.unwrap_or_else(|| provider_str.clone());
     let encrypted_key = encrypt(&req.api_key)?;
 
     let is_default = req.is_default.unwrap_or(false);
@@ -112,12 +116,13 @@ async fn create_provider(
     }
 
     let row = sqlx::query(
-        r#"INSERT INTO ai_provider_configs (user_id, provider, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8, NOW(), NOW())
-        RETURNING id, provider, base_url, model, max_tokens, temperature, is_active, is_default, created_at::text, updated_at::text"#,
+        r#"INSERT INTO ai_provider_configs (user_id, provider, name, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, NOW(), NOW())
+        RETURNING id, provider, name, base_url, model, max_tokens, temperature, is_active, is_default, created_at::text, updated_at::text"#,
     )
     .bind(user.user_id)
     .bind(&provider_str)
+    .bind(&name)
     .bind(&encrypted_key)
     .bind(&req.base_url)
     .bind(&req.model)
@@ -131,8 +136,9 @@ async fn create_provider(
     let masked_key = mask_api_key(&req.api_key);
 
     Ok(Json(json!({
-        "id": row.get::<i32, _>("id"),
+        "id": row.get::<Uuid, _>("id").to_string(),
         "provider": row.try_get::<String, _>("provider").unwrap_or_else(|_| "openai".to_string()),
+        "name": row.try_get::<String, _>("name").unwrap_or_else(|_| provider_str.clone()),
         "api_key": masked_key,
         "base_url": row.try_get::<Option<String>, _>("base_url").unwrap_or(None),
         "model": row.try_get::<Option<String>, _>("model").unwrap_or(None),
@@ -148,11 +154,11 @@ async fn create_provider(
 async fn update_provider(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
     Json(req): Json<UpdateProviderRequest>,
 ) -> Result<Json<Value>> {
     let existing = sqlx::query(
-        r#"SELECT provider, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default
+        r#"SELECT provider, name, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default
         FROM ai_provider_configs WHERE id = $1 AND user_id = $2"#,
     )
     .bind(id)
@@ -165,6 +171,10 @@ async fn update_provider(
 
     let provider = req.provider.unwrap_or_else(|| {
         existing.try_get::<String, _>("provider").unwrap_or_else(|_| "openai".to_string())
+    });
+
+    let name = req.name.unwrap_or_else(|| {
+        existing.try_get::<String, _>("name").unwrap_or_else(|_| provider.clone())
     });
 
     let encrypted_key = match req.api_key {
@@ -197,13 +207,14 @@ async fn update_provider(
     }
 
     let row = sqlx::query(
-        r#"UPDATE ai_provider_configs SET provider = $3, api_key_encrypted = $4, base_url = $5, model = $6, max_tokens = $7, temperature = $8, is_active = $9, is_default = $10, updated_at = NOW()
+        r#"UPDATE ai_provider_configs SET provider = $3, name = $4, api_key_encrypted = $5, base_url = $6, model = $7, max_tokens = $8, temperature = $9, is_active = $10, is_default = $11, updated_at = NOW()
         WHERE id = $1 AND user_id = $2
-        RETURNING id, provider, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default, created_at::text, updated_at::text"#,
+        RETURNING id, provider, name, api_key_encrypted, base_url, model, max_tokens, temperature, is_active, is_default, created_at::text, updated_at::text"#,
     )
     .bind(id)
     .bind(user.user_id)
     .bind(&provider)
+    .bind(&name)
     .bind(&encrypted_key)
     .bind(&base_url)
     .bind(&model)
@@ -220,8 +231,9 @@ async fn update_provider(
     let masked_key = mask_api_key(&decrypted_key);
 
     Ok(Json(json!({
-        "id": row.get::<i32, _>("id"),
+        "id": row.get::<Uuid, _>("id").to_string(),
         "provider": row.try_get::<String, _>("provider").unwrap_or_else(|_| "openai".to_string()),
+        "name": row.try_get::<String, _>("name").unwrap_or_else(|_| provider.clone()),
         "api_key": masked_key,
         "base_url": row.try_get::<Option<String>, _>("base_url").unwrap_or(None),
         "model": row.try_get::<Option<String>, _>("model").unwrap_or(None),
@@ -237,7 +249,7 @@ async fn update_provider(
 async fn delete_provider(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
     let result = sqlx::query(r#"DELETE FROM ai_provider_configs WHERE id = $1 AND user_id = $2"#)
         .bind(id)
@@ -259,10 +271,10 @@ async fn delete_provider(
 async fn test_provider(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Value>> {
     let row = sqlx::query(
-        r#"SELECT provider, api_key_encrypted, base_url, model, max_tokens, temperature, is_active
+        r#"SELECT provider, name, api_key_encrypted, base_url, model, max_tokens, temperature, is_active
         FROM ai_provider_configs WHERE id = $1 AND user_id = $2"#,
     )
     .bind(id)

@@ -3,6 +3,7 @@
 
 use crate::backtest::models::BacktestStatus;
 use crate::backtest::runner::run_backtest_for_job;
+use crate::backtest::trust_engine::{self, TrustAssessmentInput, TrustLevel};
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
 use crate::state::AppState;
@@ -24,6 +25,7 @@ pub fn router() -> Router<AppState> {
         .route("/jobs/{job_id}/report", get(get_report))
         .route("/jobs/{job_id}/trades", get(get_trades))
         .route("/jobs/{job_id}/signals", post(create_signal))
+        .route("/jobs/{job_id}/trust-level", get(get_trust_level).post(assess_trust_level))
 }
 
 #[derive(Debug, Deserialize)]
@@ -462,4 +464,132 @@ fn parse_iso_dt(s: &str) -> Result<DateTime<Utc>> {
             s.parse::<DateTime<Utc>>()
         })
         .map_err(|_| AppError::Validation(format!("invalid datetime: {}", s)))
+}
+
+// =========================================================
+// 回测可信等级 API
+// =========================================================
+
+/// 可信等级响应
+#[derive(Debug, Serialize)]
+struct TrustLevelResponse {
+    assessment_id: String,
+    job_id: String,
+    trust_level: String,
+    test_coverage_passed: bool,
+    capital_conservation_passed: bool,
+    slippage_accounted: bool,
+    data_quality_grade: String,
+    sample_size_sufficient: bool,
+    walk_forward_validated: bool,
+    calibration_healthy: bool,
+    total_trades: i32,
+    test_pass_rate: f64,
+    data_coverage_ratio: f64,
+    issues: serde_json::Value,
+    recommendations: serde_json::Value,
+    promotion_eligible: bool,
+    promotion_blockers: serde_json::Value,
+    assessed_at: String,
+}
+
+impl From<crate::backtest::trust_engine::TrustAssessment> for TrustLevelResponse {
+    fn from(a: crate::backtest::trust_engine::TrustAssessment) -> Self {
+        Self {
+            assessment_id: a.assessment_id.to_string(),
+            job_id: a.job_id.to_string(),
+            trust_level: a.trust_level.as_str().to_string(),
+            test_coverage_passed: a.test_coverage_passed,
+            capital_conservation_passed: a.capital_conservation_passed,
+            slippage_accounted: a.slippage_accounted,
+            data_quality_grade: a.data_quality_grade,
+            sample_size_sufficient: a.sample_size_sufficient,
+            walk_forward_validated: a.walk_forward_validated,
+            calibration_healthy: a.calibration_healthy,
+            total_trades: a.total_trades,
+            test_pass_rate: a.test_pass_rate,
+            data_coverage_ratio: a.data_coverage_ratio,
+            issues: a.issues,
+            recommendations: a.recommendations,
+            promotion_eligible: a.promotion_eligible,
+            promotion_blockers: a.promotion_blockers,
+            assessed_at: a.assessed_at.to_rfc3339(),
+        }
+    }
+}
+
+/// 查询回测可信等级
+async fn get_trust_level(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Path(job_id): Path<Uuid>,
+) -> Result<Json<TrustLevelResponse>> {
+    let assessment = trust_engine::get_assessment(&state.db_pool, job_id)
+        .await
+        .map_err(|e| AppError::Internal(format!("get trust assessment failed: {}", e)))?
+        .ok_or_else(|| AppError::NotFound("可信等级评估不存在，请先触发评估".to_string()))?;
+
+    Ok(Json(assessment.into()))
+}
+
+/// 评估回测可信等级请求
+#[derive(Debug, Deserialize)]
+struct AssessTrustRequest {
+    /// 测试通过率（0-1），可选
+    test_pass_rate: Option<f64>,
+    /// 数据覆盖率（0-1），可选
+    data_coverage_ratio: Option<f64>,
+    /// 数据质量等级，可选
+    data_quality_grade: Option<String>,
+    /// 是否通过 Walk-forward 验证
+    walk_forward_validated: Option<bool>,
+    /// 概率校准是否健康
+    calibration_healthy: Option<bool>,
+}
+
+/// 触发回测可信等级评估
+/// 根据回测结果和外部输入（测试通过率、数据质量等）评估可信等级
+async fn assess_trust_level(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Path(job_id): Path<Uuid>,
+    Json(req): Json<AssessTrustRequest>,
+) -> Result<Json<TrustLevelResponse>> {
+    // 从数据库读取回测结果
+    let row = sqlx::query(
+        r#"SELECT total_trades, fee_total, slippage_total
+           FROM backtest_jobs WHERE job_id = $1"#,
+    )
+    .bind(job_id)
+    .fetch_optional(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?
+    .ok_or_else(|| AppError::NotFound("回测任务不存在".to_string()))?;
+
+    let total_trades: i32 = row.try_get("total_trades").unwrap_or(0);
+    let total_fee: f64 = row.try_get("fee_total").unwrap_or(0.0);
+    let total_slippage_cost: f64 = row.try_get("slippage_total").unwrap_or(0.0);
+
+    // 构建评估输入
+    let input = TrustAssessmentInput {
+        job_id,
+        total_trades,
+        total_slippage_cost,
+        total_fee,
+        test_pass_rate: req.test_pass_rate,
+        data_coverage_ratio: req.data_coverage_ratio,
+        data_quality_grade: req.data_quality_grade,
+        walk_forward_validated: req.walk_forward_validated.unwrap_or(false),
+        calibration_healthy: req.calibration_healthy.unwrap_or(false),
+    };
+
+    // 评估可信等级
+    let assessment = trust_engine::assess_trust(&input);
+
+    // 保存评估结果
+    trust_engine::save_assessment(&state.db_pool, &assessment)
+        .await
+        .map_err(|e| AppError::Internal(format!("save trust assessment failed: {}", e)))?;
+
+    Ok(Json(assessment.into()))
 }

@@ -12,6 +12,7 @@ pub mod middleware;
 pub mod models;
 pub mod routes;
 pub mod schemas;
+pub mod signals;
 pub mod server;
 pub mod state;
 pub mod utils;

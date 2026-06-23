@@ -207,6 +207,29 @@ impl PerformanceEngine {
         total_fee: f64,
         total_slippage_cost: f64,
     ) -> PerformanceReport {
+        self.compute_report_with_benchmark(
+            trades,
+            equity_curve,
+            start_time,
+            end_time,
+            total_fee,
+            total_slippage_cost,
+            None,
+        )
+    }
+
+    /// 计算完整绩效报告，支持可选的基准收益序列用于 Alpha/Beta 计算。
+    /// 当 benchmark_returns 为 None 时，beta 恒为 0，alpha 仅为策略自身日均收益年化。
+    pub fn compute_report_with_benchmark(
+        &self,
+        trades: Vec<TradeAttribution>,
+        equity_curve: Vec<(DateTime<Utc>, f64)>,
+        start_time: DateTime<Utc>,
+        end_time: DateTime<Utc>,
+        total_fee: f64,
+        total_slippage_cost: f64,
+        benchmark_returns: Option<&[f64]>,
+    ) -> PerformanceReport {
         // Total return
         let start_equity = equity_curve.first().map(|(_, e)| *e).unwrap_or(1.0);
         let end_equity = equity_curve.last().map(|(_, e)| *e).unwrap_or(start_equity);
@@ -225,7 +248,7 @@ impl PerformanceEngine {
         let sortino = Self::sortino_ratio(&equity_curve);
         let calmar = Self::calmar_ratio(annualized, max_drawdown);
         let (var_95, cvar_95) = Self::var_cvar_95(&daily_returns);
-        let (alpha, beta) = Self::alpha_beta(&daily_returns, None);
+        let (alpha, beta) = Self::alpha_beta(&daily_returns, benchmark_returns);
 
         let total_trades = trades.len() as i64;
         let (wins, losses): (Vec<&TradeAttribution>, Vec<&TradeAttribution>) =
