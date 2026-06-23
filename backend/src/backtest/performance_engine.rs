@@ -19,9 +19,7 @@ impl PerformanceEngine {
     }
 
     /// 取每日最后一个权益点作为日末权益（避免使用每日最高权益美化表现）。
-    fn daily_equity_close(
-        equity: &[(DateTime<Utc>, f64)],
-    ) -> Vec<(chrono::NaiveDate, f64)> {
+    fn daily_equity_close(equity: &[(DateTime<Utc>, f64)]) -> Vec<(chrono::NaiveDate, f64)> {
         let mut daily: HashMap<chrono::NaiveDate, (DateTime<Utc>, f64)> = HashMap::new();
         for (ts, eq) in equity {
             let day = ts.date_naive();
@@ -31,10 +29,8 @@ impl PerformanceEngine {
                 *entry = (*ts, *eq);
             }
         }
-        let mut days: Vec<(chrono::NaiveDate, f64)> = daily
-            .into_iter()
-            .map(|(d, (_, e))| (d, e))
-            .collect();
+        let mut days: Vec<(chrono::NaiveDate, f64)> =
+            daily.into_iter().map(|(d, (_, e))| (d, e)).collect();
         days.sort_by_key(|(d, _)| *d);
         days
     }
@@ -104,24 +100,37 @@ impl PerformanceEngine {
         (mean / downside_std) * (365.0_f64).sqrt()
     }
 
-    /// Max drawdown (percent) + peak-to-valley.
-    fn max_drawdown(equity: &[(DateTime<Utc>, f64)]) -> (f64, Vec<(DateTime<Utc>, f64)>) {
+    /// Max drawdown (percent), drawdown curve, and longest drawdown duration in seconds.
+    fn max_drawdown(equity: &[(DateTime<Utc>, f64)]) -> (f64, Vec<(DateTime<Utc>, f64)>, i64) {
         let mut peak = f64::NEG_INFINITY;
+        let mut peak_time: Option<DateTime<Utc>> = None;
+        let mut active_drawdown_start: Option<DateTime<Utc>> = None;
+        let mut max_duration = Duration::zero();
         let mut max_dd = 0.0_f64;
         let mut drawdown_curve = Vec::with_capacity(equity.len());
+
         for (ts, eq) in equity {
-            if *eq > peak {
+            if *eq >= peak {
                 peak = *eq;
+                peak_time = Some(*ts);
+                active_drawdown_start = None;
             }
+
             let dd = if peak > 0.0 { (peak - eq) / peak } else { 0.0 };
+            if dd > 0.0 {
+                let start = active_drawdown_start.get_or_insert_with(|| peak_time.unwrap_or(*ts));
+                let duration = *ts - *start;
+                if duration > max_duration {
+                    max_duration = duration;
+                }
+            }
             if dd > max_dd {
                 max_dd = dd;
             }
             drawdown_curve.push((*ts, dd));
         }
-        (max_dd, drawdown_curve)
+        (max_dd, drawdown_curve, max_duration.num_seconds())
     }
-
     /// Calmar ratio = annualized_return / max_drawdown.
     fn calmar_ratio(annualized: f64, max_drawdown: f64) -> f64 {
         if max_drawdown <= 0.0 {
@@ -130,17 +139,65 @@ impl PerformanceEngine {
         annualized / max_drawdown
     }
 
-    /// 累计滑点成本：从 trades 中汇总（每笔 = 滑点 bps × notional / 10000）。
-    fn total_slippage_cost(trades: &[TradeAttribution]) -> f64 {
-        // TradeAttribution 没有直接携带 slippage 字段；通过 fee_total 与
-        // 撮合引擎返回的 fill.slippage_bps 间接估计不可行。
-        // 这里改为从 equity_curve 末值与初始权益的差额中减去 realized_pnl 与 fee，
-        // 得到滑点 + 冲击成本的合计。若调用方提供 total_fee，则可分离。
-        // 简化实现：返回 0.0，由 compute_report 调用方通过 fill 汇总传入。
-        let _ = trades;
-        0.0
+    fn daily_returns(equity: &[(DateTime<Utc>, f64)]) -> Vec<f64> {
+        let days = Self::daily_equity_close(equity);
+        let mut rets = Vec::with_capacity(days.len().saturating_sub(1));
+        for i in 1..days.len() {
+            let prev = days[i - 1].1;
+            let curr = days[i].1;
+            if prev > 0.0 {
+                rets.push((curr - prev) / prev);
+            }
+        }
+        rets
     }
 
+    fn var_cvar_95(returns: &[f64]) -> (f64, f64) {
+        if returns.is_empty() {
+            return (0.0, 0.0);
+        }
+        let mut sorted = returns.to_vec();
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let idx = ((sorted.len() as f64) * 0.05).floor() as usize;
+        let idx = idx.min(sorted.len() - 1);
+        let var_95 = (-sorted[idx]).max(0.0);
+        let tail = &sorted[..=idx];
+        let avg_tail = tail.iter().sum::<f64>() / tail.len() as f64;
+        let cvar_95 = (-avg_tail).max(0.0);
+        (var_95, cvar_95)
+    }
+
+    fn alpha_beta(strategy_returns: &[f64], benchmark_returns: Option<&[f64]>) -> (f64, f64) {
+        let Some(bench) = benchmark_returns else {
+            let mean = if strategy_returns.is_empty() {
+                0.0
+            } else {
+                strategy_returns.iter().sum::<f64>() / strategy_returns.len() as f64
+            };
+            return (mean * 365.0, 0.0);
+        };
+        let n = strategy_returns.len().min(bench.len());
+        if n == 0 {
+            return (0.0, 0.0);
+        }
+        let s = &strategy_returns[..n];
+        let b = &bench[..n];
+        let mean_s = s.iter().sum::<f64>() / n as f64;
+        let mean_b = b.iter().sum::<f64>() / n as f64;
+        let var_b = b.iter().map(|r| (r - mean_b).powi(2)).sum::<f64>() / n as f64;
+        let beta = if var_b > 0.0 {
+            s.iter()
+                .zip(b.iter())
+                .map(|(sr, br)| (sr - mean_s) * (br - mean_b))
+                .sum::<f64>()
+                / n as f64
+                / var_b
+        } else {
+            0.0
+        };
+        let alpha = (mean_s - beta * mean_b) * 365.0;
+        (alpha, beta)
+    }
     pub fn compute_report(
         &self,
         trades: Vec<TradeAttribution>,
@@ -148,6 +205,7 @@ impl PerformanceEngine {
         start_time: DateTime<Utc>,
         end_time: DateTime<Utc>,
         total_fee: f64,
+        total_slippage_cost: f64,
     ) -> PerformanceReport {
         // Total return
         let start_equity = equity_curve.first().map(|(_, e)| *e).unwrap_or(1.0);
@@ -160,10 +218,14 @@ impl PerformanceEngine {
         let seconds = (end_time - start_time).num_seconds() as f64;
         let annualized = Self::annualized(total_return, seconds);
 
-        let (max_drawdown, drawdown_curve) = Self::max_drawdown(&equity_curve);
+        let (max_drawdown, drawdown_curve, max_drawdown_duration_sec) =
+            Self::max_drawdown(&equity_curve);
+        let daily_returns = Self::daily_returns(&equity_curve);
         let sharpe = Self::sharpe_ratio(&equity_curve);
         let sortino = Self::sortino_ratio(&equity_curve);
         let calmar = Self::calmar_ratio(annualized, max_drawdown);
+        let (var_95, cvar_95) = Self::var_cvar_95(&daily_returns);
+        let (alpha, beta) = Self::alpha_beta(&daily_returns, None);
 
         let total_trades = trades.len() as i64;
         let (wins, losses): (Vec<&TradeAttribution>, Vec<&TradeAttribution>) =
@@ -176,11 +238,30 @@ impl PerformanceEngine {
             0.0
         };
         let gross_profit: f64 = wins.iter().map(|t| t.pnl.unwrap_or(0.0).max(0.0)).sum();
-        let gross_loss: f64 = losses.iter().map(|t| (-t.pnl.unwrap_or(0.0)).max(0.0)).sum();
-        let profit_factor = if gross_loss > 0.0 { gross_profit / gross_loss } else { gross_profit };
-        let average_win = if winning_trades > 0 { gross_profit / winning_trades as f64 } else { 0.0 };
-        let average_loss = if losing_trades > 0 { gross_loss / losing_trades as f64 } else { 0.0 };
-        let payoff_ratio = if average_loss > 0.0 { average_win / average_loss } else { average_win };
+        let gross_loss: f64 = losses
+            .iter()
+            .map(|t| (-t.pnl.unwrap_or(0.0)).max(0.0))
+            .sum();
+        let profit_factor = if gross_loss > 0.0 {
+            gross_profit / gross_loss
+        } else {
+            gross_profit
+        };
+        let average_win = if winning_trades > 0 {
+            gross_profit / winning_trades as f64
+        } else {
+            0.0
+        };
+        let average_loss = if losing_trades > 0 {
+            gross_loss / losing_trades as f64
+        } else {
+            0.0
+        };
+        let payoff_ratio = if average_loss > 0.0 {
+            average_win / average_loss
+        } else {
+            average_win
+        };
 
         // attribution by agent / asset / regime
         let mut by_agent: HashMap<String, (i64, f64)> = HashMap::new();
@@ -207,9 +288,7 @@ impl PerformanceEngine {
         let to_json = |m: HashMap<String, (i64, f64)>| -> Value {
             let map: serde_json::Map<String, Value> = m
                 .into_iter()
-                .map(|(k, (cnt, pnl))| {
-                    (k, json!({ "trades": cnt, "pnl": pnl.round() as i64 }))
-                })
+                .map(|(k, (cnt, pnl))| (k, json!({ "trades": cnt, "pnl": pnl.round() as i64 })))
                 .collect();
             Value::Object(map)
         };
@@ -230,7 +309,12 @@ impl PerformanceEngine {
             average_loss,
             payoff_ratio,
             total_fee,
-            total_slippage_cost: Self::total_slippage_cost(&trades),
+            total_slippage_cost,
+            var_95,
+            cvar_95,
+            alpha,
+            beta,
+            max_drawdown_duration_sec,
             equity_curve,
             drawdown_curve,
             trades,
@@ -260,6 +344,11 @@ pub fn report_to_summary(report: &PerformanceReport) -> Value {
         "payoff_ratio": report.payoff_ratio,
         "total_fee": report.total_fee,
         "total_slippage_cost": report.total_slippage_cost,
+        "var_95": report.var_95,
+        "cvar_95": report.cvar_95,
+        "alpha": report.alpha,
+        "beta": report.beta,
+        "max_drawdown_duration_sec": report.max_drawdown_duration_sec,
         "equity_points": report.equity_curve.len(),
         "by_regime": report.by_regime,
     })
@@ -315,7 +404,11 @@ mod tests {
         ];
         let sharpe = PerformanceEngine::sharpe_ratio(&equity);
         // 日末权益相同，收益为 0，夏普率应为 0
-        assert!(sharpe.abs() < 1e-9, "日末权益相同时夏普率应为 0，实际: {}", sharpe);
+        assert!(
+            sharpe.abs() < 1e-9,
+            "日末权益相同时夏普率应为 0，实际: {}",
+            sharpe
+        );
     }
 
     #[test]
@@ -331,7 +424,11 @@ mod tests {
         // 完全无下行波动时，Sortino 应为 0（分母为 0）
         let equity = make_equity_curve(&[100.0, 101.0, 102.0, 103.0]);
         let sortino = PerformanceEngine::sortino_ratio(&equity);
-        assert!(sortino.abs() < 1e-9, "无下行波动时 Sortino 应为 0，实际: {}", sortino);
+        assert!(
+            sortino.abs() < 1e-9,
+            "无下行波动时 Sortino 应为 0，实际: {}",
+            sortino
+        );
     }
 
     #[test]
@@ -344,8 +441,12 @@ mod tests {
         assert!(sharpe > 0.0);
         assert!(sortino > 0.0);
         // Sortino >= Sharpe（因为下行波动率 <= 总波动率）
-        assert!(sortino >= sharpe - 1e-9,
-            "Sortino ({}) 应 >= Sharpe ({})", sortino, sharpe);
+        assert!(
+            sortino >= sharpe - 1e-9,
+            "Sortino ({}) 应 >= Sharpe ({})",
+            sortino,
+            sharpe
+        );
     }
 
     #[test]
@@ -353,9 +454,14 @@ mod tests {
         // 权益曲线：100 -> 120 -> 90 -> 110
         // 最大回撤 = (120 - 90) / 120 = 25%
         let equity = make_equity_curve(&[100.0, 120.0, 90.0, 110.0]);
-        let (max_dd, curve) = PerformanceEngine::max_drawdown(&equity);
-        assert!((max_dd - 0.25).abs() < 1e-9, "最大回撤应为 0.25，实际: {}", max_dd);
+        let (max_dd, curve, duration_sec) = PerformanceEngine::max_drawdown(&equity);
+        assert!(
+            (max_dd - 0.25).abs() < 1e-9,
+            "最大回撤应为 0.25，实际: {}",
+            max_dd
+        );
         assert_eq!(curve.len(), 4);
+        assert!(duration_sec > 0);
     }
 
     #[test]
@@ -377,7 +483,7 @@ mod tests {
         let start = ts(0);
         let end = ts(3);
         let trades = vec![];
-        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0);
+        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0, 2.5);
 
         // 验证所有指标都被计算（非默认值）
         assert!(report.total_return > 0.0);
@@ -406,6 +512,11 @@ mod tests {
             payoff_ratio: 2.0,
             total_fee: 50.0,
             total_slippage_cost: 10.0,
+            var_95: 0.02,
+            cvar_95: 0.03,
+            alpha: 0.12,
+            beta: 0.8,
+            max_drawdown_duration_sec: 86_400,
             equity_curve: vec![],
             drawdown_curve: vec![],
             trades: vec![],
@@ -420,10 +531,32 @@ mod tests {
         assert!(obj.contains_key("calmar_ratio"));
         assert!(obj.contains_key("total_slippage_cost"));
         assert!(obj.contains_key("by_regime"));
+        assert!(obj.contains_key("var_95"));
+        assert!(obj.contains_key("cvar_95"));
+        assert!(obj.contains_key("alpha"));
+        assert!(obj.contains_key("beta"));
+        assert!(obj.contains_key("max_drawdown_duration_sec"));
         assert_eq!(summary["calmar_ratio"], 4.0);
         assert_eq!(summary["sortino_ratio"], 2.0);
+        assert_eq!(summary["cvar_95"], 0.03);
     }
 
+    #[test]
+    fn test_var_cvar_95_are_positive_tail_losses() {
+        let returns = vec![0.01, -0.02, 0.03, -0.10, 0.02];
+        let (var_95, cvar_95) = PerformanceEngine::var_cvar_95(&returns);
+        assert!((var_95 - 0.10).abs() < 1e-9);
+        assert!((cvar_95 - 0.10).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_alpha_beta_against_benchmark() {
+        let strategy = vec![0.02, 0.01, -0.01, 0.03];
+        let benchmark = vec![0.01, 0.005, -0.005, 0.015];
+        let (alpha, beta) = PerformanceEngine::alpha_beta(&strategy, Some(&benchmark));
+        assert!(beta > 1.9 && beta < 2.1);
+        assert!(alpha.abs() < 1e-9);
+    }
     #[test]
     fn test_by_regime_attribution_groups_trades() {
         // 验证 by_regime 归因按市场状态分组统计交易
@@ -451,7 +584,11 @@ mod tests {
             signal_strength: None,
             entry_signal_id: None,
             exit_reason: None,
-            result: Some(if pnl > 0.0 { "win".into() } else { "loss".into() }),
+            result: Some(if pnl > 0.0 {
+                "win".into()
+            } else {
+                "loss".into()
+            }),
             market_regime_at_entry: Some(regime.into()),
         };
 
@@ -462,7 +599,7 @@ mod tests {
             make_trade("crisis", -200.0),
         ];
 
-        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0);
+        let report = PerformanceEngine.compute_report(trades, equity, start, end, 10.0, 2.5);
         let by_regime = report.by_regime.as_object().unwrap();
         assert!(by_regime.contains_key("trending_bull"));
         assert!(by_regime.contains_key("ranging"));
@@ -515,7 +652,7 @@ mod tests {
             market_regime_at_entry: None,
         };
 
-        let report = PerformanceEngine.compute_report(vec![trade], equity, start, end, 0.0);
+        let report = PerformanceEngine.compute_report(vec![trade], equity, start, end, 0.0, 0.0);
         let by_regime = report.by_regime.as_object().unwrap();
         assert!(by_regime.contains_key("unknown"));
         assert_eq!(by_regime["unknown"]["trades"], 1);

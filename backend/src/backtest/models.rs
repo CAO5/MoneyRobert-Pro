@@ -133,7 +133,7 @@ pub struct TradeIntent {
     pub agent_id: Option<String>,
     pub asset: String,
     pub exchange: Option<String>,
-    pub side: String, // "buy" | "sell"
+    pub side: String,        // "buy" | "sell"
     pub intent_type: String, // "open_position" | "increase_position" | "reduce_position" | "close_position" | "stop_loss" | "take_profit"
     pub target_position_pct: Option<f64>,
     pub target_notional: Option<f64>,
@@ -312,7 +312,9 @@ impl AccountState {
     }
 
     pub fn recompute_total_equity(&mut self) {
-        self.total_equity = self.cash + self.unrealized_pnl + self.realized_pnl;
+        // cash already includes realized P&L after fills/forced closes.
+        // realized_pnl is kept for attribution and must not be added again.
+        self.total_equity = self.cash + self.unrealized_pnl;
         self.leverage = if self.total_equity > 0.0 {
             self.total_notional / self.total_equity
         } else {
@@ -422,6 +424,11 @@ pub struct PerformanceReport {
     pub payoff_ratio: f64,
     pub total_fee: f64,
     pub total_slippage_cost: f64,
+    pub var_95: f64,
+    pub cvar_95: f64,
+    pub alpha: f64,
+    pub beta: f64,
+    pub max_drawdown_duration_sec: i64,
     pub equity_curve: Vec<(DateTime<Utc>, f64)>,
     pub drawdown_curve: Vec<(DateTime<Utc>, f64)>,
     pub trades: Vec<TradeAttribution>,
@@ -444,9 +451,17 @@ pub struct RiskCheckResult {
 
 impl RiskCheckResult {
     pub fn pass() -> Self {
-        Self { passed: true, reasons: vec![], reduced_notional: None }
+        Self {
+            passed: true,
+            reasons: vec![],
+            reduced_notional: None,
+        }
     }
     pub fn reject(reason: impl Into<String>) -> Self {
-        Self { passed: false, reasons: vec![reason.into()], reduced_notional: None }
+        Self {
+            passed: false,
+            reasons: vec![reason.into()],
+            reduced_notional: None,
+        }
     }
 }

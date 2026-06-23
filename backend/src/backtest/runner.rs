@@ -1,10 +1,10 @@
-//! End-to-end backtest runner: orchestrates replay, strategy, risk, matching, account, performance.
+﻿//! End-to-end backtest runner: orchestrates replay, strategy, risk, matching, account, performance.
 //! 端到端回测运行器
 
 use crate::backtest::account_engine::{kline_prices, AccountEngine};
 use crate::backtest::matching_engine::{MatchingConfig, MatchingEngine};
 use crate::backtest::models::{
-    AccountState, AlphaSignal, BacktestJob, BacktestStatus, PerformanceReport, SimulatedFill,
+    AccountState, AlphaSignal, BacktestJob, BacktestStatus, PerformanceReport,
     SimulatedOrder, TradeAttribution, TradeIntent,
 };
 use crate::backtest::performance_engine::PerformanceEngine;
@@ -12,7 +12,7 @@ use crate::backtest::replay_engine::{ReplayConfig, ReplayEngine};
 use crate::backtest::risk_engine::{RiskConfig, RiskEngine};
 use crate::features::{RegimeClassifier, RegimeConfig};
 use chrono::{DateTime, Utc};
-use sqlx::{PgPool, Row};
+use sqlx::PgPool;
 use std::collections::HashMap;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -47,6 +47,7 @@ pub struct BacktestRunner {
     regime_classifier: RegimeClassifier,
     total_fee: f64,
     total_slippage_bps_sum: f64,
+    total_slippage_cost: f64,
     total_fills: i64,
 }
 
@@ -67,6 +68,7 @@ impl BacktestRunner {
             regime_classifier,
             total_fee: 0.0,
             total_slippage_bps_sum: 0.0,
+            total_slippage_cost: 0.0,
             total_fills: 0,
             config,
         }
@@ -82,13 +84,14 @@ impl BacktestRunner {
             symbols: self.config.symbols.clone(),
             interval: self.config.interval.clone(),
         };
-        let mut replay =
-            ReplayEngine::load(pool, replay_cfg, Some(self.config.job_id)).await?;
+        let mut replay = ReplayEngine::load(pool, replay_cfg, Some(self.config.job_id)).await?;
         info!("[BT] loaded {} events", replay.total_events());
 
         // Reset daily stats at start
-        self.risk
-            .reset_daily(self.account.state.realized_pnl, self.account.state.total_equity);
+        self.risk.reset_daily(
+            self.account.state.realized_pnl,
+            self.account.state.total_equity,
+        );
 
         // Iterate events
         while let Some(ev) = replay.next() {
@@ -107,8 +110,7 @@ impl BacktestRunner {
         for (sym, k) in &self.last_kline_by_asset {
             prices.insert(sym.clone(), k.close);
         }
-        self.account
-            .force_close_all(&prices, self.config.end_time);
+        self.account.force_close_all(&prices, self.config.end_time);
 
         // Build final performance report
         let perf = PerformanceEngine;
@@ -118,6 +120,7 @@ impl BacktestRunner {
             self.config.start_time,
             self.config.end_time,
             self.total_fee,
+            self.total_slippage_cost,
         );
         info!(
             "[BT] backtest done: trades={}, ret={:.2}%, sharpe={:.3}, dd={:.2}%",
@@ -131,7 +134,8 @@ impl BacktestRunner {
 
     async fn handle_kline(&mut self, kline: &crate::backtest::models::Kline) {
         // 1) update market state
-        self.last_kline_by_asset.insert(kline.symbol.clone(), kline.clone());
+        self.last_kline_by_asset
+            .insert(kline.symbol.clone(), kline.clone());
         // 维护 K 线历史用于市场状态识别（保留最近 200 根，避免内存膨胀）
         let history = self
             .kline_history_by_asset
@@ -181,7 +185,10 @@ impl BacktestRunner {
                 continue;
             }
             if order.order_type == "limit" {
-                if let Some(fill) = self.matching.fill_limit_order(&order, kline, kline.open_time) {
+                if let Some(fill) = self
+                    .matching
+                    .fill_limit_order(&order, kline, kline.open_time)
+                {
                     fills_to_apply.push(fill);
                 } else {
                     self.open_orders.push(order);
@@ -251,7 +258,9 @@ impl BacktestRunner {
 
         // Risk check
         let existing_notional = self.account.open_position_notional_for_asset(&intent.asset);
-        let risk_result = self.risk.validate_intent(&intent, &self.account.state, existing_notional);
+        let risk_result =
+            self.risk
+                .validate_intent(&intent, &self.account.state, existing_notional);
         if !risk_result.passed {
             warn!(
                 "[BT] signal {} rejected by risk: {:?}",
@@ -294,7 +303,10 @@ impl BacktestRunner {
         };
 
         // Immediate market-fill at next K-line open (which is current_price for the step):
-        if let Some(fill) = self.matching.fill_market_order(&order, &kline, signal.event_time) {
+        if let Some(fill) = self
+            .matching
+            .fill_market_order(&order, &kline, signal.event_time)
+        {
             self.apply_fill_to_account(&order.asset, &fill, Some(intent.intent_type.clone()));
         }
     }
@@ -327,7 +339,11 @@ impl BacktestRunner {
 
         // Track newly closed positions
         for (pid, side, qty, avg_price) in &before_positions {
-            let pos = self.account.positions.iter().find(|p| p.position_id == *pid);
+            let pos = self
+                .account
+                .positions
+                .iter()
+                .find(|p| p.position_id == *pid);
             if let Some(pos) = pos {
                 if pos.closed_at.is_some() && !closed_id_before.contains(pid) && *qty > 0.0 {
                     // Closed this step
@@ -339,10 +355,7 @@ impl BacktestRunner {
                     };
                     let seconds = (fill.fill_time - pos.opened_at).num_seconds();
                     // 入场时的市场状态（使用 asset 对应的当前 regime）
-                    let regime_at_entry = self
-                        .current_regime_by_asset
-                        .get(asset)
-                        .cloned();
+                    let regime_at_entry = self.current_regime_by_asset.get(asset).cloned();
                     self.closed_trades.push(TradeAttribution {
                         attribution_id: Uuid::new_v4(),
                         job_id: fill.job_id,
@@ -363,7 +376,11 @@ impl BacktestRunner {
                         signal_strength: None,
                         entry_signal_id: pos.open_signal_id,
                         exit_reason: intent_type.clone(),
-                        result: Some(if pnl > 0.0 { "win".into() } else { "loss".into() }),
+                        result: Some(if pnl > 0.0 {
+                            "win".into()
+                        } else {
+                            "loss".into()
+                        }),
                         market_regime_at_entry: regime_at_entry,
                     });
                 }
@@ -372,6 +389,11 @@ impl BacktestRunner {
 
         self.total_fee += fill.fee;
         self.total_slippage_bps_sum += fill.slippage_bps.unwrap_or(0.0);
+        self.total_slippage_cost += fill
+            .notional
+            .unwrap_or(fill.filled_price * fill.filled_quantity)
+            * fill.slippage_bps.unwrap_or(0.0)
+            / 10000.0;
         self.total_fills += 1;
 
         // recompute equity
@@ -392,7 +414,7 @@ impl BacktestRunner {
 }
 
 /// Convenience helper: create & execute backtest job, store results to DB.
-pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result<(), String> {
+pub async fn run_backtest_for_job(pool: &PgPool, job: BacktestJob) -> Result<(), String> {
     let symbols = if job.assets.is_empty() {
         // Fallback: fetch from DB
         let rows = sqlx::query_scalar::<_, String>(
@@ -440,8 +462,8 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
         r#"UPDATE backtest_jobs
            SET status = $1, total_trades = $2, winning_trades = $3,
                total_return_pct = $4, sharpe_ratio = $5, max_drawdown_pct = $6,
-               completed_at = $7, updated_at = NOW(), fee_total = $8
-           WHERE job_id = $9"#,
+               completed_at = $7, updated_at = NOW(), fee_total = $8, slippage_total = $9
+            WHERE job_id = $10"#,
     )
     .bind(BacktestStatus::Completed.as_str())
     .bind(report.total_trades)
@@ -451,6 +473,7 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
     .bind(Some(report.max_drawdown))
     .bind(Some(job.end_time.naive_utc()))
     .bind(report.total_fee)
+    .bind(report.total_slippage_cost)
     .bind(job.job_id)
     .execute(pool)
     .await
@@ -460,18 +483,21 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
     let report_json = serde_json::to_value(&report).unwrap_or(serde_json::json!(null));
     let _ = sqlx::query(
         r#"INSERT INTO performance_reports
-           (report_id, job_id, total_return, annualized_return, max_drawdown, sharpe_ratio,
-            win_rate, profit_factor, total_trades, winning_trades, losing_trades,
-            average_win, average_loss, payoff_ratio, total_fee, by_agent, by_asset, by_regime,
-            report_json, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())"#,
+           (report_id, job_id, total_return, annualized_return, max_drawdown, max_drawdown_duration_sec, sharpe_ratio,
+             sortino_ratio, calmar_ratio, win_rate, profit_factor, total_trades, winning_trades, losing_trades,
+             average_win, average_loss, payoff_ratio, total_fee, total_slippage_cost, by_agent, by_asset, by_regime,
+             report_json, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())"#,
     )
     .bind(Uuid::new_v4())
     .bind(job.job_id)
     .bind(Some(report.total_return))
     .bind(Some(report.annualized_return))
     .bind(Some(report.max_drawdown))
+    .bind(Some(report.max_drawdown_duration_sec as i32))
     .bind(Some(report.sharpe_ratio))
+    .bind(Some(report.sortino_ratio))
+    .bind(Some(report.calmar_ratio))
     .bind(Some(report.win_rate))
     .bind(Some(report.profit_factor))
     .bind(Some(report.total_trades))
@@ -481,6 +507,7 @@ pub async fn run_backtest_for_job(pool: &PgPool, mut job: BacktestJob) -> Result
     .bind(Some(report.average_loss))
     .bind(Some(report.payoff_ratio))
     .bind(Some(report.total_fee))
+    .bind(Some(report.total_slippage_cost))
     .bind(report.by_agent.clone())
     .bind(report.by_asset.clone())
     .bind(report.by_regime.clone())
@@ -498,7 +525,14 @@ mod tests {
     use crate::backtest::models::Kline;
     use chrono::TimeZone;
 
-    fn make_kline(symbol: &str, open: f64, high: f64, low: f64, close: f64, ts: DateTime<Utc>) -> Kline {
+    fn make_kline(
+        symbol: &str,
+        open: f64,
+        high: f64,
+        low: f64,
+        close: f64,
+        ts: DateTime<Utc>,
+    ) -> Kline {
         Kline {
             symbol: symbol.into(),
             interval: "1H".into(),
@@ -543,8 +577,10 @@ mod tests {
         // 验证 BacktestRunner 正确集成了 RegimeClassifier
         let config = make_config();
         let runner = BacktestRunner::new(config);
-        assert!(runner.regime_classifier.classify(&[]).is_none(),
-            "空 K 线序列应返回 None");
+        assert!(
+            runner.regime_classifier.classify(&[]).is_none(),
+            "空 K 线序列应返回 None"
+        );
     }
 
     #[tokio::test]
@@ -570,7 +606,9 @@ mod tests {
         assert!(regime.is_some(), "应已记录 BTC-USDT-SWAP 的市场状态");
         let regime_str = regime.unwrap();
         assert!(
-            regime_str == "trending_bull" || regime_str == "ranging" || regime_str == "high_volatility",
+            regime_str == "trending_bull"
+                || regime_str == "ranging"
+                || regime_str == "high_volatility",
             "稳定上涨应识别为 trending_bull/ranging/high_volatility，实际: {}",
             regime_str
         );
@@ -616,3 +654,5 @@ mod tests {
         assert!(regime.is_some(), "regime 应已被计算");
     }
 }
+
+
