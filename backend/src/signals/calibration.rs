@@ -5,6 +5,11 @@
 //! - Brier Score：衡量概率预测的准确性（越小越好）
 //! - Log Loss：对数损失（越小越好）
 //! - 校准曲线：预测概率与实际频率的对比
+//!
+//! 校准闭环（新增）：
+//! - Platt Scaling：逻辑回归校准
+//! - Isotonic Regression：保序回归校准
+//! - apply_calibration：将校准应用到推理时的置信度
 
 use serde::{Deserialize, Serialize};
 
@@ -113,6 +118,228 @@ pub fn compute_calibration_error(curve: &[CalibrationPoint]) -> f64 {
     weighted_sum / total_count as f64
 }
 
+// ============================================================
+// 校准模型：Platt Scaling & Isotonic Regression
+// ============================================================
+
+/// 校准模型类型
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CalibrationModel {
+    /// Platt Scaling（逻辑回归）
+    Platt,
+    /// Isotonic Regression（保序回归）
+    Isotonic,
+    /// 线性缩放（简单比例校准）
+    Linear,
+}
+
+/// Platt Scaling 参数
+/// calibrated_p = 1 / (1 + exp(-(a * p + b)))
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlattParams {
+    pub a: f64,
+    pub b: f64,
+}
+
+/// 线性缩放参数
+/// calibrated_p = clamp(factor * p + bias, 0, 1)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinearParams {
+    pub factor: f64,
+    pub bias: f64,
+}
+
+/// 校准后的模型
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FittedCalibration {
+    Platt(PlattParams),
+    Isotonic(Vec<(f64, f64)>), // (原始概率, 校准后概率) 的保序回归映射点
+    Linear(LinearParams),
+}
+
+/// 拟合 Platt Scaling（梯度下降）
+///
+/// 使用逻辑回归将原始概率映射到校准概率
+/// 输入：原始概率序列 + 实际结果序列
+pub fn fit_platt_scaling(predictions: &[f64], outcomes: &[bool]) -> PlattParams {
+    if predictions.is_empty() || predictions.len() != outcomes.len() {
+        return PlattParams { a: 1.0, b: 0.0 };
+    }
+
+    let n = predictions.len() as f64;
+    let mut a = 1.0_f64;
+    let mut b = 0.0_f64;
+    let lr = 0.01; // 学习率
+    let epochs = 500;
+
+    for _ in 0..epochs {
+        let mut grad_a = 0.0;
+        let mut grad_b = 0.0;
+        for (p, o) in predictions.iter().zip(outcomes.iter()) {
+            let z = a * p + b;
+            let sig = 1.0 / (1.0 + (-z).exp());
+            let target = if *o { 1.0 } else { 0.0 };
+            let err = sig - target;
+            grad_a += err * p;
+            grad_b += err;
+        }
+        a -= lr * grad_a / n;
+        b -= lr * grad_b / n;
+    }
+
+    PlattParams { a, b }
+}
+
+/// 拟合 Isotonic Regression（保序回归）
+///
+/// 将原始概率排序后，找到单调递增的最佳拟合
+/// 输入：原始概率序列 + 实际结果序列
+pub fn fit_isotonic_regression(predictions: &[f64], outcomes: &[bool]) -> Vec<(f64, f64)> {
+    if predictions.is_empty() || predictions.len() != outcomes.len() {
+        return vec![];
+    }
+
+    // 按预测概率排序
+    let mut paired: Vec<(f64, f64)> = predictions
+        .iter()
+        .zip(outcomes.iter())
+        .map(|(p, o)| (*p, if *o { 1.0 } else { 0.0 }))
+        .collect();
+    paired.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Pool Adjacent Violators (PAVA) 算法
+    let mut blocks: Vec<(f64, f64, usize)> = vec![]; // (sum, weight, count)
+    for (p, o) in &paired {
+        blocks.push((*p, *o, 1));
+        // 合并违反单调性的块
+        while blocks.len() >= 2 {
+            let n = blocks.len();
+            let prev_avg = blocks[n - 2].0 / blocks[n - 2].1.max(1e-9);
+            let curr_avg = blocks[n - 1].0 / blocks[n - 1].1.max(1e-9);
+            if prev_avg > curr_avg {
+                // 合并
+                let merged_sum = blocks[n - 2].0 + blocks[n - 1].0;
+                let merged_weight = blocks[n - 2].1 + blocks[n - 1].1;
+                let merged_count = blocks[n - 2].2 + blocks[n - 1].2;
+                blocks.pop();
+                blocks.pop();
+                blocks.push((merged_sum, merged_weight, merged_count));
+            } else {
+                break;
+            }
+        }
+    }
+
+    // 生成映射点
+    let mut result: Vec<(f64, f64)> = Vec::new();
+    let mut idx = 0;
+    for (sum, weight, count) in &blocks {
+        let avg = sum / weight.max(1e-9);
+        for _ in 0..*count {
+            if idx < paired.len() {
+                result.push((paired[idx].0, avg));
+                idx += 1;
+            }
+        }
+    }
+    result
+}
+
+/// 拟合线性缩放
+/// calibrated_p = factor * p + bias
+pub fn fit_linear_scaling(predictions: &[f64], outcomes: &[bool]) -> LinearParams {
+    if predictions.is_empty() || predictions.len() != outcomes.len() {
+        return LinearParams { factor: 1.0, bias: 0.0 };
+    }
+
+    let n = predictions.len() as f64;
+    let mean_p = predictions.iter().sum::<f64>() / n;
+    let mean_o = outcomes.iter().map(|o| if *o { 1.0 } else { 0.0 }).sum::<f64>() / n;
+
+    let mut cov = 0.0;
+    let mut var_p = 0.0;
+    for (p, o) in predictions.iter().zip(outcomes.iter()) {
+        let o_f = if *o { 1.0 } else { 0.0 };
+        cov += (p - mean_p) * (o_f - mean_o);
+        var_p += (p - mean_p).powi(2);
+    }
+
+    let factor = if var_p > 1e-9 { cov / var_p } else { 1.0 };
+    let bias = mean_o - factor * mean_p;
+
+    LinearParams { factor, bias }
+}
+
+/// 应用校准模型到单个概率
+pub fn apply_calibration(model: &FittedCalibration, p: f64) -> f64 {
+    match model {
+        FittedCalibration::Platt(params) => {
+            let z = params.a * p + params.b;
+            1.0 / (1.0 + (-z).exp())
+        }
+        FittedCalibration::Isotonic(points) => {
+            if points.is_empty() {
+                return p;
+            }
+            // 线性插值
+            if p <= points[0].0 {
+                return points[0].1;
+            }
+            if p >= points[points.len() - 1].0 {
+                return points[points.len() - 1].1;
+            }
+            for i in 1..points.len() {
+                if p <= points[i].0 {
+                    let (p0, v0) = points[i - 1];
+                    let (p1, v1) = points[i];
+                    if p1 - p0 > 1e-9 {
+                        return v0 + (v1 - v0) * (p - p0) / (p1 - p0);
+                    }
+                    return v0;
+                }
+            }
+            points[points.len() - 1].1
+        }
+        FittedCalibration::Linear(params) => {
+            (params.factor * p + params.bias).clamp(0.0, 1.0)
+        }
+    }
+}
+
+/// 批量应用校准
+pub fn apply_calibration_batch(model: &FittedCalibration, predictions: &[f64]) -> Vec<f64> {
+    predictions.iter().map(|p| apply_calibration(model, *p)).collect()
+}
+
+/// 拟合并评估校准模型
+///
+/// 返回校准后的模型和校准后的 Brier Score
+pub fn fit_and_evaluate(
+    model_type: CalibrationModel,
+    predictions: &[f64],
+    outcomes: &[bool],
+) -> (FittedCalibration, f64) {
+    let model = match model_type {
+        CalibrationModel::Platt => {
+            let params = fit_platt_scaling(predictions, outcomes);
+            FittedCalibration::Platt(params)
+        }
+        CalibrationModel::Isotonic => {
+            let points = fit_isotonic_regression(predictions, outcomes);
+            FittedCalibration::Isotonic(points)
+        }
+        CalibrationModel::Linear => {
+            let params = fit_linear_scaling(predictions, outcomes);
+            FittedCalibration::Linear(params)
+        }
+    };
+
+    let calibrated = apply_calibration_batch(&model, predictions);
+    let brier = compute_brier_score(&calibrated, outcomes);
+    (model, brier)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -202,5 +429,120 @@ mod tests {
         }];
         let err = compute_calibration_error(&curve);
         assert!((err - 0.8).abs() < 1e-9, "校准误差应为 0.8，实际: {}", err);
+    }
+
+    // ===== 校准模型测试 =====
+
+    #[test]
+    fn test_platt_scaling_improves_calibration() {
+        // 构造过度自信的预测：高概率但实际频率较低
+        let preds = vec![0.9, 0.9, 0.9, 0.9, 0.9, 0.1, 0.1, 0.1, 0.1, 0.1];
+        let outcomes = vec![true, true, false, false, false, false, false, false, true, true];
+        // 原始 Brier
+        let original_brier = compute_brier_score(&preds, &outcomes);
+        // Platt 校准
+        let (model, calibrated_brier) = fit_and_evaluate(CalibrationModel::Platt, &preds, &outcomes);
+        // 校准后 Brier 应不差于原始
+        assert!(
+            calibrated_brier <= original_brier + 1e-6,
+            "Platt 校准后 Brier ({}) 应 <= 原始 ({})",
+            calibrated_brier,
+            original_brier
+        );
+        // 校准后的高概率应降低（因为实际频率低于预测）
+        let calibrated_high = apply_calibration(&model, 0.9);
+        assert!(calibrated_high < 0.9, "过度自信的预测应被校准降低");
+    }
+
+    #[test]
+    fn test_isotonic_regression_monotonic() {
+        let preds = vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+        let outcomes = vec![false, false, true, false, true, true, true, true, true];
+        let points = fit_isotonic_regression(&preds, &outcomes);
+        assert!(!points.is_empty());
+        // 校准后的值应单调递增
+        for i in 1..points.len() {
+            assert!(
+                points[i].1 >= points[i - 1].1 - 1e-9,
+                "保序回归结果应单调递增"
+            );
+        }
+    }
+
+    #[test]
+    fn test_linear_scaling() {
+        // 构造过度自信的预测：预测概率极端但实际频率较低
+        // 5 次预测 0.95，其中 2 次实际发生（40%）
+        // 5 次预测 0.05，其中 0 次实际发生（0%）
+        // 预测与结果弱正相关，但实际频率远低于预测概率
+        let preds = vec![0.95, 0.05, 0.95, 0.05, 0.95, 0.05, 0.95, 0.05, 0.95, 0.05];
+        let outcomes = vec![true, false, false, false, false, false, false, false, true, false];
+        let params = fit_linear_scaling(&preds, &outcomes);
+        // 实际频率 2/10 = 0.2，平均预测 0.5
+        // factor 应 < 1（压缩过度自信的预测）
+        assert!(
+            params.factor < 1.0,
+            "过度自信预测的 factor 应 < 1，实际: {}",
+            params.factor
+        );
+        // bias 应为负（降低整体概率）
+        assert!(
+            params.bias < 0.0,
+            "bias 应为负，实际: {}",
+            params.bias
+        );
+    }
+
+    #[test]
+    fn test_apply_calibration_platt() {
+        let model = FittedCalibration::Platt(PlattParams { a: 2.0, b: -1.0 });
+        let p = apply_calibration(&model, 0.5);
+        // z = 2*0.5 - 1 = 0, sigmoid(0) = 0.5
+        assert!((p - 0.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_apply_calibration_isotonic() {
+        let model = FittedCalibration::Isotonic(vec![
+            (0.0, 0.0),
+            (0.5, 0.4),
+            (1.0, 1.0),
+        ]);
+        // 插值测试
+        let p = apply_calibration(&model, 0.25);
+        // 0.25 在 0.0 和 0.5 之间，线性插值 = 0.2
+        assert!((p - 0.2).abs() < 1e-9, "插值结果应为 0.2，实际: {}", p);
+    }
+
+    #[test]
+    fn test_apply_calibration_linear() {
+        let model = FittedCalibration::Linear(LinearParams { factor: 0.8, bias: 0.1 });
+        let p = apply_calibration(&model, 0.5);
+        // 0.8 * 0.5 + 0.1 = 0.5
+        assert!((p - 0.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_fit_and_evaluate_all_models() {
+        let preds = vec![0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+        let outcomes = vec![true, true, true, false, true, false, false, false, false];
+        for model_type in [CalibrationModel::Platt, CalibrationModel::Isotonic, CalibrationModel::Linear] {
+            let (_model, brier) = fit_and_evaluate(model_type, &preds, &outcomes);
+            assert!(brier >= 0.0 && brier <= 1.0, "Brier 应在 [0,1] 范围内");
+        }
+    }
+
+    #[test]
+    fn test_empty_inputs() {
+        let platt = fit_platt_scaling(&[], &[]);
+        assert_eq!(platt.a, 1.0);
+        assert_eq!(platt.b, 0.0);
+
+        let isotonic = fit_isotonic_regression(&[], &[]);
+        assert!(isotonic.is_empty());
+
+        let linear = fit_linear_scaling(&[], &[]);
+        assert_eq!(linear.factor, 1.0);
+        assert_eq!(linear.bias, 0.0);
     }
 }
