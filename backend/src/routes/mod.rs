@@ -20,6 +20,7 @@ pub mod health;
 pub mod market_data;
 pub mod memory_api;
 pub mod microstructure_api;
+pub mod model_cards_api;
 pub mod news;
 pub mod notifications;
 pub mod paper_trading;
@@ -71,6 +72,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/data-quality", data_quality_api::router())
         .nest("/backfill", backfill_api::router())
         .nest("/cross-exchange", cross_exchange_api::router())
+        .nest("/model-cards", model_cards_api::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

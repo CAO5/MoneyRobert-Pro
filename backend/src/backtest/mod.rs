@@ -16,4 +16,5 @@ pub mod position_sizing;
 pub mod portfolio_risk;
 pub mod execution;
 pub mod attribution;
+pub mod counterfactual;
 pub mod strategy_failure;
