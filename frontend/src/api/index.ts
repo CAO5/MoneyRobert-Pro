@@ -648,6 +648,197 @@ export class BacktestApi {
     const { data } = await api.post<TrustLevelResponse>(`/backtest/jobs/${jobId}/trust-level`, params || {})
     return data
   }
+
+  /// 查询回测归因分析列表
+  static async listAttributions(jobId: string) {
+    const { data } = await api.get(`/backtest/jobs/${jobId}/attributions`)
+    return data
+  }
+
+  /// 查询归因汇总
+  static async getAttributionSummary(jobId: string) {
+    const { data } = await api.get('/backtest/attributions/summary', { params: { job_id: jobId } })
+    return data
+  }
+
+  /// 检测策略失效
+  static async detectStrategyFailures(req: {
+    job_id?: string
+    symbol?: string
+    lookback_days?: number
+  }) {
+    const { data } = await api.post('/backtest/strategy-failure/detect', req)
+    return data
+  }
+
+  /// 查询策略失效告警列表
+  static async listFailureAlerts(params?: {
+    severity?: string
+    status?: string
+    limit?: number
+  }) {
+    const { data } = await api.get('/backtest/strategy-failure/alerts', { params })
+    return data
+  }
+
+  /// 确认告警
+  static async acknowledgeAlert(alertId: string) {
+    const { data } = await api.post(`/backtest/strategy-failure/alerts/${alertId}/acknowledge`)
+    return data
+  }
+
+  /// 解决告警
+  static async resolveAlert(alertId: string) {
+    const { data } = await api.post(`/backtest/strategy-failure/alerts/${alertId}/resolve`)
+    return data
+  }
+}
+
+// =========================================================
+// 微结构数据 API（/microstructure/*）
+// =========================================================
+
+export interface OrderbookSnapshot {
+  symbol: string
+  exchange: string
+  best_bid: number
+  best_ask: number
+  spread: number
+  spread_bps: number
+  mid_price: number
+  depth_imbalance_5: number
+  timestamp: string
+}
+
+export interface CvdResponse {
+  symbol: string
+  start_time: string
+  end_time: string
+  tick_count: number
+  cvd: number
+  buy_volume: number
+  sell_volume: number
+  buy_notional: number
+  sell_notional: number
+}
+
+export interface LiquidationSummary {
+  start_time: string
+  end_time: string
+  count: number
+  total_notional: number
+  long_liquidation_notional: number
+  short_liquidation_notional: number
+  events: unknown[]
+}
+
+export class MicrostructureApi {
+  /// 获取最新订单簿快照
+  static async getLatestOrderbook(symbol: string) {
+    const { data } = await api.get<OrderbookSnapshot>(`/microstructure/orderbook/${symbol}`)
+    return data
+  }
+
+  /// 查询订单簿历史
+  static async listOrderbookHistory(symbol: string, limit = 50) {
+    const { data } = await api.get(`/microstructure/orderbook/${symbol}/history`, {
+      params: { limit },
+    })
+    return data
+  }
+
+  /// 查询逐笔成交
+  static async listTrades(symbol: string, limit = 100) {
+    const { data } = await api.get(`/microstructure/trades/${symbol}`, {
+      params: { limit },
+    })
+    return data
+  }
+
+  /// 计算 CVD
+  static async computeCvd(symbol: string, params?: {
+    start_time?: string
+    end_time?: string
+    limit?: number
+  }) {
+    const { data } = await api.get<CvdResponse>(`/microstructure/trades/${symbol}/cvd`, {
+      params,
+    })
+    return data
+  }
+
+  /// 查询清算事件
+  static async listLiquidations(params?: {
+    symbol?: string
+    limit?: number
+  }) {
+    const { data } = await api.get<LiquidationSummary>('/microstructure/liquidations', {
+      params,
+    })
+    return data
+  }
+
+  /// 查询基差数据
+  static async listBasis(symbol: string, limit = 100) {
+    const { data } = await api.get(`/microstructure/basis/${symbol}`, {
+      params: { limit },
+    })
+    return data
+  }
+}
+
+// =========================================================
+// 数据质量监控 API（/data-quality/*）
+// =========================================================
+
+export interface QualityOverviewItem {
+  symbol: string
+  data_source: string
+  snapshot_time: string
+  freshness_sec: number | null
+  gap_ratio: number
+  outlier_ratio: number
+  coverage_ratio: number
+  quality_grade: string
+  expected_points: number
+  actual_points: number
+}
+
+export interface QualityAlert {
+  symbol: string
+  data_source: string
+  snapshot_time: string
+  freshness_sec: number | null
+  gap_ratio: number
+  coverage_ratio: number
+  quality_grade: string
+  severity: string
+}
+
+export class DataQualityApi {
+  /// 获取质量概览
+  static async getOverview() {
+    const { data } = await api.get<{ total_sources: number; healthy: number; warning: number; critical: number; overview: QualityOverviewItem[] }>('/data-quality/overview')
+    return data
+  }
+
+  /// 获取告警列表
+  static async getAlerts() {
+    const { data } = await api.get<{ total_alerts: number; critical: number; warning: number; alerts: QualityAlert[] }>('/data-quality/alerts/list')
+    return data
+  }
+
+  /// 手动触发扫描
+  static async triggerScan(req?: { lookback_hours?: number; symbols?: string[] }) {
+    const { data } = await api.post('/data-quality/scan', req || {})
+    return data
+  }
+
+  /// 获取数据源定义
+  static async listSources() {
+    const { data } = await api.get('/data-quality/sources')
+    return data
+  }
 }
 
 export default api
