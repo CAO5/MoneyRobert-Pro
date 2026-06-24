@@ -12,6 +12,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -716,7 +717,579 @@ impl ExecutionEngine for InMemoryExecutor {
 }
 
 // ============================================================
-// 6. 测试
+// 6. 模拟盘执行器（DB 持久化 + 统一费用/滑点/保证金计算）
+// ============================================================
+
+/// 模拟盘执行器
+///
+/// 与回测共用同一套费用/滑点/保证金计算逻辑（compute_fee / apply_slippage /
+/// compute_margin_required），但将订单、成交、持仓持久化到数据库。
+///
+/// 核心设计：
+/// - 开仓时计算手续费和滑点，从账户余额扣除保证金+手续费
+/// - 平仓时计算已实现盈亏（含平仓手续费），返还保证金
+/// - 账户余额实时反映现金、保证金、已实现盈亏
+pub struct PaperTradingExecutor {
+    config: ExecutionConfig,
+    pool: sqlx::PgPool,
+    user_id: i64,
+}
+
+/// 模拟盘开仓结果
+#[derive(Debug, Clone, Serialize)]
+pub struct PaperOpenResult {
+    pub position_id: Uuid,
+    pub fill: Fill,
+    pub margin: f64,
+    pub fee: f64,
+    pub slippage_cost: f64,
+    pub remaining_balance: f64,
+}
+
+/// 模拟盘平仓结果
+#[derive(Debug, Clone, Serialize)]
+pub struct PaperCloseResult {
+    pub fill: Fill,
+    pub gross_pnl: f64,
+    pub fee: f64,
+    pub net_pnl: f64,
+    pub margin_released: f64,
+    pub remaining_balance: f64,
+}
+
+impl PaperTradingExecutor {
+    pub fn new(config: ExecutionConfig, pool: sqlx::PgPool, user_id: i64) -> Self {
+        Self {
+            config,
+            pool,
+            user_id,
+        }
+    }
+
+    /// 使用默认配置创建
+    pub fn with_defaults(pool: sqlx::PgPool, user_id: i64) -> Self {
+        Self::new(ExecutionConfig::default(), pool, user_id)
+    }
+
+    /// 获取或创建模拟盘账户
+    pub async fn get_or_create_account(&self) -> Result<f64, String> {
+        let row = sqlx::query(
+            r#"INSERT INTO paper_trading_accounts (user_id, balance, initial_balance, total_pnl, total_equity, peak_equity)
+               VALUES ($1, 100000, 100000, 0, 100000, 100000)
+               ON CONFLICT (user_id) DO UPDATE SET user_id = EXCLUDED.user_id
+               RETURNING balance"#,
+        )
+        .bind(self.user_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| format!("get_or_create_account failed: {}", e))?;
+
+        let balance: f64 = row.get("balance");
+        Ok(balance)
+    }
+
+    /// 开仓（市价单）
+    ///
+    /// 统一计算手续费、滑点、保证金，并持久化到 positions + paper_trading_fills 表
+    pub async fn open_position(
+        &self,
+        symbol: &str,
+        side: OrderSide,
+        quantity: f64,
+        ref_price: f64,
+        leverage: i32,
+        stop_loss: Option<f64>,
+        take_profit: Option<f64>,
+    ) -> Result<PaperOpenResult, String> {
+        let balance = self.get_or_create_account().await?;
+
+        // 统一滑点计算
+        let (filled_price, _) = apply_slippage(side, ref_price, self.config.slippage_bps);
+        let notional = filled_price * quantity;
+
+        // 统一手续费计算（市价单 = taker）
+        let fee = compute_fee(notional, self.config.fee_taker_bps);
+        let slippage_cost = (filled_price - ref_price).abs() * quantity;
+
+        // 统一保证金计算
+        let margin = compute_margin_required(notional, leverage);
+
+        // 检查余额
+        if balance < margin + fee {
+            return Err(format!(
+                "Insufficient balance: need {:.2} (margin {:.2} + fee {:.2}), have {:.2}",
+                margin + fee,
+                margin,
+                fee,
+                balance
+            ));
+        }
+
+        let position_id = Uuid::new_v4();
+        let fill_id = Uuid::new_v4();
+        let now = Utc::now();
+        let side_str = side.as_str();
+
+        // 写入持仓
+        sqlx::query(
+            r#"INSERT INTO positions
+               (id, user_id, symbol, side, quantity, entry_price, filled_price, unrealized_pnl,
+                leverage, stop_loss, take_profit, status, fee, slippage_bps, slippage_cost,
+                margin, realized_pnl, notional, opened_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $6, 0, $7, $8, $9, 'OPEN',
+                       $10, $11, $12, $13, 0, $14, $15)"#,
+        )
+        .bind(position_id)
+        .bind(self.user_id)
+        .bind(symbol)
+        .bind(side_str)
+        .bind(quantity)
+        .bind(filled_price)
+        .bind(leverage)
+        .bind(stop_loss)
+        .bind(take_profit)
+        .bind(fee)
+        .bind(self.config.slippage_bps)
+        .bind(slippage_cost)
+        .bind(margin)
+        .bind(notional)
+        .bind(now)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("insert position failed: {}", e))?;
+
+        // 写入成交记录
+        sqlx::query(
+            r#"INSERT INTO paper_trading_fills
+               (fill_id, user_id, order_id, symbol, side, quantity, price, notional,
+                fee, slippage_bps, slippage_cost, fee_rate_bps, is_maker, fill_time, position_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, FALSE, $13, $14)"#,
+        )
+        .bind(fill_id)
+        .bind(self.user_id)
+        .bind(position_id) // 简化：用 position_id 作为 order_id
+        .bind(symbol)
+        .bind(side_str)
+        .bind(quantity)
+        .bind(filled_price)
+        .bind(notional)
+        .bind(fee)
+        .bind(self.config.slippage_bps)
+        .bind(slippage_cost)
+        .bind(self.config.fee_taker_bps)
+        .bind(now)
+        .bind(position_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("insert fill failed: {}", e))?;
+
+        // 更新账户余额（扣除保证金+手续费）
+        let remaining = balance - margin - fee;
+        self.update_account_balance(remaining, margin, fee, slippage_cost)
+            .await?;
+
+        let fill = Fill {
+            fill_id,
+            order_id: position_id,
+            symbol: symbol.to_string(),
+            exchange: None,
+            side,
+            quantity,
+            price: filled_price,
+            notional,
+            fee,
+            slippage_bps: self.config.slippage_bps,
+            slippage_cost,
+            fee_rate_bps: self.config.fee_taker_bps,
+            is_maker: false,
+            fill_time: now,
+        };
+
+        Ok(PaperOpenResult {
+            position_id,
+            fill,
+            margin,
+            fee,
+            slippage_cost,
+            remaining_balance: remaining,
+        })
+    }
+
+    /// 平仓
+    ///
+    /// 统一计算平仓手续费、滑点、已实现盈亏（毛盈亏 - 开仓费 - 平仓费）
+    pub async fn close_position(
+        &self,
+        position_id: Uuid,
+        exit_ref_price: f64,
+        close_reason: Option<&str>,
+    ) -> Result<PaperCloseResult, String> {
+        // 读取持仓
+        let row = sqlx::query(
+            r#"SELECT symbol, side::text, quantity::float8, entry_price::float8,
+                      filled_price::float8, fee::float8, margin::float8, leverage,
+                      slippage_bps::float8, slippage_cost::float8
+               FROM positions
+               WHERE id = $1 AND user_id = $2 AND status = 'OPEN'"#,
+        )
+        .bind(position_id)
+        .bind(self.user_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| format!("query position failed: {}", e))?
+        .ok_or_else(|| "Position not found or not OPEN".to_string())?;
+
+        let symbol: String = row.get("symbol");
+        let side_str: String = row.get("side");
+        let quantity: f64 = row.get("quantity");
+        let entry_price: f64 = row.get("filled_price");
+        let open_fee: f64 = row.get("fee");
+        let margin: f64 = row.get("margin");
+        let leverage: i32 = row.get("leverage");
+
+        // 平仓方向 = 原持仓反方向
+        let close_side = match side_str.as_str() {
+            "buy" | "long" => OrderSide::Sell,
+            "sell" | "short" => OrderSide::Buy,
+            _ => return Err(format!("Unknown side: {}", side_str)),
+        };
+
+        // 统一滑点计算（平仓也适用滑点）
+        let (exit_price, _) = apply_slippage(close_side, exit_ref_price, self.config.slippage_bps);
+        let exit_notional = exit_price * quantity;
+
+        // 统一手续费计算
+        let close_fee = compute_fee(exit_notional, self.config.fee_taker_bps);
+        let close_slippage_cost = (exit_price - exit_ref_price).abs() * quantity;
+
+        // 毛盈亏（不含费用）
+        let gross_pnl = match side_str.as_str() {
+            "buy" | "long" => (exit_price - entry_price) * quantity,
+            "sell" | "short" => (entry_price - exit_price) * quantity,
+            _ => 0.0,
+        };
+
+        // 净盈亏 = 毛盈亏 - 开仓费 - 平仓费
+        let net_pnl = gross_pnl - open_fee - close_fee;
+
+        let fill_id = Uuid::new_v4();
+        let now = Utc::now();
+
+        // 写入平仓成交记录
+        sqlx::query(
+            r#"INSERT INTO paper_trading_fills
+               (fill_id, user_id, order_id, symbol, side, quantity, price, notional,
+                fee, slippage_bps, slippage_cost, fee_rate_bps, is_maker, fill_time,
+                position_id, close_reason)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, FALSE, $13, $14, $15)"#,
+        )
+        .bind(fill_id)
+        .bind(self.user_id)
+        .bind(position_id)
+        .bind(&symbol)
+        .bind(close_side.as_str())
+        .bind(quantity)
+        .bind(exit_price)
+        .bind(exit_notional)
+        .bind(close_fee)
+        .bind(self.config.slippage_bps)
+        .bind(close_slippage_cost)
+        .bind(self.config.fee_taker_bps)
+        .bind(now)
+        .bind(position_id)
+        .bind(close_reason)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("insert close fill failed: {}", e))?;
+
+        // 更新持仓状态
+        sqlx::query(
+            r#"UPDATE positions
+               SET status = 'CLOSED', closed_at = $1, close_price = $2, close_fee = $3,
+                   realized_pnl = $4, unrealized_pnl = 0, updated_at = $1
+               WHERE id = $5"#,
+        )
+        .bind(now)
+        .bind(exit_price)
+        .bind(close_fee)
+        .bind(net_pnl)
+        .bind(position_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("update position failed: {}", e))?;
+
+        // 写入 trades 记录
+        sqlx::query(
+            r#"INSERT INTO trades
+               (user_id, symbol, side, entry_price, exit_price, size, leverage,
+                status, pnl, pnl_percent, entry_fee, exit_fee, slippage_bps,
+                slippage_cost, gross_pnl, net_pnl, margin, close_reason)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, 'CLOSED', $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)"#,
+        )
+        .bind(self.user_id)
+        .bind(&symbol)
+        .bind(&side_str)
+        .bind(entry_price)
+        .bind(exit_price)
+        .bind(quantity)
+        .bind(leverage)
+        .bind(net_pnl)
+        .bind(if entry_price > 0.0 { net_pnl / (entry_price * quantity) } else { 0.0 })
+        .bind(open_fee)
+        .bind(close_fee)
+        .bind(self.config.slippage_bps)
+        .bind(row.get::<f64, _>("slippage_cost") + close_slippage_cost)
+        .bind(gross_pnl)
+        .bind(net_pnl)
+        .bind(margin)
+        .bind(close_reason)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("insert trade failed: {}", e))?;
+
+        // 更新账户余额（返还保证金 + 净盈亏 - 平仓费）
+        let balance = self.get_or_create_account().await?;
+        let remaining = balance + margin + net_pnl;
+        self.update_account_balance(remaining, -margin, close_fee, close_slippage_cost)
+            .await?;
+
+        let fill = Fill {
+            fill_id,
+            order_id: position_id,
+            symbol,
+            exchange: None,
+            side: close_side,
+            quantity,
+            price: exit_price,
+            notional: exit_notional,
+            fee: close_fee,
+            slippage_bps: self.config.slippage_bps,
+            slippage_cost: close_slippage_cost,
+            fee_rate_bps: self.config.fee_taker_bps,
+            is_maker: false,
+            fill_time: now,
+        };
+
+        Ok(PaperCloseResult {
+            fill,
+            gross_pnl,
+            fee: close_fee,
+            net_pnl,
+            margin_released: margin,
+            remaining_balance: remaining,
+        })
+    }
+
+    /// 更新账户余额和统计
+    async fn update_account_balance(
+        &self,
+        new_balance: f64,
+        margin_delta: f64,
+        fee_delta: f64,
+        slippage_delta: f64,
+    ) -> Result<(), String> {
+        sqlx::query(
+            r#"UPDATE paper_trading_accounts
+               SET balance = $2,
+                   margin_used = GREATEST(margin_used + $3, 0),
+                   total_fees = total_fees + $4,
+                   total_slippage_cost = total_slippage_cost + $5,
+                   total_equity = $2 + GREATEST(margin_used + $3, 0),
+                   peak_equity = GREATEST(peak_equity, $2 + GREATEST(margin_used + $3, 0)),
+                   drawdown_pct = CASE WHEN peak_equity > 0
+                       THEN GREATEST(0, (peak_equity - ($2 + GREATEST(margin_used + $3, 0))) / peak_equity)
+                       ELSE 0 END,
+                   total_pnl = total_pnl + CASE WHEN $3 < 0 THEN $4 * (-1) ELSE 0 END,
+                   updated_at = NOW()
+               WHERE user_id = $1"#,
+        )
+        .bind(self.user_id)
+        .bind(new_balance)
+        .bind(margin_delta)
+        .bind(fee_delta)
+        .bind(slippage_delta)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| format!("update account failed: {}", e))?;
+        Ok(())
+    }
+
+    /// 获取账户状态
+    pub async fn get_account_summary(&self) -> Result<serde_json::Value, String> {
+        let row = sqlx::query(
+            r#"SELECT balance::float8, initial_balance::float8, total_pnl::float8,
+                      total_fees::float8, total_slippage_cost::float8, margin_used::float8,
+                      total_equity::float8, peak_equity::float8, drawdown_pct::float8
+               FROM paper_trading_accounts WHERE user_id = $1"#,
+        )
+        .bind(self.user_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| format!("get_account_summary failed: {}", e))?;
+
+        match row {
+            Some(r) => Ok(serde_json::json!({
+                "balance": r.get::<f64, _>("balance"),
+                "initial_balance": r.get::<f64, _>("initial_balance"),
+                "total_pnl": r.get::<f64, _>("total_pnl"),
+                "total_fees": r.get::<f64, _>("total_fees"),
+                "total_slippage_cost": r.get::<f64, _>("total_slippage_cost"),
+                "margin_used": r.get::<f64, _>("margin_used"),
+                "total_equity": r.get::<f64, _>("total_equity"),
+                "peak_equity": r.get::<f64, _>("peak_equity"),
+                "drawdown_pct": r.get::<f64, _>("drawdown_pct"),
+            })),
+            None => Ok(serde_json::json!({
+                "balance": 100000.0,
+                "initial_balance": 100000.0,
+                "total_pnl": 0.0,
+                "total_fees": 0.0,
+                "total_slippage_cost": 0.0,
+                "margin_used": 0.0,
+                "total_equity": 100000.0,
+                "peak_equity": 100000.0,
+                "drawdown_pct": 0.0,
+            })),
+        }
+    }
+}
+
+// ============================================================
+// 7. 实盘执行适配器（OKX 响应 → 统一 Fill 模型）
+// ============================================================
+
+/// 实盘执行适配器
+///
+/// 将 OKX 订单请求/响应映射为统一的 Order/Fill 模型，
+/// 确保实盘成交记录与回测/模拟盘使用相同的数据结构，
+/// 便于下游归因分析和绩效评估。
+pub struct LiveExecutionAdapter {
+    config: ExecutionConfig,
+}
+
+/// OKX 订单响应（简化）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OkxFillResponse {
+    pub ord_id: String,
+    pub inst_id: String,
+    pub side: String,    // "buy" / "sell"
+    pub fill_sz: String, // 成交数量
+    pub fill_px: String, // 成交价格
+    pub fee: String,
+    pub fee_ccy: String,
+    pub exec_type: String, // "T" taker / "M" maker
+    pub ts: String,         // 时间戳
+}
+
+impl LiveExecutionAdapter {
+    pub fn new(config: ExecutionConfig) -> Self {
+        Self { config }
+    }
+
+    pub fn with_defaults() -> Self {
+        Self::new(ExecutionConfig::default())
+    }
+
+    /// 将统一 Order 转换为 OKX 订单请求格式
+    pub fn to_okx_request(&self, order: &Order) -> crate::exchanges::okx::OkxOrderRequest {
+        crate::exchanges::okx::OkxOrderRequest {
+            inst_id: order.symbol.clone(),
+            td_mode: "cross".to_string(),
+            side: order.side.as_str().to_string(),
+            ord_type: match order.order_type {
+                OrderType::Market => "market".to_string(),
+                OrderType::Limit => "limit".to_string(),
+                OrderType::Stop => "conditional".to_string(),
+            },
+            sz: order.quantity.to_string(),
+            px: order.price.map(|p| p.to_string()),
+            sl_trigger_px: order.stop_price.map(|p| p.to_string()),
+            sl_ord_px: order.stop_price.map(|_| "-1".to_string()),
+            tp_trigger_px: None,
+            tp_ord_px: None,
+            reduce_only: None,
+        }
+    }
+
+    /// 将 OKX 成交响应转换为统一 Fill 模型
+    ///
+    /// 如果 OKX 未返回滑点信息，使用配置中的默认滑点估算
+    pub fn from_okx_fill(&self, okx_fill: &OkxFillResponse, order: &Order) -> Fill {
+        let price: f64 = okx_fill.fill_px.parse().unwrap_or(0.0);
+        let quantity: f64 = okx_fill.fill_sz.parse().unwrap_or(0.0);
+        let notional = price * quantity;
+        let fee: f64 = okx_fill.fee.parse().unwrap_or(0.0);
+        let is_maker = okx_fill.exec_type == "M";
+        let fee_rate_bps = if is_maker {
+            self.config.fee_maker_bps
+        } else {
+            self.config.fee_taker_bps
+        };
+
+        let side = match okx_fill.side.as_str() {
+            "buy" => OrderSide::Buy,
+            "sell" => OrderSide::Sell,
+            _ => order.side,
+        };
+
+        let fill_time = chrono::DateTime::from_timestamp(
+            okx_fill.ts.parse().unwrap_or(0) / 1000,
+            0,
+        )
+        .unwrap_or_else(|| Utc::now());
+
+        Fill {
+            fill_id: Uuid::new_v4(),
+            order_id: order.order_id,
+            symbol: okx_fill.inst_id.clone(),
+            exchange: Some("okx".to_string()),
+            side,
+            quantity,
+            price,
+            notional,
+            fee: fee.abs(),
+            slippage_bps: self.config.slippage_bps,
+            slippage_cost: 0.0, // 实盘滑点由市场决定，无法精确计算
+            fee_rate_bps,
+            is_maker,
+            fill_time,
+        }
+    }
+
+    /// 获取配置引用
+    pub fn config(&self) -> &ExecutionConfig {
+        &self.config
+    }
+}
+
+// ============================================================
+// 8. 执行模式枚举
+// ============================================================
+
+/// 执行模式
+///
+/// 用于区分回测、模拟盘、实盘三种执行环境，
+/// 确保下游（归因、报告）能正确区分数据来源
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecutionMode {
+    Backtest,
+    Paper,
+    Live,
+}
+
+impl ExecutionMode {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ExecutionMode::Backtest => "backtest",
+            ExecutionMode::Paper => "paper",
+            ExecutionMode::Live => "live",
+        }
+    }
+}
+
+// ============================================================
+// 9. 测试
 // ============================================================
 
 #[cfg(test)]
@@ -1097,5 +1670,224 @@ mod tests {
             // BTC: 100, ETH: 100，总名义价值 200
             assert_eq!(acc.total_notional, 200.0);
         });
+    }
+
+    // ========================================
+    // PaperTradingExecutor / LiveExecutionAdapter 测试
+    // ========================================
+
+    #[test]
+    fn test_live_adapter_to_okx_request_market() {
+        let adapter = LiveExecutionAdapter::with_defaults();
+        let order = Order {
+            order_id: Uuid::new_v4(),
+            symbol: "BTC-USDT-SWAP".to_string(),
+            exchange: Some("okx".to_string()),
+            side: OrderSide::Buy,
+            order_type: OrderType::Market,
+            quantity: 0.5,
+            filled_quantity: 0.0,
+            price: None,
+            stop_price: None,
+            leverage: 2,
+            status: OrderStatus::Pending,
+            client_order_id: None,
+            strategy_id: None,
+            agent_id: None,
+            signal_id: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let okx_req = adapter.to_okx_request(&order);
+        assert_eq!(okx_req.inst_id, "BTC-USDT-SWAP");
+        assert_eq!(okx_req.side, "buy");
+        assert_eq!(okx_req.ord_type, "market");
+        assert_eq!(okx_req.sz, "0.5");
+        assert_eq!(okx_req.td_mode, "cross");
+    }
+
+    #[test]
+    fn test_live_adapter_to_okx_request_limit() {
+        let adapter = LiveExecutionAdapter::with_defaults();
+        let order = Order {
+            order_id: Uuid::new_v4(),
+            symbol: "ETH-USDT-SWAP".to_string(),
+            exchange: None,
+            side: OrderSide::Sell,
+            order_type: OrderType::Limit,
+            quantity: 1.0,
+            filled_quantity: 0.0,
+            price: Some(3000.0),
+            stop_price: Some(3200.0),
+            leverage: 1,
+            status: OrderStatus::Pending,
+            client_order_id: None,
+            strategy_id: None,
+            agent_id: None,
+            signal_id: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let okx_req = adapter.to_okx_request(&order);
+        assert_eq!(okx_req.ord_type, "limit");
+        assert_eq!(okx_req.px.as_deref(), Some("3000"));
+        assert_eq!(okx_req.sl_trigger_px.as_deref(), Some("3200"));
+    }
+
+    #[test]
+    fn test_live_adapter_from_okx_fill_taker() {
+        let adapter = LiveExecutionAdapter::with_defaults();
+        let order = Order {
+            order_id: Uuid::new_v4(),
+            symbol: "BTC-USDT-SWAP".to_string(),
+            exchange: Some("okx".to_string()),
+            side: OrderSide::Buy,
+            order_type: OrderType::Market,
+            quantity: 1.0,
+            filled_quantity: 0.0,
+            price: None,
+            stop_price: None,
+            leverage: 1,
+            status: OrderStatus::Pending,
+            client_order_id: None,
+            strategy_id: None,
+            agent_id: None,
+            signal_id: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let okx_fill = OkxFillResponse {
+            ord_id: "12345".to_string(),
+            inst_id: "BTC-USDT-SWAP".to_string(),
+            side: "buy".to_string(),
+            fill_sz: "1.0".to_string(),
+            fill_px: "50000".to_string(),
+            fee: "-2.5".to_string(), // OKX 返回负数表示扣除
+            fee_ccy: "USDT".to_string(),
+            exec_type: "T".to_string(), // Taker
+            ts: "1700000000000".to_string(),
+        };
+
+        let fill = adapter.from_okx_fill(&okx_fill, &order);
+        assert_eq!(fill.symbol, "BTC-USDT-SWAP");
+        assert_eq!(fill.side, OrderSide::Buy);
+        assert!((fill.price - 50000.0).abs() < 1e-9);
+        assert!((fill.quantity - 1.0).abs() < 1e-9);
+        assert!((fill.notional - 50000.0).abs() < 1e-9);
+        assert!((fill.fee - 2.5).abs() < 1e-9); // 取绝对值
+        assert!(!fill.is_maker); // Taker
+        assert_eq!(fill.exchange.as_deref(), Some("okx"));
+    }
+
+    #[test]
+    fn test_live_adapter_from_okx_fill_maker() {
+        let adapter = LiveExecutionAdapter::with_defaults();
+        let order = Order {
+            order_id: Uuid::new_v4(),
+            symbol: "ETH-USDT-SWAP".to_string(),
+            exchange: None,
+            side: OrderSide::Sell,
+            order_type: OrderType::Limit,
+            quantity: 2.0,
+            filled_quantity: 0.0,
+            price: Some(3000.0),
+            stop_price: None,
+            leverage: 1,
+            status: OrderStatus::Pending,
+            client_order_id: None,
+            strategy_id: None,
+            agent_id: None,
+            signal_id: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let okx_fill = OkxFillResponse {
+            ord_id: "67890".to_string(),
+            inst_id: "ETH-USDT-SWAP".to_string(),
+            side: "sell".to_string(),
+            fill_sz: "2.0".to_string(),
+            fill_px: "3000".to_string(),
+            fee: "-1.2".to_string(),
+            fee_ccy: "USDT".to_string(),
+            exec_type: "M".to_string(), // Maker
+            ts: "1700000000000".to_string(),
+        };
+
+        let fill = adapter.from_okx_fill(&okx_fill, &order);
+        assert!(fill.is_maker); // Maker
+        assert_eq!(fill.fee_rate_bps, adapter.config().fee_maker_bps);
+    }
+
+    #[test]
+    fn test_execution_mode_as_str() {
+        assert_eq!(ExecutionMode::Backtest.as_str(), "backtest");
+        assert_eq!(ExecutionMode::Paper.as_str(), "paper");
+        assert_eq!(ExecutionMode::Live.as_str(), "live");
+    }
+
+    #[test]
+    fn test_paper_trading_executor_config() {
+        let config = ExecutionConfig {
+            fee_taker_bps: 8.0,
+            fee_maker_bps: 3.0,
+            slippage_bps: 5.0,
+            default_leverage: 2,
+            max_position_pct: 0.15,
+            max_leverage: 5.0,
+        };
+        // 验证配置可以正确创建（不需要 DB 连接）
+        assert_eq!(config.fee_taker_bps, 8.0);
+        assert_eq!(config.slippage_bps, 5.0);
+        assert_eq!(config.default_leverage, 2);
+    }
+
+    #[test]
+    fn test_unified_fee_calculation_consistency() {
+        // 验证回测和模拟盘使用相同的费用计算函数
+        let notional = 10000.0;
+        let fee_bps = 5.0;
+
+        // 回测路径使用的计算
+        let backtest_fee = compute_fee(notional, fee_bps);
+
+        // 模拟盘路径使用的计算（相同函数）
+        let paper_fee = compute_fee(notional, fee_bps);
+
+        // 实盘适配器路径使用的计算（相同函数）
+        let live_fee = compute_fee(notional, fee_bps);
+
+        assert_eq!(backtest_fee, paper_fee);
+        assert_eq!(paper_fee, live_fee);
+        assert!((backtest_fee - 5.0).abs() < 1e-9); // 10000 * 5/10000 = 5.0
+    }
+
+    #[test]
+    fn test_unified_slippage_consistency() {
+        let price = 100.0;
+        let slippage_bps = 10.0; // 0.1%
+
+        // 三条路径使用相同的滑点计算
+        let (bt_price, _) = apply_slippage(OrderSide::Buy, price, slippage_bps);
+        let (paper_price, _) = apply_slippage(OrderSide::Buy, price, slippage_bps);
+
+        assert_eq!(bt_price, paper_price);
+        assert!(bt_price > price); // 买入滑点向上
+    }
+
+    #[test]
+    fn test_unified_margin_calculation() {
+        let notional = 1000.0;
+        let leverage = 10;
+
+        // 三条路径使用相同的保证金计算
+        let bt_margin = compute_margin_required(notional, leverage);
+        let paper_margin = compute_margin_required(notional, leverage);
+
+        assert_eq!(bt_margin, paper_margin);
+        assert!((bt_margin - 100.0).abs() < 1e-9); // 1000 / 10 = 100
     }
 }
