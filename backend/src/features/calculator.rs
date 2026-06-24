@@ -32,6 +32,14 @@ pub struct FeatureSet {
     pub volume_ratio: Option<f64>,
     pub high_low_range: Option<f64>,
     pub market_regime: Option<MarketRegime>,
+    // 新增指标（路线图基金经理视角建议扩充）
+    pub donchian_width: Option<f64>,
+    pub supertrend: Option<f64>,
+    pub vwap: Option<f64>,
+    pub obv: Option<f64>,
+    pub mfi_14: Option<f64>,
+    pub garch_volatility: Option<f64>,
+    pub kyle_lambda: Option<f64>,
 }
 
 impl FeatureSet {
@@ -70,6 +78,15 @@ impl FeatureSet {
         push("volume_sma_20", self.volume_sma_20);
         push("volume_ratio", self.volume_ratio);
         push("high_low_range", self.high_low_range);
+
+        // 新增指标
+        push("donchian_width", self.donchian_width);
+        push("supertrend", self.supertrend);
+        push("vwap", self.vwap);
+        push("obv", self.obv);
+        push("mfi_14", self.mfi_14);
+        push("garch_volatility", self.garch_volatility);
+        push("kyle_lambda", self.kyle_lambda);
 
         // market_regime 是分类值，存储为 0-4 的整数
         if let Some(regime) = self.market_regime {
@@ -192,6 +209,15 @@ impl FeatureCalculator {
         // 成交量特征
         features.volume_sma_20 = self.calculate_sma(&volumes, 20);
         features.volume_ratio = self.calculate_volume_ratio(&volumes, 20);
+
+        // 新增指标（路线图基金经理视角建议扩充）
+        features.donchian_width = self.calculate_donchian_width(&highs, &lows, 20);
+        features.supertrend = self.calculate_supertrend(klines, 10, 3.0);
+        features.vwap = self.calculate_vwap(klines, 20);
+        features.obv = self.calculate_obv(&closes, &volumes);
+        features.mfi_14 = self.calculate_mfi(klines, 14);
+        features.garch_volatility = self.calculate_garch_volatility(&closes, 20);
+        features.kyle_lambda = self.calculate_kyle_lambda(klines, 20);
 
         // 市场状态
         if let Some(regime_snap) = self.regime_classifier.classify(klines) {
@@ -429,6 +455,307 @@ impl FeatureCalculator {
             None
         }
     }
+
+    // ============ 新增技术指标（路线图基金经理视角建议扩充） ============
+
+    /// Donchian 通道宽度
+    /// 计算 N 周期内的最高价与最低价之差占收盘价的比例
+    fn calculate_donchian_width(
+        &self,
+        highs: &[f64],
+        lows: &[f64],
+        period: usize,
+    ) -> Option<f64> {
+        if highs.len() < period || lows.len() < period {
+            return None;
+        }
+        let hh = highs.iter().rev().take(period).cloned().fold(f64::NEG_INFINITY, f64::max);
+        let ll = lows.iter().rev().take(period).cloned().fold(f64::INFINITY, f64::min);
+        let close = highs.last().unwrap_or(&0.0);
+        if *close > 0.0 {
+            Some((hh - ll) / *close)
+        } else {
+            None
+        }
+    }
+
+    /// SuperTrend 指标
+    /// 基于 ATR 的趋势跟踪指标，返回最新 SuperTrend 值
+    /// 公式：ST = (high+low)/2 ± multiplier × ATR
+    /// 上涨趋势时 ST = mid - mult × ATR，下跌趋势时 ST = mid + mult × ATR
+    fn calculate_supertrend(
+        &self,
+        klines: &[(f64, f64, f64, f64, f64)],
+        period: usize,
+        multiplier: f64,
+    ) -> Option<f64> {
+        if klines.len() < period + 1 {
+            return None;
+        }
+
+        let highs: Vec<f64> = klines.iter().map(|k| k.1).collect();
+        let lows: Vec<f64> = klines.iter().map(|k| k.2).collect();
+        let closes: Vec<f64> = klines.iter().map(|k| k.3).collect();
+
+        // 计算 ATR 序列
+        let mut trs = Vec::with_capacity(klines.len() - 1);
+        for i in 1..klines.len() {
+            let tr = (highs[i] - lows[i])
+                .max((highs[i] - closes[i - 1]).abs())
+                .max((lows[i] - closes[i - 1]).abs());
+            trs.push(tr);
+        }
+
+        // Wilder 平滑 ATR
+        let mut atr_values = Vec::with_capacity(trs.len());
+        if trs.len() < period {
+            return None;
+        }
+        let mut atr: f64 = trs.iter().take(period).sum::<f64>() / period as f64;
+        atr_values.push(atr);
+        for i in period..trs.len() {
+            atr = (atr * (period as f64 - 1.0) + trs[i]) / period as f64;
+            atr_values.push(atr);
+        }
+
+        // 从后往前计算 SuperTrend
+        let n = klines.len();
+        let mut trend_up = true;
+        let mut prev_st = (highs[0] + lows[0]) / 2.0 + multiplier * atr_values[0];
+
+        for i in 1..n {
+            let idx = if i < atr_values.len() { i } else { atr_values.len() - 1 };
+            let mid = (highs[i] + lows[i]) / 2.0;
+            let atr = atr_values[idx];
+            let upper_band = mid + multiplier * atr;
+            let lower_band = mid - multiplier * atr;
+
+            let st = if trend_up {
+                // 上涨趋势：使用 lower_band，但如果价格跌破则切换
+                let st_candidate = lower_band.max(prev_st);
+                if closes[i] < st_candidate {
+                    trend_up = false;
+                    upper_band.min(prev_st)
+                } else {
+                    st_candidate
+                }
+            } else {
+                // 下跌趋势：使用 upper_band，但如果价格突破则切换
+                let st_candidate = upper_band.min(prev_st);
+                if closes[i] > st_candidate {
+                    trend_up = true;
+                    lower_band.max(prev_st)
+                } else {
+                    st_candidate
+                }
+            };
+            prev_st = st;
+        }
+
+        Some(prev_st)
+    }
+
+    /// VWAP（成交量加权平均价）
+    /// 计算 N 周期内的 VWAP，返回当前价格相对 VWAP 的偏离度
+    fn calculate_vwap(
+        &self,
+        klines: &[(f64, f64, f64, f64, f64)],
+        period: usize,
+    ) -> Option<f64> {
+        if klines.len() < period {
+            return None;
+        }
+        let slice = &klines[klines.len() - period..];
+        let mut pv_sum = 0.0;
+        let mut vol_sum = 0.0;
+        for k in slice {
+            let (_, high, low, close, volume) = *k;
+            let typical_price = (high + low + close) / 3.0;
+            pv_sum += typical_price * volume;
+            vol_sum += volume;
+        }
+        if vol_sum > 0.0 {
+            let vwap = pv_sum / vol_sum;
+            let current_close = slice.last().unwrap().3;
+            if vwap > 0.0 {
+                // 返回偏离度（百分比）
+                Some((current_close - vwap) / vwap)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    /// OBV（On-Balance Volume，能量潮）
+    /// 累积成交量指标：价格上涨日加成交量，下跌日减成交量
+    fn calculate_obv(&self, closes: &[f64], volumes: &[f64]) -> Option<f64> {
+        if closes.len() < 2 || volumes.len() < closes.len() {
+            return None;
+        }
+        let mut obv = 0.0;
+        for i in 1..closes.len() {
+            if closes[i] > closes[i - 1] {
+                obv += volumes[i];
+            } else if closes[i] < closes[i - 1] {
+                obv -= volumes[i];
+            }
+            // 平盘不变
+        }
+        // 返回最近 N 周期的 OBV 变化率
+        let n = closes.len().min(20);
+        if n > 1 {
+            let mut prev_obv = 0.0;
+            for i in 1..n {
+                let idx = closes.len() - n + i;
+                if closes[idx] > closes[idx - 1] {
+                    prev_obv += volumes[idx];
+                } else if closes[idx] < closes[idx - 1] {
+                    prev_obv -= volumes[idx];
+                }
+            }
+            if prev_obv.abs() > 0.0 {
+                Some(obv / prev_obv.abs())
+            } else {
+                Some(obv)
+            }
+        } else {
+            Some(obv)
+        }
+    }
+
+    /// MFI（Money Flow Index，资金流量指标）
+    /// 类似 RSI 但加入成交量权重，衡量资金流入流出强度
+    fn calculate_mfi(
+        &self,
+        klines: &[(f64, f64, f64, f64, f64)],
+        period: usize,
+    ) -> Option<f64> {
+        if klines.len() < period + 1 {
+            return None;
+        }
+
+        let typical_prices: Vec<f64> = klines
+            .iter()
+            .map(|k| (k.1 + k.2 + k.3) / 3.0)
+            .collect();
+        let volumes: Vec<f64> = klines.iter().map(|k| k.4).collect();
+
+        let mut money_flows: Vec<f64> = Vec::with_capacity(typical_prices.len() - 1);
+        for i in 1..typical_prices.len() {
+            let mf = typical_prices[i] * volumes[i];
+            if typical_prices[i] > typical_prices[i - 1] {
+                money_flows.push(mf); // 正资金流
+            } else {
+                money_flows.push(-mf); // 负资金流
+            }
+        }
+
+        let recent = &money_flows[money_flows.len() - period..];
+        let pos_flow: f64 = recent.iter().filter(|&&mf| mf > 0.0).sum();
+        let neg_flow: f64 = recent.iter().filter(|&&mf| mf < 0.0).map(|mf| -mf).sum();
+
+        if neg_flow == 0.0 {
+            return Some(100.0);
+        }
+        let money_ratio = pos_flow / neg_flow;
+        Some(100.0 - (100.0 / (1.0 + money_ratio)))
+    }
+
+    /// GARCH(1,1) 波动率
+    /// 简化实现：σ²_t = ω + α × ε²_{t-1} + β × σ²_{t-1}
+    /// 使用默认参数 ω=0.00001, α=0.1, β=0.88（典型加密市场参数）
+    fn calculate_garch_volatility(&self, closes: &[f64], period: usize) -> Option<f64> {
+        if closes.len() < period + 2 {
+            return None;
+        }
+
+        // 计算对数收益率
+        let slice = &closes[closes.len() - period - 1..];
+        let mut returns = Vec::with_capacity(period);
+        for i in 1..slice.len() {
+            if slice[i - 1] > 0.0 {
+                returns.push((slice[i] / slice[i - 1]).ln());
+            }
+        }
+        if returns.is_empty() {
+            return None;
+        }
+
+        // GARCH(1,1) 参数
+        let omega: f64 = 0.00001;
+        let alpha: f64 = 0.10;
+        let beta: f64 = 0.88;
+
+        // 初始化方差为样本方差
+        let mean = returns.iter().sum::<f64>() / returns.len() as f64;
+        let initial_var = returns.iter().map(|r| (r - mean).powi(2)).sum::<f64>() / returns.len() as f64;
+
+        let mut prev_var = initial_var;
+        let mut prev_return = returns[0];
+
+        for &ret in &returns[1..] {
+            let epsilon = ret - mean;
+            let new_var = omega + alpha * epsilon.powi(2) + beta * prev_var;
+            prev_var = new_var;
+            prev_return = ret;
+        }
+
+        // 返回年化波动率（假设每小时数据，24×365=8760 小时/年）
+        let _ = prev_return;
+        Some(prev_var.sqrt() * (8760.0_f64).sqrt())
+    }
+
+    /// Kyle Lambda（价格冲击系数）
+    /// 衡量单位成交量对价格的影响：λ = ΔP / ΔV
+    /// 使用最近 N 周期的价格变化与成交量回归斜率近似
+    fn calculate_kyle_lambda(
+        &self,
+        klines: &[(f64, f64, f64, f64, f64)],
+        period: usize,
+    ) -> Option<f64> {
+        if klines.len() < period + 1 {
+            return None;
+        }
+
+        let slice = &klines[klines.len() - period - 1..];
+        let mut price_changes = Vec::with_capacity(period);
+        let mut volumes = Vec::with_capacity(period);
+
+        for i in 1..slice.len() {
+            let (_, _, _, close, vol) = slice[i];
+            let prev_close = slice[i - 1].3;
+            if prev_close > 0.0 {
+                price_changes.push((close - prev_close) / prev_close);
+                volumes.push(vol);
+            }
+        }
+
+        if price_changes.len() < 5 {
+            return None;
+        }
+
+        // 简单线性回归：ΔP = λ × ΔV + ε
+        let n = price_changes.len() as f64;
+        let mean_v: f64 = volumes.iter().sum::<f64>() / n;
+        let mean_p: f64 = price_changes.iter().sum::<f64>() / n;
+
+        let mut cov_vp = 0.0;
+        let mut var_v = 0.0;
+        for i in 0..price_changes.len() {
+            cov_vp += (volumes[i] - mean_v) * (price_changes[i] - mean_p);
+            var_v += (volumes[i] - mean_v).powi(2);
+        }
+
+        if var_v > 0.0 {
+            let lambda = cov_vp / var_v;
+            // 返回绝对值，表示价格冲击强度
+            Some(lambda.abs())
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]
@@ -578,5 +905,134 @@ mod tests {
         assert_eq!(values.len(), 2);
         assert!(values.iter().any(|v| v.feature_name == "rsi_14"));
         assert!(values.iter().any(|v| v.feature_name == "sma_20"));
+    }
+
+    // ============ 新增指标测试 ============
+
+    #[test]
+    fn test_donchian_width() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(25);
+        let highs: Vec<f64> = klines.iter().map(|k| k.1).collect();
+        let lows: Vec<f64> = klines.iter().map(|k| k.2).collect();
+        let width = calc.calculate_donchian_width(&highs, &lows, 20);
+        assert!(width.is_some());
+        assert!(width.unwrap() > 0.0, "Donchian 宽度应为正数");
+    }
+
+    #[test]
+    fn test_donchian_width_insufficient() {
+        let calc = FeatureCalculator::new();
+        let highs = vec![100.0, 101.0];
+        let lows = vec![99.0, 98.0];
+        let width = calc.calculate_donchian_width(&highs, &lows, 20);
+        assert!(width.is_none(), "数据不足应返回 None");
+    }
+
+    #[test]
+    fn test_supertrend() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(30);
+        let st = calc.calculate_supertrend(&klines, 10, 3.0);
+        assert!(st.is_some());
+        let st_val = st.unwrap();
+        // SuperTrend 应为正数（价格水平）
+        assert!(st_val > 0.0, "SuperTrend 应为正数，实际: {}", st_val);
+    }
+
+    #[test]
+    fn test_vwap() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(25);
+        let vwap = calc.calculate_vwap(&klines, 20);
+        assert!(vwap.is_some());
+        // 偏离度应在合理范围内
+        let dev = vwap.unwrap();
+        assert!(dev.abs() < 1.0, "VWAP 偏离度应 < 100%，实际: {}", dev);
+    }
+
+    #[test]
+    fn test_obv() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(25);
+        let closes: Vec<f64> = klines.iter().map(|k| k.3).collect();
+        let volumes: Vec<f64> = klines.iter().map(|k| k.4).collect();
+        let obv = calc.calculate_obv(&closes, &volumes);
+        assert!(obv.is_some());
+        // 持续上涨，OBV 应为正
+        assert!(obv.unwrap() > 0.0, "持续上涨 OBV 应为正");
+    }
+
+    #[test]
+    fn test_mfi() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(20);
+        let mfi = calc.calculate_mfi(&klines, 14);
+        assert!(mfi.is_some());
+        let mfi_val = mfi.unwrap();
+        // MFI 应在 0-100 之间
+        assert!(mfi_val >= 0.0 && mfi_val <= 100.0, "MFI 应在 0-100 之间，实际: {}", mfi_val);
+    }
+
+    #[test]
+    fn test_mfi_all_positive() {
+        let calc = FeatureCalculator::new();
+        // 持续上涨的 K 线
+        let klines: Vec<(f64, f64, f64, f64, f64)> = (0..20)
+            .map(|i| (100.0 + i as f64, 101.0 + i as f64, 99.0 + i as f64, 100.5 + i as f64, 1000.0))
+            .collect();
+        let mfi = calc.calculate_mfi(&klines, 14);
+        assert!(mfi.is_some());
+        // 持续上涨，MFI 应接近 100
+        assert!(mfi.unwrap() > 80.0, "持续上涨 MFI 应 > 80");
+    }
+
+    #[test]
+    fn test_garch_volatility() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(25);
+        let closes: Vec<f64> = klines.iter().map(|k| k.3).collect();
+        let garch = calc.calculate_garch_volatility(&closes, 20);
+        assert!(garch.is_some());
+        // 年化波动率应为正数
+        let vol = garch.unwrap();
+        assert!(vol > 0.0, "GARCH 波动率应为正数，实际: {}", vol);
+        // 年化波动率通常在 10%-300% 之间
+        assert!(vol < 10.0, "GARCH 波动率应 < 1000%，实际: {}", vol);
+    }
+
+    #[test]
+    fn test_kyle_lambda() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(25);
+        let lambda = calc.calculate_kyle_lambda(&klines, 20);
+        assert!(lambda.is_some());
+        // Kyle Lambda 应为非负数（取了绝对值）
+        assert!(lambda.unwrap() >= 0.0, "Kyle Lambda 应为非负数");
+    }
+
+    #[test]
+    fn test_kyle_lambda_insufficient() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(3);
+        let lambda = calc.calculate_kyle_lambda(&klines, 20);
+        assert!(lambda.is_none(), "数据不足应返回 None");
+    }
+
+    #[test]
+    fn test_all_new_features_in_calculate() {
+        let calc = FeatureCalculator::new();
+        let klines = make_test_klines(60);
+        let features = calc.calculate(&klines);
+        assert!(features.is_some());
+        let f = features.unwrap();
+        // 所有新指标在有足够数据时应计算成功
+        assert!(f.donchian_width.is_some(), "donchian_width 应计算成功");
+        assert!(f.supertrend.is_some(), "supertrend 应计算成功");
+        assert!(f.vwap.is_some(), "vwap 应计算成功");
+        assert!(f.obv.is_some(), "obv 应计算成功");
+        assert!(f.mfi_14.is_some(), "mfi_14 应计算成功");
+        assert!(f.garch_volatility.is_some(), "garch_volatility 应计算成功");
+        assert!(f.kyle_lambda.is_some(), "kyle_lambda 应计算成功");
     }
 }
