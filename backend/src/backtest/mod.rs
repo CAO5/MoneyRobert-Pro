@@ -10,6 +10,7 @@ pub mod risk_engine;
 pub mod runner;
 pub mod trust_engine;
 pub mod walk_forward;
+pub mod purged_kfold;
 pub mod benchmark;
 pub mod position_sizing;
 pub mod portfolio_risk;

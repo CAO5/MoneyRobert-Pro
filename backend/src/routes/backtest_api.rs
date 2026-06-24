@@ -36,6 +36,7 @@ pub fn router() -> Router<AppState> {
         .route("/strategy-failure/alerts/{alert_id}/resolve", post(resolve_failure_alert))
         // Walk-forward 验证
         .route("/walk-forward/windows", post(generate_walk_forward_windows))
+        .route("/purged-kfold/folds", post(generate_purged_kfold_folds))
         // 组合风险管理
         .route("/portfolio-risk/check", post(check_portfolio_risk))
         // 仓位计算
@@ -1016,6 +1017,63 @@ async fn generate_walk_forward_windows(
         },
         "total_windows": windows.len(),
         "windows": windows,
+    })))
+}
+
+// =========================================================
+// Purged K-fold 交叉验证
+// =========================================================
+
+#[derive(Debug, Deserialize)]
+struct PurgedKFoldRequest {
+    start_time: String,
+    end_time: String,
+    k: Option<usize>,
+    purge_days: Option<i64>,
+    embargo_days: Option<i64>,
+}
+
+async fn generate_purged_kfold_folds(
+    _user: CurrentUser,
+    Json(req): Json<PurgedKFoldRequest>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::purged_kfold::{PurgedKFoldConfig, PurgedKFoldEngine};
+
+    let start: DateTime<Utc> = req
+        .start_time
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid start_time: {}", e)))?;
+    let end: DateTime<Utc> = req
+        .end_time
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid end_time: {}", e)))?;
+
+    if end <= start {
+        return Err(AppError::Validation("end_time must be after start_time".into()));
+    }
+
+    let k = req.k.unwrap_or(5);
+    if k < 2 {
+        return Err(AppError::Validation("k must be at least 2".into()));
+    }
+
+    let config = PurgedKFoldConfig {
+        k,
+        purge_days: req.purge_days.unwrap_or(1),
+        embargo_days: req.embargo_days.unwrap_or(1),
+    };
+
+    let engine = PurgedKFoldEngine::new(config.clone());
+    let folds = engine.generate_folds(start, end);
+
+    Ok(Json(serde_json::json!({
+        "config": {
+            "k": config.k,
+            "purge_days": config.purge_days,
+            "embargo_days": config.embargo_days,
+        },
+        "total_folds": folds.len(),
+        "folds": folds,
     })))
 }
 
