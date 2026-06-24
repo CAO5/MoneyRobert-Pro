@@ -568,6 +568,54 @@ mod tests {
         assert_eq!(linear.factor, 1.0);
         assert_eq!(linear.bias, 0.0);
     }
+
+    #[test]
+    fn test_calibrate_three_class_identity() {
+        // 全等概率情况
+        let model_up = FittedCalibration::Linear(LinearParams { factor: 1.0, bias: 0.0 });
+        let model_down = FittedCalibration::Linear(LinearParams { factor: 1.0, bias: 0.0 });
+        let (up, down, flat) = calibrate_three_class(&model_up, &model_down, 0.33, 0.33, 0.34);
+        // 归一化后仍接近原值
+        assert!((up - 0.33).abs() < 0.02);
+        assert!((down - 0.33).abs() < 0.02);
+        assert!((flat - 0.34).abs() < 0.02);
+        // 和为 1
+        assert!((up + down + flat - 1.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_calibrate_three_class_rescale() {
+        // 校准后概率重新归一化
+        let model_up = FittedCalibration::Linear(LinearParams { factor: 0.5, bias: 0.0 });
+        let model_down = FittedCalibration::Linear(LinearParams { factor: 2.0, bias: 0.0 });
+        let (up, down, flat) = calibrate_three_class(&model_up, &model_down, 0.5, 0.3, 0.2);
+        // 校准后: cal_up = 0.25, cal_down = 0.6, cal_flat = 0.15
+        assert!((up + down + flat - 1.0).abs() < 1e-9);
+        assert!(up >= 0.0 && down >= 0.0 && flat >= 0.0);
+    }
+
+    #[test]
+    fn test_calibrate_three_class_platt_underconfidence() {
+        // Platt 模型能修正过度自信
+        let model_up = FittedCalibration::Platt(PlattParams { a: 0.5, b: 0.5 });
+        let model_down = FittedCalibration::Platt(PlattParams { a: 0.5, b: 0.5 });
+        let (up, down, flat) = calibrate_three_class(&model_up, &model_down, 0.8, 0.1, 0.1);
+        // 校准后 up 应下降（修正过度自信），flat 应上升
+        assert!(up < 0.8, "过度自信应被修正，up 应从 0.8 下降");
+        assert!((up + down + flat - 1.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_calibrate_three_class_bounds_nonnegative() {
+        // 所有输出应始终为非负且归一化
+        let model_up = FittedCalibration::Linear(LinearParams { factor: 1.5, bias: 0.5 });
+        let model_down = FittedCalibration::Linear(LinearParams { factor: 1.5, bias: 0.5 });
+        for (pu, pd, pf) in [(0.2, 0.3, 0.5), (0.5, 0.3, 0.2), (0.1, 0.1, 0.8)] {
+            let (up, down, flat) = calibrate_three_class(&model_up, &model_down, pu, pd, pf);
+            assert!(up >= 0.0 && down >= 0.0 && flat >= 0.0, "所有概率应非负");
+            assert!((up + down + flat - 1.0).abs() < 1e-9, "应归一化为 1");
+        }
+    }
 }
 
 // ============================================================
