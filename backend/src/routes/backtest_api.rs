@@ -8,7 +8,7 @@ use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
 use crate::state::AppState;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     routing::{get, post},
     Json, Router,
 };
@@ -26,6 +26,14 @@ pub fn router() -> Router<AppState> {
         .route("/jobs/{job_id}/trades", get(get_trades))
         .route("/jobs/{job_id}/signals", post(create_signal))
         .route("/jobs/{job_id}/trust-level", get(get_trust_level).post(assess_trust_level))
+        // 归因分析
+        .route("/jobs/{job_id}/attributions", get(list_attributions).post(create_attribution))
+        .route("/attributions/summary", get(get_attribution_summary))
+        // 策略失效检测
+        .route("/strategy-failure/detect", post(detect_strategy_failures))
+        .route("/strategy-failure/alerts", get(list_failure_alerts))
+        .route("/strategy-failure/alerts/{alert_id}/acknowledge", post(acknowledge_failure_alert))
+        .route("/strategy-failure/alerts/{alert_id}/resolve", post(resolve_failure_alert))
 }
 
 #[derive(Debug, Deserialize)]
@@ -592,4 +600,355 @@ async fn assess_trust_level(
         .map_err(|e| AppError::Internal(format!("save trust assessment failed: {}", e)))?;
 
     Ok(Json(assessment.into()))
+}
+
+// =========================================================
+// 交易后归因分析 API
+// =========================================================
+
+/// 归因响应
+#[derive(Debug, Serialize)]
+struct AttributionResponse {
+    attribution_id: String,
+    symbol: String,
+    entry_time: String,
+    exit_time: Option<String>,
+    holding_period_sec: Option<i32>,
+    gross_pnl: f64,
+    fee_cost: f64,
+    slippage_cost: f64,
+    funding_cost: f64,
+    impact_cost: f64,
+    net_pnl: f64,
+    direction: String,
+    market_regime: Option<String>,
+    win_loss: Option<String>,
+    exit_reason: Option<String>,
+    attribution_tags: serde_json::Value,
+    benchmark_return: Option<f64>,
+    alpha: Option<f64>,
+    evidence: serde_json::Value,
+}
+
+impl From<crate::backtest::attribution::TradeAttribution> for AttributionResponse {
+    fn from(a: crate::backtest::attribution::TradeAttribution) -> Self {
+        Self {
+            attribution_id: a.attribution_id.to_string(),
+            symbol: a.symbol,
+            entry_time: a.entry_time.to_rfc3339(),
+            exit_time: a.exit_time.map(|t| t.to_rfc3339()),
+            holding_period_sec: a.holding_period_sec,
+            gross_pnl: a.gross_pnl,
+            fee_cost: a.fee_cost,
+            slippage_cost: a.slippage_cost,
+            funding_cost: a.funding_cost,
+            impact_cost: a.impact_cost,
+            net_pnl: a.net_pnl,
+            direction: a.direction,
+            market_regime: a.market_regime,
+            win_loss: a.win_loss,
+            exit_reason: a.exit_reason,
+            attribution_tags: a.attribution_tags,
+            benchmark_return: a.benchmark_return,
+            alpha: a.alpha,
+            evidence: a.evidence,
+        }
+    }
+}
+
+/// 创建归因分析
+#[derive(Debug, Deserialize)]
+struct CreateAttributionRequest {
+    symbol: String,
+    direction: String,
+    entry_time: String,
+    exit_time: Option<String>,
+    gross_pnl: f64,
+    fee_cost: f64,
+    slippage_cost: f64,
+    funding_cost: f64,
+    impact_cost: f64,
+    market_regime: Option<String>,
+    signal_source: Option<String>,
+    signal_confidence: Option<f64>,
+    calibrated_probability: Option<f64>,
+    exit_reason: Option<String>,
+    benchmark_return: Option<f64>,
+}
+
+async fn create_attribution(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Path(job_id): Path<Uuid>,
+    Json(req): Json<CreateAttributionRequest>,
+) -> Result<Json<AttributionResponse>> {
+    use crate::backtest::attribution;
+
+    let entry_time: DateTime<Utc> = req
+        .entry_time
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid entry_time: {}", e)))?;
+    let exit_time = if let Some(s) = &req.exit_time {
+        Some(
+            s.parse::<DateTime<Utc>>()
+                .map_err(|e| AppError::Validation(format!("invalid exit_time: {}", e)))?,
+        )
+    } else {
+        None
+    };
+
+    let input = attribution::AttributionInput {
+        job_id: Some(job_id),
+        user_id: Some(user.user_id),
+        symbol: req.symbol,
+        order_id: None,
+        fill_id: None,
+        decision_card_id: None,
+        entry_time,
+        exit_time,
+        direction: req.direction,
+        gross_pnl: req.gross_pnl,
+        fee_cost: req.fee_cost,
+        slippage_cost: req.slippage_cost,
+        funding_cost: req.funding_cost,
+        impact_cost: req.impact_cost,
+        market_regime: req.market_regime,
+        exit_regime: None,
+        signal_source: req.signal_source,
+        signal_confidence: req.signal_confidence,
+        calibrated_probability: req.calibrated_probability,
+        exit_reason: req.exit_reason,
+        benchmark_return: req.benchmark_return,
+    };
+
+    let attr = attribution::analyze_attribution(&input);
+
+    attribution::save_attribution(&state.db_pool, &attr)
+        .await
+        .map_err(|e| AppError::Internal(format!("save attribution failed: {}", e)))?;
+
+    Ok(Json(attr.into()))
+}
+
+/// 查询归因列表
+#[derive(Debug, Deserialize)]
+struct ListAttributionsParams {
+    symbol: Option<String>,
+    limit: Option<i64>,
+}
+
+async fn list_attributions(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Path(job_id): Path<Uuid>,
+    Query(params): Query<ListAttributionsParams>,
+) -> Result<Json<Vec<AttributionResponse>>> {
+    use crate::backtest::attribution;
+    let limit = params.limit.unwrap_or(50).min(200);
+    let attrs = attribution::list_attributions(
+        &state.db_pool,
+        Some(job_id),
+        None,
+        params.symbol.as_deref(),
+        limit,
+    )
+    .await
+    .map_err(|e| AppError::Internal(format!("list attributions failed: {}", e)))?;
+
+    Ok(Json(attrs.into_iter().map(Into::into).collect()))
+}
+
+/// 归因汇总
+#[derive(Debug, Deserialize)]
+struct AttributionSummaryParams {
+    job_id: Option<Uuid>,
+    symbol: Option<String>,
+}
+
+async fn get_attribution_summary(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Query(params): Query<AttributionSummaryParams>,
+) -> Result<Json<crate::backtest::attribution::AttributionSummary>> {
+    use crate::backtest::attribution;
+    let attrs = attribution::list_attributions(
+        &state.db_pool,
+        params.job_id,
+        None,
+        params.symbol.as_deref(),
+        1000,
+    )
+    .await
+    .map_err(|e| AppError::Internal(format!("list attributions failed: {}", e)))?;
+
+    let summary = attribution::summarize_attributions(&attrs);
+    Ok(Json(summary))
+}
+
+// =========================================================
+// 策略失效检测 API
+// =========================================================
+
+/// 失效检测请求
+#[derive(Debug, Deserialize)]
+struct DetectFailuresRequest {
+    strategy_name: String,
+    symbol: Option<String>,
+    sample_count: Option<i32>,
+    current_max_drawdown: Option<f64>,
+    baseline_max_drawdown: Option<f64>,
+    drawdown_threshold: Option<f64>,
+    current_brier_score: Option<f64>,
+    baseline_brier_score: Option<f64>,
+    current_win_rate: Option<f64>,
+    baseline_win_rate: Option<f64>,
+    current_profit_factor: Option<f64>,
+    baseline_profit_factor: Option<f64>,
+    current_regime: Option<String>,
+    previous_regime: Option<String>,
+    /// 评估窗口（天）
+    eval_window_days: Option<i32>,
+}
+
+/// 失效告警响应
+#[derive(Debug, Serialize)]
+struct FailureAlertResponse {
+    alert_id: String,
+    strategy_name: String,
+    symbol: Option<String>,
+    alert_type: String,
+    severity: String,
+    title: String,
+    description: String,
+    trigger_metric: String,
+    trigger_value: f64,
+    threshold_value: Option<f64>,
+    baseline_value: Option<f64>,
+    recommended_action: Option<String>,
+    status: String,
+    created_at: String,
+    metadata: serde_json::Value,
+}
+
+impl From<crate::backtest::strategy_failure::StrategyFailureAlert> for FailureAlertResponse {
+    fn from(a: crate::backtest::strategy_failure::StrategyFailureAlert) -> Self {
+        Self {
+            alert_id: a.alert_id.to_string(),
+            strategy_name: a.strategy_name,
+            symbol: a.symbol,
+            alert_type: a.alert_type,
+            severity: a.severity,
+            title: a.title,
+            description: a.description,
+            trigger_metric: a.trigger_metric,
+            trigger_value: a.trigger_value,
+            threshold_value: a.threshold_value,
+            baseline_value: a.baseline_value,
+            recommended_action: a.recommended_action,
+            status: a.status,
+            created_at: a.created_at.to_rfc3339(),
+            metadata: a.metadata,
+        }
+    }
+}
+
+async fn detect_strategy_failures(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Json(req): Json<DetectFailuresRequest>,
+) -> Result<Json<Vec<FailureAlertResponse>>> {
+    use crate::backtest::strategy_failure;
+
+    let now = Utc::now();
+    let window_days = req.eval_window_days.unwrap_or(30);
+    let window_start = now - chrono::Duration::days(window_days as i64);
+
+    let input = strategy_failure::FailureDetectionInput {
+        strategy_name: req.strategy_name,
+        symbol: req.symbol,
+        user_id: Some(user.user_id),
+        eval_window_start: window_start,
+        eval_window_end: now,
+        sample_count: req.sample_count.unwrap_or(0),
+        current_max_drawdown: req.current_max_drawdown,
+        baseline_max_drawdown: req.baseline_max_drawdown,
+        drawdown_threshold: req.drawdown_threshold,
+        current_brier_score: req.current_brier_score,
+        baseline_brier_score: req.baseline_brier_score,
+        current_win_rate: req.current_win_rate,
+        baseline_win_rate: req.baseline_win_rate,
+        current_profit_factor: req.current_profit_factor,
+        baseline_profit_factor: req.baseline_profit_factor,
+        current_regime: req.current_regime,
+        previous_regime: req.previous_regime,
+    };
+
+    let alerts = strategy_failure::detect_failures(&input);
+
+    // 保存告警到数据库
+    for alert in &alerts {
+        let _ = strategy_failure::save_alert(&state.db_pool, alert).await;
+    }
+
+    Ok(Json(alerts.into_iter().map(Into::into).collect()))
+}
+
+/// 查询失效告警列表
+#[derive(Debug, Deserialize)]
+struct ListFailureAlertsParams {
+    symbol: Option<String>,
+    limit: Option<i64>,
+}
+
+async fn list_failure_alerts(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Query(params): Query<ListFailureAlertsParams>,
+) -> Result<Json<Vec<FailureAlertResponse>>> {
+    use crate::backtest::strategy_failure;
+    let limit = params.limit.unwrap_or(50).min(200);
+    let alerts = strategy_failure::list_active_alerts(
+        &state.db_pool,
+        Some(user.user_id),
+        params.symbol.as_deref(),
+        limit,
+    )
+    .await
+    .map_err(|e| AppError::Internal(format!("list failure alerts failed: {}", e)))?;
+
+    Ok(Json(alerts.into_iter().map(Into::into).collect()))
+}
+
+/// 确认告警
+async fn acknowledge_failure_alert(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Path(alert_id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::strategy_failure;
+    strategy_failure::acknowledge_alert(&state.db_pool, alert_id, user.user_id)
+        .await
+        .map_err(|e| AppError::Internal(format!("acknowledge alert failed: {}", e)))?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "告警已确认"
+    })))
+}
+
+/// 解决告警
+async fn resolve_failure_alert(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Path(alert_id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::strategy_failure;
+    strategy_failure::resolve_alert(&state.db_pool, alert_id)
+        .await
+        .map_err(|e| AppError::Internal(format!("resolve alert failed: {}", e)))?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "告警已解决"
+    })))
 }

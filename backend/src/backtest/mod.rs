@@ -14,3 +14,5 @@ pub mod benchmark;
 pub mod position_sizing;
 pub mod portfolio_risk;
 pub mod execution;
+pub mod attribution;
+pub mod strategy_failure;
