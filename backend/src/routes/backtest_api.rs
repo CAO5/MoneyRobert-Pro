@@ -34,6 +34,12 @@ pub fn router() -> Router<AppState> {
         .route("/strategy-failure/alerts", get(list_failure_alerts))
         .route("/strategy-failure/alerts/{alert_id}/acknowledge", post(acknowledge_failure_alert))
         .route("/strategy-failure/alerts/{alert_id}/resolve", post(resolve_failure_alert))
+        // Walk-forward 验证
+        .route("/walk-forward/windows", post(generate_walk_forward_windows))
+        // 组合风险管理
+        .route("/portfolio-risk/check", post(check_portfolio_risk))
+        // 仓位计算
+        .route("/position-sizing/calculate", post(calculate_position))
 }
 
 #[derive(Debug, Deserialize)]
@@ -950,5 +956,232 @@ async fn resolve_failure_alert(
     Ok(Json(serde_json::json!({
         "success": true,
         "message": "告警已解决"
+    })))
+}
+
+// =========================================================
+// Walk-forward 验证
+// =========================================================
+
+#[derive(Debug, Deserialize)]
+struct WalkForwardRequest {
+    train_window_days: Option<i64>,
+    test_window_days: Option<i64>,
+    step_days: Option<i64>,
+    purge_days: Option<i64>,
+    embargo_days: Option<i64>,
+    /// 数据起始时间
+    start_time: String,
+    /// 数据结束时间
+    end_time: String,
+}
+
+async fn generate_walk_forward_windows(
+    _user: CurrentUser,
+    Json(req): Json<WalkForwardRequest>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::walk_forward::{WalkForwardConfig, WalkForwardEngine};
+
+    let start: DateTime<Utc> = req
+        .start_time
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid start_time: {}", e)))?;
+    let end: DateTime<Utc> = req
+        .end_time
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid end_time: {}", e)))?;
+
+    if end <= start {
+        return Err(AppError::Validation("end_time must be after start_time".into()));
+    }
+
+    let config = WalkForwardConfig {
+        train_window_days: req.train_window_days.unwrap_or(90),
+        test_window_days: req.test_window_days.unwrap_or(30),
+        step_days: req.step_days.unwrap_or(30),
+        purge_days: req.purge_days.unwrap_or(1),
+        embargo_days: req.embargo_days.unwrap_or(1),
+    };
+
+    let engine = WalkForwardEngine::new(config.clone());
+    let windows = engine.generate_windows(start, end);
+
+    Ok(Json(serde_json::json!({
+        "config": {
+            "train_window_days": config.train_window_days,
+            "test_window_days": config.test_window_days,
+            "step_days": config.step_days,
+            "purge_days": config.purge_days,
+            "embargo_days": config.embargo_days,
+        },
+        "total_windows": windows.len(),
+        "windows": windows,
+    })))
+}
+
+// =========================================================
+// 组合风险管理
+// =========================================================
+
+#[derive(Debug, Deserialize)]
+struct PortfolioRiskRequest {
+    /// 资产列表（symbol, 仓位占比, 波动率, 日均成交量）
+    assets: Vec<AssetInput>,
+    /// 相关系数矩阵 {(symbol_a, symbol_b): corr}
+    correlations: Option<Vec<(String, String, f64)>>,
+    /// 最大 CVaR 预算
+    max_portfolio_cvar: Option<f64>,
+    /// 单资产风险贡献上限
+    max_risk_concentration: Option<f64>,
+    /// 流动性约束
+    max_volume_participation: Option<f64>,
+    /// 高相关阈值
+    high_correlation_threshold: Option<f64>,
+    /// 高相关最大敞口
+    max_correlated_exposure: Option<f64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AssetInput {
+    symbol: String,
+    position_pct: f64,
+    volatility: f64,
+    avg_daily_volume: f64,
+}
+
+async fn check_portfolio_risk(
+    _user: CurrentUser,
+    Json(req): Json<PortfolioRiskRequest>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::portfolio_risk::{
+        AssetRiskProfile, PortfolioRiskConfig, PortfolioRiskEngine,
+    };
+    use std::collections::HashMap;
+
+    let config = PortfolioRiskConfig {
+        max_portfolio_cvar: req.max_portfolio_cvar.unwrap_or(0.05),
+        max_risk_concentration: req.max_risk_concentration.unwrap_or(0.30),
+        max_volume_participation: req.max_volume_participation.unwrap_or(0.01),
+        high_correlation_threshold: req.high_correlation_threshold.unwrap_or(0.70),
+        max_correlated_exposure: req.max_correlated_exposure.unwrap_or(0.20),
+    };
+
+    let engine = PortfolioRiskEngine::new(config.clone());
+
+    let assets: Vec<AssetRiskProfile> = req
+        .assets
+        .iter()
+        .map(|a| AssetRiskProfile {
+            symbol: a.symbol.clone(),
+            position_pct: a.position_pct,
+            volatility: a.volatility,
+            avg_daily_volume: a.avg_daily_volume,
+            risk_contribution: 0.0,
+        })
+        .collect();
+
+    let mut corr_matrix: HashMap<(String, String), f64> = HashMap::new();
+    if let Some(corr_list) = &req.correlations {
+        for (a, b, corr) in corr_list {
+            corr_matrix.insert((a.clone(), b.clone()), *corr);
+        }
+    }
+
+    let result = engine.check(&assets, &corr_matrix, 1.0);
+
+    Ok(Json(serde_json::json!({
+        "passed": result.passed,
+        "portfolio_cvar": result.portfolio_cvar,
+        "portfolio_volatility": result.portfolio_volatility,
+        "violations": result.violations,
+        "adjusted_positions": result.adjusted_positions,
+        "config": {
+            "max_portfolio_cvar": config.max_portfolio_cvar,
+            "max_risk_concentration": config.max_risk_concentration,
+            "max_volume_participation": config.max_volume_participation,
+            "high_correlation_threshold": config.high_correlation_threshold,
+            "max_correlated_exposure": config.max_correlated_exposure,
+        },
+    })))
+}
+
+// =========================================================
+// 仓位计算（Fractional Kelly）
+// =========================================================
+
+#[derive(Debug, Deserialize)]
+struct PositionSizingRequest {
+    entry_price: f64,
+    win_probability: f64,
+    avg_win: f64,
+    avg_loss: f64,
+    asset_volatility: f64,
+    stop_loss_pct: Option<f64>,
+    /// Kelly 分数（0.0-1.0，默认 0.25 = 1/4 Kelly）
+    kelly_fraction: Option<f64>,
+    /// 波动率目标（年化，默认 0.15 = 15%）
+    volatility_target: Option<f64>,
+    /// 单笔最大风险占比（默认 0.005 = 0.5%）
+    max_risk_per_trade: Option<f64>,
+    /// 单资产最大仓位占比（默认 0.10 = 10%）
+    max_position_pct: Option<f64>,
+    /// 组合最大杠杆（默认 3.0）
+    max_leverage: Option<f64>,
+    /// 最小仓位占比（默认 0.01 = 1%）
+    min_position_pct: Option<f64>,
+}
+
+async fn calculate_position(
+    _user: CurrentUser,
+    Json(req): Json<PositionSizingRequest>,
+) -> Result<Json<serde_json::Value>> {
+    use crate::backtest::position_sizing::{PositionSizingConfig, PositionSizingEngine};
+
+    let config = PositionSizingConfig {
+        kelly_fraction: req.kelly_fraction.unwrap_or(0.25),
+        volatility_target: req.volatility_target.unwrap_or(0.15),
+        max_risk_per_trade: req.max_risk_per_trade.unwrap_or(0.005),
+        max_position_pct: req.max_position_pct.unwrap_or(0.10),
+        max_leverage: req.max_leverage.unwrap_or(3.0),
+        min_position_pct: req.min_position_pct.unwrap_or(0.01),
+    };
+
+    let engine = PositionSizingEngine::new(config.clone());
+    let result = engine.calculate(
+        req.entry_price,
+        req.win_probability,
+        req.avg_win,
+        req.avg_loss,
+        req.asset_volatility,
+        req.stop_loss_pct,
+    );
+
+    Ok(Json(serde_json::json!({
+        "result": {
+            "position_pct": result.position_pct,
+            "leverage": result.leverage,
+            "kelly_raw": result.kelly_raw,
+            "vol_target_pct": result.vol_target_pct,
+            "risk_based_pct": result.risk_based_pct,
+            "stop_loss_price": result.stop_loss_price,
+            "method": result.method,
+            "reason": result.reason,
+        },
+        "config": {
+            "kelly_fraction": config.kelly_fraction,
+            "volatility_target": config.volatility_target,
+            "max_risk_per_trade": config.max_risk_per_trade,
+            "max_position_pct": config.max_position_pct,
+            "max_leverage": config.max_leverage,
+            "min_position_pct": config.min_position_pct,
+        },
+        "inputs": {
+            "entry_price": req.entry_price,
+            "win_probability": req.win_probability,
+            "avg_win": req.avg_win,
+            "avg_loss": req.avg_loss,
+            "asset_volatility": req.asset_volatility,
+            "stop_loss_pct": req.stop_loss_pct,
+        },
     })))
 }

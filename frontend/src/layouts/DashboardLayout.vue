@@ -7,7 +7,8 @@ import {
   Menu, X, ChevronDown, User, Bell, Wallet, Brain, MessageSquare,
   BookOpen, Newspaper, FileText, BarChart3, Shield, Target,
   ChevronRight, Swords, Layers, FlaskConical, Database,
-  Gauge, ShieldAlert, Activity, Microscope
+  Gauge, ShieldAlert, Activity, Microscope,
+  GitBranch, Network, Calculator, Repeat
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -55,6 +56,9 @@ const navigation = [
       { name: '回测中心', path: '/backtest', icon: FlaskConical },
       { name: '归因分析', path: '/backtest/attribution', icon: BarChart3 },
       { name: '失效告警', path: '/backtest/strategy-failure', icon: ShieldAlert },
+      { name: 'Walk-forward', path: '/backtest/walk-forward', icon: Repeat },
+      { name: '组合风险', path: '/backtest/portfolio-risk', icon: Network },
+      { name: 'Kelly 仓位', path: '/backtest/position-sizing', icon: Calculator },
     ]
   },
   {
@@ -62,6 +66,7 @@ const navigation = [
     items: [
       { name: '微结构数据', path: '/microstructure', icon: Microscope },
       { name: '数据质量', path: '/data-quality', icon: Database },
+      { name: '特征血缘', path: '/features/lineage', icon: GitBranch },
     ]
   },
   {

@@ -26,6 +26,7 @@ pub fn router() -> Router<AppState> {
         .route("/definitions", get(list_definitions))
         .route("/values", get(query_values))
         .route("/quality", get(query_quality))
+        .route("/lineage", get(query_lineage))
         .route("/regimes/history", get(query_regimes))
         .route("/regimes/latest/{symbol}", get(latest_regime))
         .route("/regimes/aggregate-daily", post(aggregate_daily))
@@ -420,5 +421,86 @@ async fn query_quality(
         "start_time": start.to_rfc3339(),
         "end_time": end.to_rfc3339(),
         "snapshots": resp,
+    })))
+}
+
+// =========================================================
+// 特征血缘查询
+// =========================================================
+
+#[derive(Debug, Deserialize)]
+struct QueryLineageParams {
+    /// 特征 ID（UUID）
+    feature_id: String,
+    /// 交易对
+    symbol: String,
+    /// 起始时间（可选，默认 7 天前）
+    start_time: Option<String>,
+    /// 结束时间（可选，默认当前）
+    end_time: Option<String>,
+}
+
+async fn query_lineage(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Query(params): Query<QueryLineageParams>,
+) -> Result<Json<serde_json::Value>> {
+    let feature_id: uuid::Uuid = params
+        .feature_id
+        .parse()
+        .map_err(|e| AppError::Validation(format!("invalid feature_id: {}", e)))?;
+
+    let now = Utc::now();
+    let start: DateTime<Utc> = match params.start_time.as_deref() {
+        Some(s) => s
+            .parse()
+            .map_err(|e| AppError::Validation(format!("invalid start_time: {}", e)))?,
+        None => now - chrono::Duration::days(7),
+    };
+    let end: DateTime<Utc> = match params.end_time.as_deref() {
+        Some(s) => s
+            .parse()
+            .map_err(|e| AppError::Validation(format!("invalid end_time: {}", e)))?,
+        None => now,
+    };
+
+    let lineages = FeatureStore::query_feature_lineage(
+        &state.db_pool,
+        feature_id,
+        &params.symbol,
+        start,
+        end,
+    )
+    .await
+    .map_err(|e| AppError::Internal(format!("query feature lineage failed: {}", e)))?;
+
+    let resp: Vec<serde_json::Value> = lineages
+        .iter()
+        .map(|l| {
+            serde_json::json!({
+                "lineage_id": l.lineage_id.to_string(),
+                "feature_id": l.feature_id.to_string(),
+                "symbol": l.symbol,
+                "timestamp": l.timestamp.to_rfc3339(),
+                "data_source": l.data_source,
+                "source_time_start": l.source_time_start.map(|t| t.to_rfc3339()),
+                "source_time_end": l.source_time_end.map(|t| t.to_rfc3339()),
+                "calc_version": l.calc_version,
+                "parameters_hash": l.parameters_hash,
+                "parameters": l.parameters,
+                "upstream_feature_ids": l.upstream_feature_ids,
+                "raw_data_refs": l.raw_data_refs,
+                "created_at": l.created_at.to_rfc3339(),
+            })
+        })
+        .collect();
+
+    Ok(Json(serde_json::json!({
+        "feature_id": params.feature_id,
+        "symbol": params.symbol,
+        "start_time": start.to_rfc3339(),
+        "end_time": end.to_rfc3339(),
+        "count": resp.len(),
+        "lineages": resp,
     })))
 }

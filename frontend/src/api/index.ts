@@ -692,6 +692,64 @@ export class BacktestApi {
     const { data } = await api.post(`/backtest/strategy-failure/alerts/${alertId}/resolve`)
     return data
   }
+
+  /// 生成 Walk-forward 窗口
+  static async generateWalkForwardWindows(req: {
+    train_window_days?: number
+    test_window_days?: number
+    step_days?: number
+    purge_days?: number
+    embargo_days?: number
+    start_time: string
+    end_time: string
+  }) {
+    const { data } = await api.post('/backtest/walk-forward/windows', req)
+    return data
+  }
+
+  /// 组合风险检查
+  static async checkPortfolioRisk(req: {
+    assets: Array<{ symbol: string; position_pct: number; volatility: number; avg_daily_volume: number }>
+    correlations?: Array<[string, string, number]>
+    max_portfolio_cvar?: number
+    max_risk_concentration?: number
+    max_volume_participation?: number
+    high_correlation_threshold?: number
+    max_correlated_exposure?: number
+  }) {
+    const { data } = await api.post('/backtest/portfolio-risk/check', req)
+    return data
+  }
+
+  /// 仓位计算（Fractional Kelly）
+  static async calculatePosition(req: {
+    entry_price: number
+    win_probability: number
+    avg_win: number
+    avg_loss: number
+    asset_volatility: number
+    stop_loss_pct?: number
+    kelly_fraction?: number
+    volatility_target?: number
+    max_risk_per_trade?: number
+    max_position_pct?: number
+    max_leverage?: number
+    min_position_pct?: number
+  }) {
+    const { data } = await api.post('/backtest/position-sizing/calculate', req)
+    return data
+  }
+
+  /// 查询特征血缘
+  static async queryFeatureLineage(params: {
+    feature_id: string
+    symbol: string
+    start_time?: string
+    end_time?: string
+  }) {
+    const { data } = await api.get('/features/lineage', { params })
+    return data
+  }
 }
 
 // =========================================================
