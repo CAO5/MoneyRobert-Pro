@@ -31,6 +31,10 @@ const SYMBOLS: &[&str] = &[
 const TICKER_INTERVAL_SECS: u64 = 10;
 const KLINES_INTERVAL_SECS: u64 = 60;
 const FUNDING_INTERVAL_SECS: u64 = 300;
+const ORDERBOOK_INTERVAL_SECS: u64 = 5;
+const TRADES_INTERVAL_SECS: u64 = 10;
+const LIQUIDATION_INTERVAL_SECS: u64 = 30;
+const BASIS_INTERVAL_SECS: u64 = 60;
 
 pub struct MarketCollector {
     db: PgPool,
@@ -142,6 +146,10 @@ impl MarketCollector {
         let ticker_collector = self.clone();
         let kline_collector = self.clone();
         let funding_collector = self.clone();
+        let orderbook_collector = self.clone();
+        let trades_collector = self.clone();
+        let liquidation_collector = self.clone();
+        let basis_collector = self.clone();
 
         tokio::spawn(async move {
             loop {
@@ -170,7 +178,44 @@ impl MarketCollector {
             }
         });
 
-        tracing::info!("Market data collector started");
+        // 微结构数据采集（第二阶段任务2）
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = orderbook_collector.fetch_orderbooks().await {
+                    tracing::warn!("Orderbook fetch error: {:?}", e);
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(ORDERBOOK_INTERVAL_SECS)).await;
+            }
+        });
+
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = trades_collector.fetch_trades().await {
+                    tracing::warn!("Trades fetch error: {:?}", e);
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(TRADES_INTERVAL_SECS)).await;
+            }
+        });
+
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = liquidation_collector.fetch_liquidations().await {
+                    tracing::warn!("Liquidation fetch error: {:?}", e);
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(LIQUIDATION_INTERVAL_SECS)).await;
+            }
+        });
+
+        tokio::spawn(async move {
+            loop {
+                if let Err(e) = basis_collector.fetch_basis_data().await {
+                    tracing::warn!("Basis fetch error: {:?}", e);
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(BASIS_INTERVAL_SECS)).await;
+            }
+        });
+
+        tracing::info!("Market data collector started (ticker, kline, funding, orderbook, trades, liquidations, basis)");
     }
 
     async fn fetch_tickers(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -358,6 +403,286 @@ impl MarketCollector {
         }
 
         self.cleanup_old_data("funding_rate_history", "7 days").await;
+        Ok(())
+    }
+
+    /// 采集订单簿快照（第二阶段任务2 - 微结构数据）
+    /// OKX API: /api/v5/market/books?instId={symbol}&sz=20
+    async fn fetch_orderbooks(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        for symbol in SYMBOLS {
+            let url = format!(
+                "https://www.okx.com/api/v5/market/books?instId={}&sz=20",
+                symbol
+            );
+
+            let resp = self.http_get(&url).await?;
+            let body: serde_json::Value = resp.json().await?;
+
+            if let Some(data) = body.get("data").and_then(|d| d.as_array()).and_then(|a| a.first()) {
+                let bids_raw = data.get("bids").and_then(|v| v.as_array());
+                let asks_raw = data.get("asks").and_then(|v| v.as_array());
+
+                let parse_levels = |levels: Option<&Vec<serde_json::Value>>| -> Vec<(f64, f64)> {
+                    levels
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|lvl| {
+                                    let a = lvl.as_array()?;
+                                    if a.len() < 2 {
+                                        return None;
+                                    }
+                                    let price: f64 = a[0].as_str()?.parse().ok()?;
+                                    let size: f64 = a[1].as_str()?.parse().ok()?;
+                                    Some((price, size))
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default()
+                };
+
+                let bids = parse_levels(bids_raw);
+                let asks = parse_levels(asks_raw);
+
+                if bids.is_empty() || asks.is_empty() {
+                    continue;
+                }
+
+                let snap = crate::microstructure::build_orderbook_snapshot(
+                    symbol,
+                    "okx",
+                    &bids,
+                    &asks,
+                    chrono::Utc::now(),
+                );
+
+                let _ = crate::microstructure::save_orderbook_snapshot(&self.db, &snap).await;
+            }
+        }
+
+        self.cleanup_old_data("orderbook_snapshots", "7 days").await;
+        Ok(())
+    }
+
+    /// 采集逐笔成交（第二阶段任务2 - 微结构数据）
+    /// OKX API: /api/v5/market/trades?instId={symbol}&limit=50
+    async fn fetch_trades(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        for symbol in SYMBOLS {
+            let url = format!(
+                "https://www.okx.com/api/v5/market/trades?instId={}&limit=50",
+                symbol
+            );
+
+            let resp = self.http_get(&url).await?;
+            let body: serde_json::Value = resp.json().await?;
+
+            if let Some(data) = body.get("data").and_then(|d| d.as_array()) {
+                for trade in data {
+                    let arr = match trade.as_array() {
+                        Some(a) => a,
+                        None => continue,
+                    };
+                    // OKX trades: [instId, tradeId, price, sz, side, ts, ...]
+                    // 实际字段顺序: tradeId, px, sz, side, ts
+                    let trade_id = arr.get(1).and_then(|v| v.as_str()).map(|s| s.to_string());
+                    let price: f64 = arr.get(2).and_then(|v| v.as_str()).and_then(|s| s.parse().ok()).unwrap_or(0.0);
+                    let size: f64 = arr.get(3).and_then(|v| v.as_str()).and_then(|s| s.parse().ok()).unwrap_or(0.0);
+                    let side_str = arr.get(4).and_then(|v| v.as_str()).unwrap_or("buy");
+                    let ts_ms: i64 = arr.get(5).and_then(|v| v.as_str()).and_then(|s| s.parse().ok()).unwrap_or(0);
+
+                    if price <= 0.0 || size <= 0.0 {
+                        continue;
+                    }
+
+                    let timestamp = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(ts_ms)
+                        .unwrap_or_else(chrono::Utc::now);
+
+                    // OKX side: "buy" 表示主动买入（taker 买入），is_buyer_maker = false
+                    // "sell" 表示主动卖出（taker 卖出），is_buyer_maker = true
+                    let (side, is_buyer_maker) = match side_str {
+                        "buy" => ("buy".to_string(), false),
+                        "sell" => ("sell".to_string(), true),
+                        _ => ("buy".to_string(), false),
+                    };
+
+                    let tick = crate::microstructure::TradeTick {
+                        tick_id: 0,
+                        symbol: symbol.to_string(),
+                        exchange: "okx".into(),
+                        trade_id,
+                        timestamp,
+                        price,
+                        size,
+                        notional: price * size,
+                        side,
+                        is_buyer_maker,
+                        created_at: chrono::Utc::now(),
+                    };
+
+                    let _ = crate::microstructure::save_trade_tick(&self.db, &tick).await;
+                }
+            }
+        }
+
+        self.cleanup_old_data("trade_ticks", "3 days").await;
+        Ok(())
+    }
+
+    /// 采集清算事件（第二阶段任务2 - 微结构数据）
+    /// OKX API: /api/v5/public/liquidation-orders?instType=SWAP&state=filled
+    async fn fetch_liquidations(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let url = "https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&state=filled&limit=100";
+
+        let resp = self.http_get(url).await?;
+        let body: serde_json::Value = resp.json().await?;
+
+        if let Some(data) = body.get("data").and_then(|d| d.as_array()) {
+            for item in data {
+                // liquidation-orders 返回结构: { instId, ... details: [{side, px, sz, ...}] }
+                let symbol = item.get("instId").and_then(|v| v.as_str()).unwrap_or("");
+                if symbol.is_empty() {
+                    continue;
+                }
+
+                let details = item.get("details").and_then(|v| v.as_array());
+                if let Some(details_arr) = details {
+                    for detail in details_arr {
+                        let side_str = detail.get("side").and_then(|v| v.as_str()).unwrap_or("");
+                        // OKX: side "long" 表示多仓被强平，"short" 表示空仓被强平
+                        let side = match side_str {
+                            "long" => "long".to_string(),
+                            "short" => "short".to_string(),
+                            _ => continue,
+                        };
+
+                        let price: f64 = detail.get("px")
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| s.parse().ok())
+                            .unwrap_or(0.0);
+                        let size: f64 = detail.get("sz")
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| s.parse().ok())
+                            .unwrap_or(0.0);
+                        let ts_ms: i64 = detail.get("ts")
+                            .and_then(|v| v.as_str())
+                            .and_then(|s| s.parse().ok())
+                            .unwrap_or(0);
+
+                        if price <= 0.0 || size <= 0.0 {
+                            continue;
+                        }
+
+                        let timestamp = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(ts_ms)
+                            .unwrap_or_else(chrono::Utc::now);
+
+                        let event = crate::microstructure::LiquidationEvent {
+                            event_id: 0,
+                            symbol: symbol.to_string(),
+                            exchange: "okx".into(),
+                            timestamp,
+                            side,
+                            price,
+                            size,
+                            notional: price * size,
+                            liquidation_type: Some("forced".into()),
+                            created_at: chrono::Utc::now(),
+                        };
+
+                        let _ = crate::microstructure::save_liquidation_event(&self.db, &event).await;
+                    }
+                }
+            }
+        }
+
+        self.cleanup_old_data("liquidation_events", "30 days").await;
+        Ok(())
+    }
+
+    /// 采集基差数据（第二阶段任务2 - 微结构数据）
+    /// 永续合约价格来自 ticker，现货价格来自 spot ticker，资金费率来自 funding-rate
+    async fn fetch_basis_data(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        for symbol in SYMBOLS {
+            // 永续合约 symbol: BTC-USDT-SWAP
+            // 现货 symbol: BTC-USDT
+            let spot_symbol = symbol.replace("-SWAP", "");
+
+            // 获取永续合约最新价格
+            let perp_url = format!(
+                "https://www.okx.com/api/v5/market/ticker?instId={}",
+                symbol
+            );
+            let perp_resp = self.http_get(&perp_url).await?;
+            let perp_body: serde_json::Value = perp_resp.json().await?;
+            let perp_price = perp_body
+                .get("data")
+                .and_then(|d| d.as_array())
+                .and_then(|a| a.first())
+                .and_then(|d| d.get("last"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(0.0);
+
+            // 获取现货最新价格
+            let spot_url = format!(
+                "https://www.okx.com/api/v5/market/ticker?instId={}",
+                spot_symbol
+            );
+            let spot_resp = self.http_get(&spot_url).await?;
+            let spot_body: serde_json::Value = spot_resp.json().await?;
+            let spot_price = spot_body
+                .get("data")
+                .and_then(|d| d.as_array())
+                .and_then(|a| a.first())
+                .and_then(|d| d.get("last"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(0.0);
+
+            // 获取资金费率
+            let funding_url = format!(
+                "https://www.okx.com/api/v5/public/funding-rate?instId={}",
+                symbol
+            );
+            let funding_resp = self.http_get(&funding_url).await?;
+            let funding_body: serde_json::Value = funding_resp.json().await?;
+            let funding_rate = funding_body
+                .get("data")
+                .and_then(|d| d.as_array())
+                .and_then(|a| a.first())
+                .and_then(|d| d.get("fundingRate"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse::<f64>().ok());
+
+            if perp_price <= 0.0 || spot_price <= 0.0 {
+                continue;
+            }
+
+            let (perp_basis, perp_basis_pct, _fut_basis, _fut_basis_pct) =
+                crate::microstructure::compute_basis(spot_price, perp_price, None, funding_rate);
+
+            let funding_annualized = funding_rate.map(|r| r * 3.0 * 365.0);
+
+            let data = crate::microstructure::BasisData {
+                basis_id: 0,
+                symbol: symbol.to_string(),
+                exchange: "okx".into(),
+                timestamp: chrono::Utc::now(),
+                spot_price: Some(spot_price),
+                perp_price: Some(perp_price),
+                futures_price: None,
+                futures_expiry: None,
+                perp_basis: Some(perp_basis),
+                perp_basis_pct: Some(perp_basis_pct),
+                futures_basis: None,
+                futures_basis_pct: None,
+                funding_rate,
+                funding_rate_annualized: funding_annualized,
+                created_at: chrono::Utc::now(),
+            };
+
+            let _ = crate::microstructure::save_basis_data(&self.db, &data).await;
+        }
+
+        self.cleanup_old_data("basis_data", "30 days").await;
         Ok(())
     }
 
