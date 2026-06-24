@@ -16,7 +16,9 @@ pub mod calibration;
 pub mod models;
 pub mod store;
 
-pub use calibration::{compute_brier_score, compute_calibration_curve, compute_log_loss};
+pub use calibration::{
+    calibrate_three_class, compute_brier_score, compute_calibration_curve, compute_log_loss,
+};
 pub use models::{
     CalibrationReport, DecisionCard, DecisionCardBuilder, SuggestedAction,
 };

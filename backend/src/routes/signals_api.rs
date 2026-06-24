@@ -9,9 +9,10 @@
 
 use crate::error::{AppError, Result};
 use crate::extractors::CurrentUser;
+use crate::signals::calibration::CalibrationModel;
 use crate::signals::{
-    compute_brier_score, compute_calibration_curve, compute_log_loss, models::SuggestedAction,
-    CalibrationReport, DecisionCardBuilder, SignalStore,
+    calibrate_three_class, compute_brier_score, compute_calibration_curve, compute_log_loss,
+    models::SuggestedAction, CalibrationReport, DecisionCardBuilder, SignalStore,
 };
 use crate::state::AppState;
 use axum::{
@@ -29,6 +30,13 @@ pub fn router() -> Router<AppState> {
         .route("/decision-cards", get(list_decision_cards))
         .route("/calibration", get(get_calibration))
         .route("/calibration/compute", post(compute_calibration))
+        // 校准模型管理
+        .route("/calibration/models", get(list_calibration_models))
+        .route("/calibration/models/:model_id", get(get_calibration_model))
+        .route("/calibration/models/train", post(train_calibration_model))
+        .route("/calibration/models/:model_id/default", post(set_default_calibration_model))
+        .route("/calibration/models/:model_id/deprecate", post(deprecate_calibration_model))
+        .route("/calibration/apply", post(apply_calibration))
 }
 
 /// 创建决策卡请求
@@ -398,5 +406,301 @@ async fn compute_calibration(
         sample_count: report.sample_count,
         is_well_calibrated: report.is_well_calibrated,
         degradation_detected: report.degradation_detected,
+    }))
+}
+
+// =========================================================
+// 校准模型管理 API
+// =========================================================
+
+/// 校准模型响应
+#[derive(Debug, Serialize)]
+struct CalibrationModelResponse {
+    model_id: String,
+    model_name: String,
+    model_type: String,
+    symbol: Option<String>,
+    market_regime: Option<String>,
+    target_horizon_sec: Option<i32>,
+    source_model_version: Option<String>,
+    platt_a: Option<f64>,
+    platt_b: Option<f64>,
+    linear_factor: Option<f64>,
+    linear_bias: Option<f64>,
+    isotonic_points: Option<serde_json::Value>,
+    sample_count: i32,
+    train_brier_score: Option<f64>,
+    train_calibration_error: Option<f64>,
+    status: String,
+    is_default: bool,
+    created_at: String,
+    updated_at: String,
+}
+
+impl From<crate::signals::calibration::store::CalibrationModelEntity>
+    for CalibrationModelResponse
+{
+    fn from(m: crate::signals::calibration::store::CalibrationModelEntity) -> Self {
+        Self {
+            model_id: m.model_id.to_string(),
+            model_name: m.model_name,
+            model_type: m.model_type,
+            symbol: m.symbol,
+            market_regime: m.market_regime,
+            target_horizon_sec: m.target_horizon_sec,
+            source_model_version: m.source_model_version,
+            platt_a: m.platt_a,
+            platt_b: m.platt_b,
+            linear_factor: m.linear_factor,
+            linear_bias: m.linear_bias,
+            isotonic_points: m.isotonic_points,
+            sample_count: m.sample_count,
+            train_brier_score: m.train_brier_score,
+            train_calibration_error: m.train_calibration_error,
+            status: m.status,
+            is_default: m.is_default,
+            created_at: m.created_at.to_rfc3339(),
+            updated_at: m.updated_at.to_rfc3339(),
+        }
+    }
+}
+
+/// 查询校准模型列表
+#[derive(Debug, Deserialize)]
+struct ListCalibrationModelsParams {
+    symbol: Option<String>,
+    market_regime: Option<String>,
+    status: Option<String>,
+    limit: Option<i64>,
+}
+
+async fn list_calibration_models(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Query(params): Query<ListCalibrationModelsParams>,
+) -> Result<Json<Vec<CalibrationModelResponse>>> {
+    let limit = params.limit.unwrap_or(20).min(100);
+    use crate::signals::calibration::store::CalibrationStore;
+
+    let models = CalibrationStore::list_models(
+        &state.db_pool,
+        params.symbol.as_deref(),
+        params.market_regime.as_deref(),
+        params.status.as_deref(),
+        limit,
+    )
+    .await
+    .map_err(|e| AppError::Internal(format!("list calibration models failed: {}", e)))?;
+
+    Ok(Json(models.into_iter().map(Into::into).collect()))
+}
+
+/// 查询单个校准模型
+async fn get_calibration_model(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    axum::extract::Path(model_id): axum::extract::Path<String>,
+) -> Result<Json<CalibrationModelResponse>> {
+    let uuid = Uuid::parse_str(&model_id)
+        .map_err(|e| AppError::Validation(format!("invalid model_id: {}", e)))?;
+
+    use crate::signals::calibration::store::CalibrationStore;
+    let model = CalibrationStore::get_model_by_id(&state.db_pool, uuid)
+        .await
+        .map_err(|e| AppError::Internal(format!("get calibration model failed: {}", e)))?
+        .ok_or_else(|| AppError::NotFound("校准模型不存在".to_string()))?;
+
+    Ok(Json(model.into()))
+}
+
+/// 训练校准模型请求
+#[derive(Debug, Deserialize)]
+struct TrainCalibrationModelRequest {
+    model_name: String,
+    model_type: String,
+    source_model_version: String,
+    symbol: Option<String>,
+    market_regime: Option<String>,
+    target_horizon_sec: Option<i32>,
+}
+
+async fn train_calibration_model(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Json(req): Json<TrainCalibrationModelRequest>,
+) -> Result<Json<CalibrationModelResponse>> {
+    let model_type = match req.model_type.as_str() {
+        "platt" => CalibrationModel::Platt,
+        "isotonic" => CalibrationModel::Isotonic,
+        "linear" => CalibrationModel::Linear,
+        other => {
+            return Err(AppError::Validation(format!(
+                "不支持的校准模型类型: {}，可选: platt, isotonic, linear",
+                other
+            )))
+        }
+    };
+
+    use crate::signals::calibration::store::CalibrationStore;
+    let model_id = CalibrationStore::train_from_predictions(
+        &state.db_pool,
+        &req.source_model_version,
+        req.symbol.as_deref(),
+        req.market_regime.as_deref(),
+        req.target_horizon_sec,
+        model_type,
+        &req.model_name,
+    )
+    .await
+    .map_err(|e| AppError::Validation(format!("训练校准模型失败: {}", e)))?;
+
+    let model = CalibrationStore::get_model_by_id(&state.db_pool, model_id)
+        .await
+        .map_err(|e| AppError::Internal(format!("get calibration model failed: {}", e)))?
+        .ok_or_else(|| AppError::Internal("校准模型保存后未找到".to_string()))?;
+
+    Ok(Json(model.into()))
+}
+
+/// 设置为默认校准模型
+async fn set_default_calibration_model(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    axum::extract::Path(model_id): axum::extract::Path<String>,
+) -> Result<Json<serde_json::Value>> {
+    let uuid = Uuid::parse_str(&model_id)
+        .map_err(|e| AppError::Validation(format!("invalid model_id: {}", e)))?;
+
+    use crate::signals::calibration::store::CalibrationStore;
+    CalibrationStore::set_default(&state.db_pool, uuid)
+        .await
+        .map_err(|e| AppError::Internal(format!("set default failed: {}", e)))?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "已设为默认校准模型"
+    })))
+}
+
+/// 停用校准模型
+async fn deprecate_calibration_model(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    axum::extract::Path(model_id): axum::extract::Path<String>,
+) -> Result<Json<serde_json::Value>> {
+    let uuid = Uuid::parse_str(&model_id)
+        .map_err(|e| AppError::Validation(format!("invalid model_id: {}", e)))?;
+
+    use crate::signals::calibration::store::CalibrationStore;
+    CalibrationStore::deprecate_model(&state.db_pool, uuid)
+        .await
+        .map_err(|e| AppError::Internal(format!("deprecate failed: {}", e)))?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "校准模型已停用"
+    })))
+}
+
+/// 应用校准请求
+#[derive(Debug, Deserialize)]
+struct ApplyCalibrationRequest {
+    p_up: f64,
+    p_down: f64,
+    p_flat: f64,
+    model_id_up: Option<String>,
+    model_id_down: Option<String>,
+    symbol: Option<String>,
+    market_regime: Option<String>,
+    model_type: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ApplyCalibrationResponse {
+    original_p_up: f64,
+    original_p_down: f64,
+    original_p_flat: f64,
+    calibrated_p_up: f64,
+    calibrated_p_down: f64,
+    calibrated_p_flat: f64,
+    delta_up: f64,
+    delta_down: f64,
+    model_id_up: Option<String>,
+    model_id_down: Option<String>,
+}
+
+async fn apply_calibration(
+    _user: CurrentUser,
+    State(state): State<AppState>,
+    Json(req): Json<ApplyCalibrationRequest>,
+) -> Result<Json<ApplyCalibrationResponse>> {
+    use crate::signals::calibration::store::CalibrationStore;
+    use crate::signals::calibration::FittedCalibration;
+
+    let identity = FittedCalibration::Linear(crate::signals::calibration::LinearParams {
+        factor: 1.0,
+        bias: 0.0,
+    });
+
+    let (model_up, model_id_up) = if let Some(id) = &req.model_id_up {
+        let uuid = Uuid::parse_str(id)
+            .map_err(|e| AppError::Validation(format!("invalid model_id_up: {}", e)))?;
+        let m = CalibrationStore::get_model_by_id(&state.db_pool, uuid)
+            .await
+            .map_err(|e| AppError::Internal(format!("get model_up failed: {}", e)))?
+            .ok_or_else(|| AppError::NotFound("上涨校准模型不存在".to_string()))?;
+        let fitted = m
+            .to_fitted()
+            .ok_or_else(|| AppError::Validation("上涨校准模型参数不完整".to_string()))?;
+        (fitted, Some(m.model_id.to_string()))
+    } else {
+        let m = CalibrationStore::get_default_model(
+            &state.db_pool,
+            req.symbol.as_deref(),
+            req.market_regime.as_deref(),
+            req.model_type.as_deref(),
+        )
+        .await
+        .map_err(|e| AppError::Internal(format!("get default model failed: {}", e)))?;
+
+        if let Some(m) = m {
+            let fitted = m
+                .to_fitted()
+                .ok_or_else(|| AppError::Validation("默认校准模型参数不完整".to_string()))?;
+            (fitted, Some(m.model_id.to_string()))
+        } else {
+            (identity.clone(), None)
+        }
+    };
+
+    let (model_down, model_id_down) = if let Some(id) = &req.model_id_down {
+        let uuid = Uuid::parse_str(id)
+            .map_err(|e| AppError::Validation(format!("invalid model_id_down: {}", e)))?;
+        let m = CalibrationStore::get_model_by_id(&state.db_pool, uuid)
+            .await
+            .map_err(|e| AppError::Internal(format!("get model_down failed: {}", e)))?
+            .ok_or_else(|| AppError::NotFound("下跌校准模型不存在".to_string()))?;
+        let fitted = m
+            .to_fitted()
+            .ok_or_else(|| AppError::Validation("下跌校准模型参数不完整".to_string()))?;
+        (fitted, Some(m.model_id.to_string()))
+    } else {
+        (identity.clone(), None)
+    };
+
+    let (cal_up, cal_down, cal_flat) =
+        calibrate_three_class(&model_up, &model_down, req.p_up, req.p_down, req.p_flat);
+
+    Ok(Json(ApplyCalibrationResponse {
+        original_p_up: req.p_up,
+        original_p_down: req.p_down,
+        original_p_flat: req.p_flat,
+        calibrated_p_up: cal_up,
+        calibrated_p_down: cal_down,
+        calibrated_p_flat: cal_flat,
+        delta_up: cal_up - req.p_up,
+        delta_down: cal_down - req.p_down,
+        model_id_up,
+        model_id_down,
     }))
 }

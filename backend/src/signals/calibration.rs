@@ -312,6 +312,29 @@ pub fn apply_calibration_batch(model: &FittedCalibration, predictions: &[f64]) -
     predictions.iter().map(|p| apply_calibration(model, *p)).collect()
 }
 
+/// 对三分类概率（p_up, p_down, p_flat）应用校准
+///
+/// 策略：分别对 p_up 和 p_down 做二分类校准，然后重新归一化
+pub fn calibrate_three_class(
+    model_up: &FittedCalibration,
+    model_down: &FittedCalibration,
+    p_up: f64,
+    p_down: f64,
+    _p_flat: f64,
+) -> (f64, f64, f64) {
+    let cal_up = apply_calibration(model_up, p_up);
+    let cal_down = apply_calibration(model_down, p_down);
+    let cal_flat_raw = 1.0 - cal_up - cal_down;
+    let cal_flat = cal_flat_raw.max(0.0);
+
+    let total = cal_up + cal_down + cal_flat;
+    if total <= 0.0 {
+        return (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0);
+    }
+
+    (cal_up / total, cal_down / total, cal_flat / total)
+}
+
 /// 拟合并评估校准模型
 ///
 /// 返回校准后的模型和校准后的 Brier Score
@@ -544,5 +567,389 @@ mod tests {
         let linear = fit_linear_scaling(&[], &[]);
         assert_eq!(linear.factor, 1.0);
         assert_eq!(linear.bias, 0.0);
+    }
+}
+
+// ============================================================
+// 校准模型持久化存储
+// ============================================================
+
+pub mod store {
+    use super::*;
+    use chrono::{DateTime, Utc};
+    use serde_json::Value;
+    use sqlx::{PgPool, Row};
+    use uuid::Uuid;
+
+    /// 校准模型实体（对应 calibration_models 表）
+    #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+    pub struct CalibrationModelEntity {
+        pub model_id: Uuid,
+        pub model_name: String,
+        pub model_type: String,
+        pub symbol: Option<String>,
+        pub market_regime: Option<String>,
+        pub target_horizon_sec: Option<i32>,
+        pub source_model_version: Option<String>,
+        pub platt_a: Option<f64>,
+        pub platt_b: Option<f64>,
+        pub linear_factor: Option<f64>,
+        pub linear_bias: Option<f64>,
+        pub isotonic_points: Option<Value>,
+        pub training_start: Option<DateTime<Utc>>,
+        pub training_end: Option<DateTime<Utc>>,
+        pub sample_count: i32,
+        pub train_brier_score: Option<f64>,
+        pub train_calibration_error: Option<f64>,
+        pub status: String,
+        pub is_default: bool,
+        pub created_at: DateTime<Utc>,
+        pub updated_at: DateTime<Utc>,
+    }
+
+    impl CalibrationModelEntity {
+        /// 转换为运行时可用的 FittedCalibration
+        pub fn to_fitted(&self) -> Option<FittedCalibration> {
+            match self.model_type.as_str() {
+                "platt" => {
+                    let a = self.platt_a?;
+                    let b = self.platt_b?;
+                    Some(FittedCalibration::Platt(PlattParams { a, b }))
+                }
+                "linear" => {
+                    let factor = self.linear_factor?;
+                    let bias = self.linear_bias?;
+                    Some(FittedCalibration::Linear(LinearParams { factor, bias }))
+                }
+                "isotonic" => {
+                    let points_val = self.isotonic_points.as_ref()?;
+                    let arr = points_val.as_array()?;
+                    let mut points = Vec::new();
+                    for item in arr {
+                        let p = item.get("p")?.as_f64()?;
+                        let calibrated = item.get("calibrated")?.as_f64()?;
+                        points.push((p, calibrated));
+                    }
+                    if points.is_empty() {
+                        return None;
+                    }
+                    Some(FittedCalibration::Isotonic(points))
+                }
+                _ => None,
+            }
+        }
+    }
+
+    pub struct CalibrationStore;
+
+    impl CalibrationStore {
+        /// 保存一个校准模型
+        pub async fn insert_model(
+            pool: &PgPool,
+            model_name: &str,
+            model_type: CalibrationModel,
+            fitted: &FittedCalibration,
+            symbol: Option<&str>,
+            market_regime: Option<&str>,
+            target_horizon_sec: Option<i32>,
+            source_model_version: Option<&str>,
+            sample_count: i32,
+            train_brier_score: f64,
+            train_calibration_error: f64,
+            training_start: Option<DateTime<Utc>>,
+            training_end: Option<DateTime<Utc>>,
+        ) -> Result<Uuid, sqlx::Error> {
+            let model_type_str = match model_type {
+                CalibrationModel::Platt => "platt",
+                CalibrationModel::Isotonic => "isotonic",
+                CalibrationModel::Linear => "linear",
+            };
+
+            let (platt_a, platt_b) = match fitted {
+                FittedCalibration::Platt(p) => (Some(p.a), Some(p.b)),
+                _ => (None, None),
+            };
+
+            let (linear_factor, linear_bias) = match fitted {
+                FittedCalibration::Linear(p) => (Some(p.factor), Some(p.bias)),
+                _ => (None, None),
+            };
+
+            let isotonic_points = match fitted {
+                FittedCalibration::Isotonic(points) => {
+                    let arr: Vec<Value> = points
+                        .iter()
+                        .map(|(p, c)| {
+                            serde_json::json!({"p": p, "calibrated": c})
+                        })
+                        .collect();
+                    Some(Value::Array(arr))
+                }
+                _ => None,
+            };
+
+            let row = sqlx::query(
+                r#"INSERT INTO calibration_models
+                   (model_name, model_type, symbol, market_regime,
+                    target_horizon_sec, source_model_version,
+                    platt_a, platt_b, linear_factor, linear_bias, isotonic_points,
+                    training_start, training_end, sample_count,
+                    train_brier_score, train_calibration_error,
+                    status, is_default)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+                           $12, $13, $14, $15, $16, 'active', FALSE)
+                   RETURNING model_id"#,
+            )
+            .bind(model_name)
+            .bind(model_type_str)
+            .bind(symbol)
+            .bind(market_regime)
+            .bind(target_horizon_sec)
+            .bind(source_model_version)
+            .bind(platt_a)
+            .bind(platt_b)
+            .bind(linear_factor)
+            .bind(linear_bias)
+            .bind(isotonic_points)
+            .bind(training_start)
+            .bind(training_end)
+            .bind(sample_count)
+            .bind(train_brier_score)
+            .bind(train_calibration_error)
+            .fetch_one(pool)
+            .await?;
+
+            Ok(row.get("model_id"))
+        }
+
+        /// 查询指定维度的默认校准模型
+        pub async fn get_default_model(
+            pool: &PgPool,
+            symbol: Option<&str>,
+            market_regime: Option<&str>,
+            model_type: Option<&str>,
+        ) -> Result<Option<CalibrationModelEntity>, sqlx::Error> {
+            let mut sql = String::from(
+                "SELECT * FROM calibration_models WHERE status = 'active'",
+            );
+            let mut params: Vec<&str> = Vec::new();
+
+            if symbol.is_some() {
+                sql.push_str(" AND symbol = $");
+                params.push(symbol.unwrap());
+                sql.push_str(&params.len().to_string());
+            } else {
+                sql.push_str(" AND symbol IS NULL");
+            }
+
+            if market_regime.is_some() {
+                sql.push_str(" AND market_regime = $");
+                params.push(market_regime.unwrap());
+                sql.push_str(&params.len().to_string());
+            } else {
+                sql.push_str(" AND market_regime IS NULL");
+            }
+
+            if model_type.is_some() {
+                sql.push_str(" AND model_type = $");
+                params.push(model_type.unwrap());
+                sql.push_str(&params.len().to_string());
+            }
+
+            sql.push_str(" ORDER BY is_default DESC, created_at DESC LIMIT 1");
+
+            let row = sqlx::query_as::<_, CalibrationModelEntity>(&sql)
+                .fetch_optional(pool)
+                .await?;
+
+            Ok(row)
+        }
+
+        /// 按 ID 查询校准模型
+        pub async fn get_model_by_id(
+            pool: &PgPool,
+            model_id: Uuid,
+        ) -> Result<Option<CalibrationModelEntity>, sqlx::Error> {
+            let row = sqlx::query_as::<_, CalibrationModelEntity>(
+                "SELECT * FROM calibration_models WHERE model_id = $1",
+            )
+            .bind(model_id)
+            .fetch_optional(pool)
+            .await?;
+            Ok(row)
+        }
+
+        /// 列出校准模型
+        pub async fn list_models(
+            pool: &PgPool,
+            symbol: Option<&str>,
+            market_regime: Option<&str>,
+            status: Option<&str>,
+            limit: i64,
+        ) -> Result<Vec<CalibrationModelEntity>, sqlx::Error> {
+            let mut sql = String::from("SELECT * FROM calibration_models WHERE 1=1");
+            let mut binds: Vec<String> = Vec::new();
+
+            if let Some(s) = symbol {
+                sql.push_str(" AND symbol = $");
+                sql.push_str(&(binds.len() + 1).to_string());
+                binds.push(s.to_string());
+            }
+            if let Some(r) = market_regime {
+                sql.push_str(" AND market_regime = $");
+                sql.push_str(&(binds.len() + 1).to_string());
+                binds.push(r.to_string());
+            }
+            if let Some(st) = status {
+                sql.push_str(" AND status = $");
+                sql.push_str(&(binds.len() + 1).to_string());
+                binds.push(st.to_string());
+            }
+
+            sql.push_str(" ORDER BY created_at DESC LIMIT $");
+            sql.push_str(&(binds.len() + 1).to_string());
+
+            let mut query = sqlx::query_as::<_, CalibrationModelEntity>(&sql);
+            for b in &binds {
+                query = query.bind(b);
+            }
+            query = query.bind(limit);
+
+            let rows = query.fetch_all(pool).await?;
+            Ok(rows)
+        }
+
+        /// 设置为默认模型
+        pub async fn set_default(
+            pool: &PgPool,
+            model_id: Uuid,
+        ) -> Result<(), sqlx::Error> {
+            sqlx::query(
+                "UPDATE calibration_models SET is_default = FALSE WHERE model_id != $1",
+            )
+            .bind(model_id)
+            .execute(pool)
+            .await?;
+
+            sqlx::query(
+                "UPDATE calibration_models SET is_default = TRUE, updated_at = NOW() WHERE model_id = $1",
+            )
+            .bind(model_id)
+            .execute(pool)
+            .await?;
+
+            Ok(())
+        }
+
+        /// 停用模型
+        pub async fn deprecate_model(
+            pool: &PgPool,
+            model_id: Uuid,
+        ) -> Result<(), sqlx::Error> {
+            sqlx::query(
+                "UPDATE calibration_models SET status = 'deprecated', updated_at = NOW() WHERE model_id = $1",
+            )
+            .bind(model_id)
+            .execute(pool)
+            .await?;
+            Ok(())
+        }
+
+        /// 从预测数据训练校准模型
+        ///
+        /// 输入：模型版本、symbol、市场状态、时间范围、校准类型
+        /// 输出：校准模型 ID
+        pub async fn train_from_predictions(
+            pool: &PgPool,
+            source_model_version: &str,
+            symbol: Option<&str>,
+            market_regime: Option<&str>,
+            target_horizon_sec: Option<i32>,
+            model_type: CalibrationModel,
+            model_name: &str,
+        ) -> Result<Uuid, String> {
+            // 1. 从数据库读取已评估的预测
+            let mut sql = String::from(
+                "SELECT p_up, realized_direction FROM signal_predictions \
+                 WHERE model_version = $1 AND evaluated_at IS NOT NULL",
+            );
+
+            let mut params: Vec<&str> = vec![source_model_version];
+
+            if let Some(s) = symbol {
+                sql.push_str(" AND symbol = $");
+                sql.push_str(&(params.len() + 1).to_string());
+                params.push(s);
+            }
+            if let Some(r) = market_regime {
+                sql.push_str(" AND market_regime = $");
+                sql.push_str(&(params.len() + 1).to_string());
+                params.push(r);
+            }
+            if target_horizon_sec.is_some() {
+                sql.push_str(&format!(" AND target_horizon_sec = ${}", params.len() + 1));
+            }
+
+            sql.push_str(" ORDER BY prediction_time ASC");
+
+            let mut query = sqlx::query(&sql);
+            for p in &params {
+                query = query.bind(p);
+            }
+            if let Some(h) = target_horizon_sec {
+                query = query.bind(h);
+            }
+
+            let rows = query.fetch_all(pool).await.map_err(|e| e.to_string())?;
+
+            if rows.is_empty() {
+                return Err("No evaluated predictions found for training".to_string());
+            }
+
+            let mut predictions: Vec<f64> = Vec::with_capacity(rows.len());
+            let mut outcomes: Vec<bool> = Vec::with_capacity(rows.len());
+
+            for row in &rows {
+                let p_up: f64 = row.get("p_up");
+                let direction: Option<String> = row.get("realized_direction");
+                if let Some(dir) = direction {
+                    predictions.push(p_up);
+                    outcomes.push(dir == "up");
+                }
+            }
+
+            if predictions.len() < 10 {
+                return Err("Insufficient samples (need >= 10)".to_string());
+            }
+
+            // 2. 拟合校准模型
+            let (fitted, brier) = fit_and_evaluate(model_type, &predictions, &outcomes);
+            let cal_error = {
+                let curve = compute_calibration_curve(&predictions, &outcomes, 10);
+                compute_calibration_error(&curve)
+            };
+
+            // 3. 保存到数据库
+            let sample_count = predictions.len() as i32;
+            let model_id = Self::insert_model(
+                pool,
+                model_name,
+                model_type,
+                &fitted,
+                symbol,
+                market_regime,
+                target_horizon_sec,
+                Some(source_model_version),
+                sample_count,
+                brier,
+                cal_error,
+                None,
+                None,
+            )
+            .await
+            .map_err(|e| e.to_string())?;
+
+            Ok(model_id)
+        }
     }
 }
