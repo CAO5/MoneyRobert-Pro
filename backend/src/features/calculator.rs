@@ -100,6 +100,19 @@ fn regime_to_value(regime: MarketRegime) -> f64 {
     }
 }
 
+/// 计算特征参数 hash（用于血缘追溯，确保可复现）
+/// 简单 hash：feature_name + kline_count + calc_version
+fn compute_parameters_hash(feature_name: &str, kline_count: usize) -> String {
+    // 简单的确定性 hash，不依赖外部 crate
+    let input = format!("{}|{}|v1.0", feature_name, kline_count);
+    let mut hash: u64 = 14695981039346656037; // FNV offset basis
+    for byte in input.bytes() {
+        hash ^= byte as u64;
+        hash = hash.wrapping_mul(1099511628211); // FNV prime
+    }
+    format!("{:016x}", hash)
+}
+
 /// 特征名称到 ID 的映射
 pub struct FeatureIdMap(std::collections::HashMap<String, Uuid>);
 
@@ -206,6 +219,45 @@ impl FeatureCalculator {
         let count = values.len();
 
         FeatureStore::batch_upsert_feature_values(pool, &values).await?;
+
+        // 写入特征血缘（数据源、计算版本、参数 hash）
+        // 依据《系统评估与演进规划》系统架构师视角：
+        //   "每次决策保存数据版本、特征版本、模型版本和规则版本"
+        let source_time_end = timestamp;
+        let source_time_start = if klines.len() > 1 {
+            timestamp - chrono::Duration::seconds(klines.len() as i64 * 3600)
+        } else {
+            timestamp - chrono::Duration::hours(1)
+        };
+
+        for value in &values {
+            let parameters = serde_json::json!({
+                "kline_count": klines.len(),
+                "feature_name": value.feature_name,
+            });
+            let parameters_hash = compute_parameters_hash(&value.feature_name, klines.len());
+
+            let _ = FeatureStore::upsert_feature_lineage(
+                pool,
+                value.feature_id,
+                symbol,
+                timestamp,
+                "okx_klines",
+                Some(source_time_start),
+                Some(source_time_end),
+                "v1.0",
+                &parameters_hash,
+                &parameters,
+                &[],
+                Some(&serde_json::json!({
+                    "source": "okx",
+                    "table": "klines",
+                    "interval": "1H",
+                    "symbol": symbol,
+                })),
+            )
+            .await;
+        }
 
         // 同时存储市场状态快照
         if let Some(regime) = features.market_regime {

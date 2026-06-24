@@ -3,6 +3,7 @@ pub mod auth;
 pub mod backtest;
 pub mod collector;
 pub mod config;
+pub mod data_quality;
 pub mod error;
 pub mod exchanges;
 pub mod extractors;

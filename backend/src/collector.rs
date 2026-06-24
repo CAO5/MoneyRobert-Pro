@@ -35,6 +35,7 @@ const ORDERBOOK_INTERVAL_SECS: u64 = 5;
 const TRADES_INTERVAL_SECS: u64 = 10;
 const LIQUIDATION_INTERVAL_SECS: u64 = 30;
 const BASIS_INTERVAL_SECS: u64 = 60;
+const QUALITY_SCAN_INTERVAL_SECS: u64 = 300;
 
 pub struct MarketCollector {
     db: PgPool,
@@ -150,6 +151,7 @@ impl MarketCollector {
         let trades_collector = self.clone();
         let liquidation_collector = self.clone();
         let basis_collector = self.clone();
+        let quality_collector = self.clone();
 
         tokio::spawn(async move {
             loop {
@@ -215,7 +217,32 @@ impl MarketCollector {
             }
         });
 
-        tracing::info!("Market data collector started (ticker, kline, funding, orderbook, trades, liquidations, basis)");
+        // 数据质量监控扫描（每 5 分钟）
+        tokio::spawn(async move {
+            loop {
+                let symbols: Vec<String> = SYMBOLS.iter().map(|s| s.to_string()).collect();
+                match crate::data_quality::run_quality_scan(&quality_collector.db, &symbols, 1).await {
+                    Ok(reports) => {
+                        let critical_count = reports.iter().filter(|r| r.quality_grade == "D").count();
+                        let warning_count = reports.iter().filter(|r| r.quality_grade == "C").count();
+                        if critical_count > 0 || warning_count > 0 {
+                            tracing::warn!(
+                                "数据质量告警: {} 个数据源异常(D), {} 个警告(C)",
+                                critical_count, warning_count
+                            );
+                        } else {
+                            tracing::debug!("数据质量扫描完成: {} 个数据源全部正常", reports.len());
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("数据质量扫描失败: {:?}", e);
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(QUALITY_SCAN_INTERVAL_SECS)).await;
+            }
+        });
+
+        tracing::info!("Market data collector started (ticker, kline, funding, orderbook, trades, liquidations, basis, quality)");
     }
 
     async fn fetch_tickers(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
