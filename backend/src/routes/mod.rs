@@ -16,6 +16,7 @@ pub mod features_api;
 pub mod health;
 pub mod market_data;
 pub mod memory_api;
+pub mod microstructure_api;
 pub mod news;
 pub mod notifications;
 pub mod paper_trading;
@@ -63,6 +64,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/backtest", backtest_api::router())
         .nest("/features", features_api::router())
         .nest("/signals", signals_api::router())
+        .nest("/microstructure", microstructure_api::router())
 }
 
 async fn root() -> axum::Json<serde_json::Value> {

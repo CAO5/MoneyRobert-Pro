@@ -9,6 +9,7 @@ pub mod extractors;
 pub mod features;
 pub mod logging;
 pub mod middleware;
+pub mod microstructure;
 pub mod models;
 pub mod routes;
 pub mod schemas;
