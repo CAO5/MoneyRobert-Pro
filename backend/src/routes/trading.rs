@@ -72,18 +72,22 @@ async fn get_balance(
             Ok(Json(serde_json::to_value(balance).unwrap_or_default()))
         }
         Err(_) => Ok(Json(serde_json::json!([{
-            "total_eq": "0",
+            "totalEq": "0",
             "eq": "0",
-            "avail_bal": "0",
-            "frozen_bal": "0",
-            "cash_bal": "0",
-            "bal": "0",
-            "upl": "0",
-            "mgn_ratio": "0",
-            "notional_usd": "0",
             "imr": "0",
             "mmr": "0",
-            "ord_froz": "0",
+            "mgnRatio": "0",
+            "notionalUsd": "0",
+            "ordFroz": "0",
+            "details": [{
+                "ccy": "USDT",
+                "availBal": "0",
+                "frozenBal": "0",
+                "eq": "0",
+                "cashBal": "0",
+                "upl": "0",
+                "bal": "0",
+            }],
         }]))),
     }
 }

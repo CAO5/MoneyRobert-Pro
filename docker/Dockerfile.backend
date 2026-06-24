@@ -6,8 +6,7 @@ RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debi
 
 WORKDIR /app
 
-RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy && \
-    apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libssl-dev \
     ca-certificates \
@@ -15,10 +14,6 @@ RUN unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy && \
 
 COPY backend/.cargo .cargo/
 COPY backend/Cargo.toml ./
-
-ENV NO_PROXY=mirrors.ustc.edu.cn,localhost,127.0.0.1 \
-    no_proxy=mirrors.ustc.edu.cn,localhost,127.0.0.1 \
-    CARGO_HTTP_MULTIPLEXING=false
 
 RUN mkdir -p src/bin && \
     echo "fn main() {}" > src/bin/main.rs && \

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import api from '@/api'
-import { ArrowLeftRight, Plus, X, RefreshCw, TrendingUp, TrendingDown, AlertCircle, ChevronDown, Shield } from 'lucide-vue-next'
+import { ArrowLeftRight, Plus, X, RefreshCw, TrendingUp, TrendingDown, AlertCircle, ChevronDown, Shield, History, Activity } from 'lucide-vue-next'
 
 const positions = ref<any[]>([])
 const orders = ref<any[]>([])
+const tradeHistory = ref<any[]>([])
 const balance = ref<any>(null)
 const loading = ref(true)
+const historyLoading = ref(false)
 const submitting = ref(false)
 const error = ref('')
+const activeTab = ref<'positions' | 'history'>('positions')
 
 // SL/TP modal state
 const showSlTpModal = ref(false)
@@ -34,6 +37,10 @@ const form = ref({
 })
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
+
+// Current ticker price for selected symbol
+const currentTicker = ref<any>(null)
+const tickerLoading = ref(false)
 
 const popularSymbols = [
   'BTC-USDT-SWAP', 'ETH-USDT-SWAP', 'SOL-USDT-SWAP',
@@ -71,30 +78,35 @@ function formatPrice(val: string | number): string {
 const totalEquity = computed(() => {
   if (!balance.value) return '0.00'
   if (Array.isArray(balance.value)) {
-    const eq = balance.value[0]?.total_eq || balance.value[0]?.eq || '0'
+    const eq = balance.value[0]?.totalEq || balance.value[0]?.eq || balance.value[0]?.total_eq || '0'
     return parseFloat(eq).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
-  const eq = balance.value.total_eq || balance.value.eq || balance.value.total_equity || '0'
+  const eq = balance.value.totalEq || balance.value.eq || balance.value.total_eq || balance.value.total_equity || '0'
   return parseFloat(eq).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 })
 
-// Extract detailed balance data from OKX response
+// Extract detailed balance data from OKX response (camelCase from OKX / serialized Rust structs)
 const balanceDetail = computed(() => {
   const raw = balance.value
   if (!raw) return null
   const b = Array.isArray(raw) ? raw[0] : raw
   if (!b) return null
+
+  // OKX balance structure: top-level has totalEq/imr/mmr/mgnRatio/notionalUsd,
+  // details[] has per-currency data (availBal, frozenBal, eq, upl, cashBal, etc.)
+  const usdtDetail = (b.details || []).find((d: any) => d.ccy === 'USDT') || b.details?.[0] || {}
+
   return {
-    totalEq: parseFloat(b.total_eq || b.eq || b.total_equity || '0'),
-    availBal: parseFloat(b.avail_bal || b.available_balance || '0'),
-    frozenBal: parseFloat(b.frozen_bal || '0'),
-    cashBal: parseFloat(b.cash_bal || b.bal || '0'),
-    upl: parseFloat(b.upl || b.unrealized_pnl || '0'),
-    marginRatio: parseFloat(b.mgn_ratio || '0'),
-    notionalUsd: parseFloat(b.notional_usd || '0'),
+    totalEq: parseFloat(b.totalEq || b.eq || b.total_eq || '0'),
+    availBal: parseFloat(usdtDetail.availBal || usdtDetail.avail_bal || b.availBal || b.avail_bal || '0'),
+    frozenBal: parseFloat(usdtDetail.frozenBal || usdtDetail.frozen_bal || b.frozenBal || b.frozen_bal || '0'),
+    cashBal: parseFloat(usdtDetail.cashBal || usdtDetail.cash_bal || b.cashBal || b.cash_bal || '0'),
+    upl: parseFloat(usdtDetail.upl || b.upl || '0'),
+    marginRatio: parseFloat(b.mgnRatio || b.mgn_ratio || '0'),
+    notionalUsd: parseFloat(b.notionalUsd || b.notional_usd || '0'),
     imr: parseFloat(b.imr || '0'),
     mmr: parseFloat(b.mmr || '0'),
-    ordFroz: parseFloat(b.ord_froz || '0'),
+    ordFroz: parseFloat(b.ordFroz || usdtDetail.ordFroz || b.ord_froz || usdtDetail.ord_froz || '0'),
   }
 })
 
@@ -142,7 +154,9 @@ async function loadData() {
       // Check if balance data indicates no API key configured (all zeros in fallback)
       const b = balRes.value.data
       const bData = Array.isArray(b) ? b[0] : b
-      if (bData && bData.total_eq === '0' && bData.avail_bal === '0' && bData.upl === '0') {
+      const hasZeroBal = bData && (bData.totalEq === '0' || bData.total_eq === '0')
+        && (bData.details?.[0]?.availBal === '0' || bData.details?.[0]?.avail_bal === '0' || !bData.details?.length)
+      if (hasZeroBal) {
         if (!error.value) error.value = '未检测到交易所数据，请确认已在系统设置中配置API Key'
       }
     }
@@ -153,6 +167,54 @@ async function loadData() {
     loading.value = false
   }
 }
+
+async function loadTicker() {
+  tickerLoading.value = true
+  try {
+    const symbol = form.value.symbol
+    const res = await api.get(`/trading/ticker/${symbol}`)
+    const data = res.data?.data?.[0] || res.data?.data || res.data
+    currentTicker.value = data || null
+  } catch {
+    currentTicker.value = null
+  } finally {
+    tickerLoading.value = false
+  }
+}
+
+async function loadTradeHistory() {
+  historyLoading.value = true
+  try {
+    const res = await api.get('/trading/trades')
+    const data = res.data
+    if (data?.trades?.data && Array.isArray(data.trades.data)) {
+      tradeHistory.value = data.trades.data
+    } else if (data?.trades && Array.isArray(data.trades)) {
+      tradeHistory.value = data.trades
+    } else if (Array.isArray(data)) {
+      tradeHistory.value = data
+    } else {
+      tradeHistory.value = []
+    }
+  } catch {
+    tradeHistory.value = []
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+const currentPrice = computed(() => {
+  if (!currentTicker.value) return null
+  return parseFloat(currentTicker.value.last || currentTicker.value.lastPx || '0')
+})
+
+const priceChange24h = computed(() => {
+  if (!currentTicker.value) return null
+  const last = parseFloat(currentTicker.value.last || '0')
+  const open = parseFloat(currentTicker.value.open24h || currentTicker.value.sodUtc0 || '0')
+  if (!open) return null
+  return ((last - open) / open) * 100
+})
 
 async function submitOrder() {
   // Validate limit order price
@@ -255,8 +317,11 @@ async function closePosition(instId: string, side: string, size: number) {
   }
 }
 
-onMounted(() => { loadData(); pollTimer = setInterval(loadData, 30000) })
+onMounted(() => { loadData(); loadTicker(); loadTradeHistory(); pollTimer = setInterval(loadData, 30000) })
 onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null } })
+
+// Reload ticker when symbol changes
+watch(() => form.value.symbol, () => { loadTicker() })
 </script>
 
 <template>
@@ -280,7 +345,7 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
     </div>
 
     <!-- Account Summary -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
       <div class="card !p-4">
         <div class="text-xs mb-1" style="color: var(--text-secondary)">账户权益</div>
         <div class="text-lg font-bold font-mono" style="color: var(--text-primary)">${{ totalEquity }}</div>
@@ -306,6 +371,22 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
           ${{ balanceDetail ? balanceDetail.imr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
         </div>
         <div class="text-xs" style="color: var(--text-muted)">初始保证金</div>
+      </div>
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">维持保证金</div>
+        <div class="text-lg font-bold font-mono" :style="{ color: balanceDetail && balanceDetail.mmr > 0 && balanceDetail.mmr < balanceDetail.imr * 0.5 ? 'var(--warning)' : 'var(--text-primary)' }">
+          ${{ balanceDetail ? balanceDetail.mmr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
+        </div>
+        <div class="text-xs" :style="{ color: balanceDetail && balanceDetail.mmr > 0 && balanceDetail.mmr < balanceDetail.imr * 0.5 ? 'var(--warning)' : 'var(--text-muted)' }">
+          {{ balanceDetail && balanceDetail.mmr > 0 ? '强平线' : '最低保证金' }}
+        </div>
+      </div>
+      <div class="card !p-4">
+        <div class="text-xs mb-1" style="color: var(--text-secondary)">名价值</div>
+        <div class="text-lg font-bold font-mono" style="color: var(--text-primary)">
+          ${{ balanceDetail ? balanceDetail.notionalUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' }}
+        </div>
+        <div class="text-xs" style="color: var(--text-muted)">持仓价值</div>
       </div>
       <div class="card !p-4">
         <div class="text-xs mb-1" style="color: var(--text-secondary)">冻结资金</div>
@@ -338,6 +419,30 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
           <h2 class="text-lg font-semibold" style="color: var(--text-primary)">下单</h2>
         </div>
         <div class="p-5 space-y-4">
+          <!-- Current Price Display -->
+          <div v-if="currentPrice" class="p-3 rounded-lg" style="background: var(--surface-secondary)">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs" style="color: var(--text-muted)">当前价格</div>
+                <div class="text-xl font-bold font-mono" :style="{ color: priceChange24h && priceChange24h >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+                  ${{ formatPrice(currentPrice) }}
+                </div>
+              </div>
+              <div v-if="priceChange24h !== null" class="text-right">
+                <div class="text-xs" style="color: var(--text-muted)">24h涨跌</div>
+                <div class="text-sm font-semibold font-mono" :style="{ color: priceChange24h >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+                  {{ priceChange24h >= 0 ? '+' : '' }}{{ priceChange24h.toFixed(2) }}%
+                </div>
+              </div>
+            </div>
+            <div v-if="currentTicker" class="flex gap-4 mt-2 text-xs" style="color: var(--text-muted)">
+              <span>24h高 <span class="font-mono" style="color: var(--text-secondary)">{{ formatPrice(currentTicker.high24h) }}</span></span>
+              <span>24h低 <span class="font-mono" style="color: var(--text-secondary)">{{ formatPrice(currentTicker.low24h) }}</span></span>
+              <span>24h量 <span class="font-mono" style="color: var(--text-secondary)">{{ currentTicker.vol24h ? parseFloat(currentTicker.vol24h).toLocaleString() : '-' }}</span></span>
+            </div>
+          </div>
+          <div v-else-if="tickerLoading" class="p-3 rounded-lg animate-pulse" style="background: var(--surface-secondary); height: 72px"></div>
+
           <!-- Symbol Select -->
           <div>
             <label class="label">交易对</label>
@@ -437,102 +542,170 @@ onUnmounted(() => { if (pollTimer) { clearInterval(pollTimer); pollTimer = null 
         </div>
       </div>
 
-      <!-- Positions & Orders -->
+      <!-- Positions, Orders & History -->
       <div class="lg:col-span-2 space-y-6">
-        <!-- Positions -->
+        <!-- Tab Navigation -->
         <div class="card">
-          <div class="p-5" style="border-bottom: 1px solid var(--border)">
-            <h2 class="text-lg font-semibold" style="color: var(--text-primary)">当前持仓</h2>
+          <div class="flex" style="border-bottom: 1px solid var(--border)">
+            <button @click="activeTab = 'positions'" class="px-5 py-3.5 text-sm font-semibold transition-colors relative"
+              :style="{ color: activeTab === 'positions' ? 'var(--primary)' : 'var(--text-muted)' }">
+              持仓与委托
+              <span v-if="positions.length > 0 || orders.length > 0" class="ml-1 text-xs px-1.5 py-0.5 rounded-full" style="background: var(--primary-bg); color: var(--primary)">{{ positions.length + orders.length }}</span>
+              <div v-if="activeTab === 'positions'" class="absolute bottom-0 left-0 right-0 h-0.5" style="background: var(--primary)"></div>
+            </button>
+            <button @click="activeTab = 'history'" class="px-5 py-3.5 text-sm font-semibold transition-colors relative"
+              :style="{ color: activeTab === 'history' ? 'var(--primary)' : 'var(--text-muted)' }">
+              <History class="w-4 h-4 inline -mt-0.5" />
+              交易历史
+              <div v-if="activeTab === 'history'" class="absolute bottom-0 left-0 right-0 h-0.5" style="background: var(--primary)"></div>
+            </button>
           </div>
-          <div v-if="positions.length === 0" class="p-12 text-center">
-            <ArrowLeftRight class="w-12 h-12 mx-auto mb-3" style="color: var(--text-muted); opacity: 0.3" />
-            <p class="text-sm" style="color: var(--text-muted)">暂无持仓</p>
-          </div>
-          <div v-else class="table-container border-0 rounded-none">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>交易对</th>
-                  <th>方向</th>
-                  <th class="text-right">数量</th>
-                  <th class="text-right">均价</th>
-                  <th class="text-right">杠杆</th>
-                  <th class="text-right">未实现盈亏</th>
-                  <th class="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="p in positions" :key="p.inst_id">
-                  <td class="font-semibold">{{ formatSymbol(p.inst_id || '') }}</td>
-                  <td>
-                    <span class="badge" :class="p.side === 'long' ? 'badge-profit' : 'badge-loss'">
-                      {{ p.side === 'long' ? '多' : '空' }}
-                    </span>
-                  </td>
-                  <td class="text-right font-mono">{{ p.size }}</td>
-                  <td class="text-right font-mono" style="color: var(--text-secondary)">{{ formatPrice(p.avg_px) }}</td>
-                  <td class="text-right font-mono font-semibold" style="color: var(--primary)">{{ p.lever }}x</td>
-                  <td class="text-right font-mono font-semibold" :style="{ color: parseFloat(p.upl) >= 0 ? 'var(--profit)' : 'var(--loss)' }">
-                    {{ formatPnl(p.upl) }}
-                    <span class="text-xs ml-1">{{ formatPnlPercent(p.upl_ratio) }}</span>
-                  </td>
-                  <td class="text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                      <button @click="openSlTpModal(p)" class="btn btn-secondary btn-sm" title="止盈止损">
-                        <Shield class="w-3.5 h-3.5" />
-                        止盈止损
-                      </button>
-                      <button @click="closePosition(p.inst_id, p.side, p.size)" class="btn btn-danger btn-sm">
-                        平仓
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-        <!-- Pending Orders -->
-        <div class="card">
-          <div class="p-5" style="border-bottom: 1px solid var(--border)">
-            <h2 class="text-lg font-semibold" style="color: var(--text-primary)">当前委托</h2>
+          <!-- Positions Tab Content -->
+          <div v-if="activeTab === 'positions'">
+            <!-- Positions Section -->
+            <div v-if="positions.length === 0" class="p-12 text-center">
+              <ArrowLeftRight class="w-12 h-12 mx-auto mb-3" style="color: var(--text-muted); opacity: 0.3" />
+              <p class="text-sm" style="color: var(--text-muted)">暂无持仓</p>
+            </div>
+            <div v-else class="table-container border-0 rounded-none">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>交易对</th>
+                    <th>方向</th>
+                    <th class="text-right">数量</th>
+                    <th class="text-right">均价</th>
+                    <th class="text-right">标记价</th>
+                    <th class="text-right">强平价</th>
+                    <th class="text-right">杠杆</th>
+                    <th class="text-right">保证金</th>
+                    <th class="text-right">未实现盈亏</th>
+                    <th class="text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in positions" :key="p.inst_id">
+                    <td class="font-semibold">{{ formatSymbol(p.inst_id || '') }}</td>
+                    <td>
+                      <span class="badge" :class="p.side === 'long' ? 'badge-profit' : 'badge-loss'">
+                        {{ p.side === 'long' ? '多' : '空' }}
+                      </span>
+                    </td>
+                    <td class="text-right font-mono">{{ p.size }}</td>
+                    <td class="text-right font-mono" style="color: var(--text-secondary)">{{ formatPrice(p.avg_px) }}</td>
+                    <td class="text-right font-mono" style="color: var(--text-secondary)">{{ formatPrice(p.mark_px) }}</td>
+                    <td class="text-right font-mono" :style="{ color: p.liq_px ? 'var(--warning)' : 'var(--text-muted)' }">{{ p.liq_px ? formatPrice(p.liq_px) : '-' }}</td>
+                    <td class="text-right font-mono font-semibold" style="color: var(--primary)">{{ p.lever }}x</td>
+                    <td class="text-right font-mono" style="color: var(--text-secondary)">{{ formatPrice(p.margin) }}</td>
+                    <td class="text-right font-mono font-semibold" :style="{ color: parseFloat(p.upl) >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+                      {{ formatPnl(p.upl) }}
+                      <span class="text-xs ml-1">{{ formatPnlPercent(p.upl_ratio) }}</span>
+                    </td>
+                    <td class="text-right">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <button @click="openSlTpModal(p)" class="btn btn-secondary btn-sm" title="止盈止损">
+                          <Shield class="w-3.5 h-3.5" />
+                          止盈止损
+                        </button>
+                        <button @click="closePosition(p.inst_id, p.side, p.size)" class="btn btn-danger btn-sm">
+                          平仓
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pending Orders (below positions) -->
+            <div v-if="orders.length > 0" style="border-top: 1px solid var(--border)">
+              <div class="p-4">
+                <h3 class="text-sm font-semibold mb-3" style="color: var(--text-secondary)">当前委托 ({{ orders.length }})</h3>
+                <div class="table-container border-0 rounded-none">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>交易对</th>
+                        <th>方向</th>
+                        <th>类型</th>
+                        <th class="text-right">数量</th>
+                        <th class="text-right">价格</th>
+                        <th class="text-right">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="o in orders" :key="o.ordId || o.id">
+                        <td class="font-semibold">{{ formatSymbol(o.instId || '') }}</td>
+                        <td>
+                          <span class="badge" :class="o.side === 'buy' ? 'badge-profit' : 'badge-loss'">
+                            {{ o.side === 'buy' ? '买入' : '卖出' }}
+                          </span>
+                        </td>
+                        <td style="color: var(--text-secondary)">{{ o.ordType === 'limit' ? '限价' : '市价' }}</td>
+                        <td class="text-right font-mono">{{ o.sz }}</td>
+                        <td class="text-right font-mono" style="color: var(--text-secondary)">{{ o.px ? formatPrice(o.px) : '-' }}</td>
+                        <td class="text-right">
+                          <button @click="cancelOrder(o.instId, o.ordId)" class="btn btn-ghost btn-sm" style="color: var(--loss)">
+                            <X class="w-4 h-4" />
+                            撤单
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
-          <div v-if="orders.length === 0" class="p-12 text-center">
-            <p class="text-sm" style="color: var(--text-muted)">暂无委托订单</p>
-          </div>
-          <div v-else class="table-container border-0 rounded-none">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>交易对</th>
-                  <th>方向</th>
-                  <th>类型</th>
-                  <th class="text-right">数量</th>
-                  <th class="text-right">价格</th>
-                  <th class="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="o in orders" :key="o.ordId || o.id">
-                  <td class="font-semibold">{{ formatSymbol(o.instId || '') }}</td>
-                  <td>
-                    <span class="badge" :class="o.side === 'buy' ? 'badge-profit' : 'badge-loss'">
-                      {{ o.side === 'buy' ? '买入' : '卖出' }}
-                    </span>
-                  </td>
-                  <td style="color: var(--text-secondary)">{{ o.ordType === 'limit' ? '限价' : '市价' }}</td>
-                  <td class="text-right font-mono">{{ o.sz }}</td>
-                  <td class="text-right font-mono" style="color: var(--text-secondary)">{{ o.px ? formatPrice(o.px) : '-' }}</td>
-                  <td class="text-right">
-                    <button @click="cancelOrder(o.instId, o.ordId)" class="btn btn-ghost btn-sm" style="color: var(--loss)">
-                      <X class="w-4 h-4" />
-                      撤单
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+          <!-- Trade History Tab Content -->
+          <div v-if="activeTab === 'history'">
+            <div v-if="historyLoading" class="p-12 text-center">
+              <div class="animate-pulse space-y-3">
+                <div v-for="i in 3" :key="i" class="h-12 rounded-lg" style="background: var(--surface-secondary)"></div>
+              </div>
+            </div>
+            <div v-else-if="tradeHistory.length === 0" class="p-12 text-center">
+              <Activity class="w-12 h-12 mx-auto mb-3" style="color: var(--text-muted); opacity: 0.3" />
+              <p class="text-sm" style="color: var(--text-muted)">暂无交易历史</p>
+            </div>
+            <div v-else class="table-container border-0 rounded-none">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>交易对</th>
+                    <th>方向</th>
+                    <th>类型</th>
+                    <th class="text-right">数量</th>
+                    <th class="text-right">成交价</th>
+                    <th class="text-right">手续费</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="t in tradeHistory" :key="t.ordId || t.id">
+                    <td class="text-xs" style="color: var(--text-muted)">{{ t.cTime ? new Date(parseInt(t.cTime)).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-' }}</td>
+                    <td class="font-semibold">{{ formatSymbol(t.instId || '') }}</td>
+                    <td>
+                      <span class="badge" :class="t.side === 'buy' ? 'badge-profit' : 'badge-loss'">
+                        {{ t.side === 'buy' ? '买入' : '卖出' }}
+                      </span>
+                    </td>
+                    <td style="color: var(--text-secondary)">{{ t.ordType === 'limit' ? '限价' : t.ordType === 'market' ? '市价' : t.ordType || '-' }}</td>
+                    <td class="text-right font-mono">{{ t.sz || t.accFillSz || '-' }}</td>
+                    <td class="text-right font-mono" style="color: var(--text-secondary)">{{ t.avgPx ? formatPrice(t.avgPx) : (t.px ? formatPrice(t.px) : '-') }}</td>
+                    <td class="text-right font-mono text-xs" style="color: var(--text-muted)">{{ t.fee ? parseFloat(t.fee).toFixed(4) : '-' }}</td>
+                    <td>
+                      <span class="text-xs px-1.5 py-0.5 rounded" :style="{ background: t.state === 'filled' || t.state === '2' ? 'var(--profit-light)' : 'var(--surface-tertiary)', color: t.state === 'filled' || t.state === '2' ? 'var(--profit)' : 'var(--text-muted)' }">
+                        {{ t.state === 'filled' || t.state === '2' ? '已成交' : t.state === 'canceled' ? '已撤单' : t.state || '-' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

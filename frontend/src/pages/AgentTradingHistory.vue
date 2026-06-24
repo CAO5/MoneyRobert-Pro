@@ -112,7 +112,7 @@ async function loadTrades() {
     // Load real OKX trades
     let realTrades: Trade[] = []
     try {
-      const realRes = await api.get('/trading/history')
+      const realRes = await api.get('/trading/trades')
       const rawTrades = realRes.data?.data || realRes.data || []
       // Map OKX trade format to our Trade interface
       realTrades = (Array.isArray(rawTrades) ? rawTrades : []).map((t: any) => ({

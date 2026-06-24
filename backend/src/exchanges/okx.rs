@@ -19,6 +19,7 @@ pub struct OkxClient {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct OkxAccount {
     #[serde(default)]
     pub utd_type: Option<String>,
@@ -64,9 +65,61 @@ pub struct OkxAccount {
     pub frozen_bal: Option<String>,
     #[serde(default)]
     pub spot_in_use_amt: Option<String>,
+    #[serde(default)]
+    pub details: Vec<OkxAccountDetail>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct OkxAccountDetail {
+    #[serde(default)]
+    pub ccy: Option<String>,
+    #[serde(default)]
+    pub avail_bal: Option<String>,
+    #[serde(default)]
+    pub frozen_bal: Option<String>,
+    #[serde(default)]
+    pub eq: Option<String>,
+    #[serde(default)]
+    pub cash_bal: Option<String>,
+    #[serde(default)]
+    pub upl: Option<String>,
+    #[serde(default)]
+    pub upl_liab: Option<String>,
+    #[serde(default)]
+    pub cross_liab: Option<String>,
+    #[serde(default)]
+    pub iso_liab: Option<String>,
+    #[serde(default)]
+    pub bal: Option<String>,
+    #[serde(default)]
+    pub mgn_ratio: Option<String>,
+    #[serde(default)]
+    pub notional_usd: Option<String>,
+    #[serde(default)]
+    pub imr: Option<String>,
+    #[serde(default)]
+    pub mmr: Option<String>,
+    #[serde(default)]
+    pub ord_froz: Option<String>,
+    #[serde(default)]
+    pub avail_eq: Option<String>,
+    #[serde(default)]
+    pub dis_eq: Option<String>,
+    #[serde(default)]
+    pub spot_in_use_amt: Option<String>,
+    #[serde(default)]
+    pub spot_in_use: Option<String>,
+    #[serde(default)]
+    pub max_loan: Option<String>,
+    #[serde(default)]
+    pub eq_usd: Option<String>,
+    #[serde(default)]
+    pub notional_lever: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct OkxPosition {
     #[serde(default)]
     pub inst_type: Option<String>,
@@ -74,7 +127,7 @@ pub struct OkxPosition {
     pub mgn_mode: Option<String>,
     #[serde(default)]
     pub pos: Option<String>,
-    #[serde(default, rename = "posSide")]
+    #[serde(default)]
     pub pos_side: Option<String>,
     #[serde(default)]
     pub pos_ccy: Option<String>,
@@ -105,32 +158,33 @@ pub struct OkxPosition {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct OkxTicker {
-    #[serde(default, rename = "instType")]
+    #[serde(default)]
     pub inst_type: Option<String>,
-    #[serde(default, rename = "instId")]
+    #[serde(default)]
     pub inst_id: Option<String>,
     #[serde(default)]
     pub last: Option<String>,
-    #[serde(default, rename = "lastSz")]
+    #[serde(default)]
     pub last_sz: Option<String>,
-    #[serde(default, rename = "askPx")]
+    #[serde(default)]
     pub ask_px: Option<String>,
-    #[serde(default, rename = "askSz")]
+    #[serde(default)]
     pub ask_sz: Option<String>,
-    #[serde(default, rename = "bidPx")]
+    #[serde(default)]
     pub bid_px: Option<String>,
-    #[serde(default, rename = "bidSz")]
+    #[serde(default)]
     pub bid_sz: Option<String>,
-    #[serde(default, rename = "open24h")]
+    #[serde(default)]
     pub open_24h: Option<String>,
-    #[serde(default, rename = "high24h")]
+    #[serde(default)]
     pub high_24h: Option<String>,
-    #[serde(default, rename = "low24h")]
+    #[serde(default)]
     pub low_24h: Option<String>,
-    #[serde(default, rename = "volCcy24h")]
+    #[serde(default)]
     pub vol_ccy_24h: Option<String>,
-    #[serde(default, rename = "vol24h")]
+    #[serde(default)]
     pub vol_24h: Option<String>,
     #[serde(default)]
     pub ts: Option<String>,
@@ -159,6 +213,7 @@ pub struct OkxCandle {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OkxOrderRequest {
     pub inst_id: String,
     pub td_mode: String,
@@ -175,6 +230,7 @@ pub struct OkxOrderRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct OkxOrderResponse {
     pub ord_id: String,
     pub cl_ord_id: String,
@@ -548,6 +604,7 @@ impl OkxClient {
         ord_id: &str,
     ) -> Result<OkxOrderResponse> {
         #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
         struct CancelRequest {
             inst_id: String,
             ord_id: String,
@@ -586,6 +643,7 @@ impl OkxClient {
         mgn_mode: &str,
     ) -> Result<()> {
         #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
         struct LeverageRequest {
             inst_id: String,
             lever: String,
