@@ -13,6 +13,7 @@
 //! - `calibration`: 概率校准（Brier、LogLoss、校准曲线）
 
 pub mod calibration;
+pub mod decision_engine;
 pub mod model_card;
 pub mod models;
 pub mod store;
@@ -20,6 +21,7 @@ pub mod store;
 pub use calibration::{
     calibrate_three_class, compute_brier_score, compute_calibration_curve, compute_log_loss,
 };
+pub use decision_engine::{DecisionAction, DecisionConfig, DecisionEngine, DecisionInput, DecisionOutput};
 pub use model_card::{ModelCard, ModelCardStatus};
 pub use models::{
     CalibrationReport, DecisionCard, DecisionCardBuilder, SuggestedAction,

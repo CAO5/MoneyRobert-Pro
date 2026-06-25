@@ -78,6 +78,17 @@ pub enum PositionMethod {
     ConservativeMin,
 }
 
+impl PositionMethod {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Kelly => "kelly",
+            Self::VolatilityTarget => "volatility_target",
+            Self::RiskBudget => "risk_budget",
+            Self::ConservativeMin => "conservative_min",
+        }
+    }
+}
+
 /// Fractional Kelly 仓位计算引擎
 pub struct PositionSizingEngine {
     config: PositionSizingConfig,

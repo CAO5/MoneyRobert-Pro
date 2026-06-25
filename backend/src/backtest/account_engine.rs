@@ -52,27 +52,19 @@ impl AccountEngine {
             .sum()
     }
 
-    /// Close all open positions at latest mark prices.
-    pub fn force_close_all(&mut self, prices: &std::collections::HashMap<String, f64>, now: DateTime<Utc>) {
-        let mut pnl = 0.0_f64;
-        for pos in self.positions.iter_mut().filter(|p| p.closed_at.is_none()) {
-            if let Some(&price) = prices.get(&pos.asset) {
-                let trade_pnl = if pos.side == "long" {
-                    (price - pos.avg_entry_price) * pos.quantity
-                } else {
-                    (pos.avg_entry_price - price) * pos.quantity
-                };
-                pnl += trade_pnl;
-                pos.closed_at = Some(now);
-                pos.unrealized_pnl = 0.0;
-                pos.realized_pnl = trade_pnl;
-                self.state.cash += price * pos.quantity + trade_pnl;
-            }
-        }
-        self.state.realized_pnl += pnl;
-        self.state.unrealized_pnl = 0.0;
-        self.state.total_notional = 0.0;
-        self.state.recompute_total_equity();
+    /// Collect open positions that need to be force-closed at end of backtest.
+    /// Returns (position_id, asset, price) triples; the runner is responsible
+    /// for routing them through the matching engine so that fees, slippage and
+    /// margin accounting stay consistent with live fills (P0-3).
+    pub fn open_positions_for_force_close(
+        &self,
+        prices: &std::collections::HashMap<String, f64>,
+    ) -> Vec<(uuid::Uuid, String, f64)> {
+        self.positions
+            .iter()
+            .filter(|p| p.closed_at.is_none())
+            .filter_map(|p| prices.get(&p.asset).map(|&pr| (p.position_id, p.asset.clone(), pr)))
+            .collect()
     }
 
     /// Check if any open position triggered stop-loss / take-profit;

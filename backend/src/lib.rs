@@ -13,6 +13,7 @@ pub mod logging;
 pub mod middleware;
 pub mod microstructure;
 pub mod models;
+pub mod orchestration;
 pub mod routes;
 pub mod schemas;
 pub mod signals;

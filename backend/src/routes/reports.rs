@@ -48,10 +48,10 @@ async fn get_report_statistics(
 
     let by_type = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT format as report_type, COUNT(*) as count
+            SELECT report_type, COUNT(*) as count
             FROM reports
             WHERE user_id = $1
-            GROUP BY format
+            GROUP BY report_type
         ) AS sq"#,
     )
     .bind(user.user_id)
@@ -74,10 +74,10 @@ async fn list_reports(
     // 按 user_id 隔离
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, format as report_type, status, created_at
+            SELECT id, title, report_type, status, created_at, updated_at
             FROM reports
             WHERE user_id = $1
-              AND ($2::text IS NULL OR format = $2)
+              AND ($2::text IS NULL OR report_type = $2)
               AND ($3::text IS NULL OR status = $3)
             ORDER BY created_at DESC LIMIT $4 OFFSET $5
         ) AS sq"#,
@@ -114,7 +114,7 @@ async fn search_reports(
     // 按 user_id 隔离
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, format as report_type, status, created_at
+            SELECT id, title, report_type, status, created_at, updated_at
             FROM reports
             WHERE user_id = $1 AND title ILIKE $2
             ORDER BY created_at DESC LIMIT $3 OFFSET $4
@@ -139,7 +139,7 @@ async fn get_report(
     // 按 user_id 隔离：仅返回属于当前用户的报告
     let report = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, content, format as report_type, status, created_at
+            SELECT id, title, content, report_type, status, created_at, updated_at
             FROM reports
             WHERE id = $1 AND user_id = $2
         ) AS sq"#,
@@ -166,19 +166,19 @@ async fn create_report(
     State(state): State<AppState>,
     Json(req): Json<CreateReportRequest>,
 ) -> Result<Json<serde_json::Value>> {
-    // 创建时绑定 user_id
+    // 创建时绑定 user_id，content 直接作为 JSONB 写入
     let report = sqlx::query_scalar::<_, serde_json::Value>(
         r#"WITH ins AS (
-            INSERT INTO reports (user_id, title, content, format, status)
-            VALUES ($1, $2, $3, $4, 'generated')
-            RETURNING id, title, format as report_type, status, created_at
+            INSERT INTO reports (user_id, title, content, report_type, format, status)
+            VALUES ($1, $2, $3, $4, $4, 'generated')
+            RETURNING id, title, report_type, status, created_at
         )
         SELECT row_to_json(ins) FROM ins"#,
     )
     .bind(user.user_id)
     .bind(req.title)
     .bind(req.content)
-    .bind(req.report_type.unwrap_or_else(|| "markdown".to_string()))
+    .bind(req.report_type.unwrap_or_else(|| "general".to_string()))
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -204,7 +204,9 @@ async fn update_report(
         r#"UPDATE reports
            SET title = COALESCE($3, title),
                content = COALESCE($4, content),
-               format = COALESCE($5, format)
+               report_type = COALESCE($5, report_type),
+               format = COALESCE($5, format),
+               updated_at = NOW()
            WHERE id = $1 AND user_id = $2
            RETURNING id"#,
     )
@@ -288,7 +290,7 @@ async fn compare_reports(
     // 按 user_id 隔离：仅返回属于当前用户的报告
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, content, format as report_type, created_at
+            SELECT id, title, content, report_type, created_at, updated_at
             FROM reports
             WHERE id = ANY($1) AND user_id = $2
         ) AS sq"#,
@@ -309,7 +311,7 @@ async fn get_recent_reports(
     // 按 user_id 隔离：仅返回当前用户最近的报告
     let reports = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, title, format as report_type, status, created_at
+            SELECT id, title, report_type, status, created_at, updated_at
             FROM reports
             WHERE user_id = $1
             ORDER BY created_at DESC LIMIT 5

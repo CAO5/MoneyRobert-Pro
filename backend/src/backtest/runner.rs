@@ -8,9 +8,11 @@ use crate::backtest::models::{
     SimulatedOrder, TradeAttribution, TradeIntent,
 };
 use crate::backtest::performance_engine::PerformanceEngine;
+use crate::backtest::position_sizing::{PositionSizingConfig, PositionSizingEngine};
 use crate::backtest::replay_engine::{ReplayConfig, ReplayEngine};
 use crate::backtest::risk_engine::{RiskConfig, RiskEngine};
-use crate::features::{RegimeClassifier, RegimeConfig};
+use crate::features::{MarketRegime, RegimeClassifier, RegimeConfig};
+use crate::signals::decision_engine::{DecisionAction, DecisionEngine, DecisionInput};
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::collections::HashMap;
@@ -37,6 +39,10 @@ pub struct BacktestRunner {
     matching: MatchingEngine,
     risk: RiskEngine,
     account: AccountEngine,
+    /// P1-1: 决策引擎（EV/CVaR）
+    decision: DecisionEngine,
+    /// P1-2: 仓位计算引擎（Kelly/波动率目标/风险预算）
+    position_sizing: PositionSizingEngine,
     open_orders: Vec<SimulatedOrder>,
     closed_trades: Vec<TradeAttribution>,
     last_kline_by_asset: HashMap<String, crate::backtest::models::Kline>,
@@ -60,6 +66,8 @@ impl BacktestRunner {
             matching: MatchingEngine::new(config.matching.clone()),
             risk: RiskEngine::new(config.risk.clone()),
             account: AccountEngine::new(config.job_id, config.initial_equity, now),
+            decision: DecisionEngine::with_defaults(),
+            position_sizing: PositionSizingEngine::with_defaults(),
             open_orders: Vec::new(),
             closed_trades: Vec::new(),
             last_kline_by_asset: HashMap::new(),
@@ -105,12 +113,29 @@ impl BacktestRunner {
             }
         }
 
-        // Force-close remaining open positions at the end price
+        // Force-close remaining open positions at the end price.
+        // P0-3: route through the matching engine (close_position_at_price → apply_fill)
+        // so that fees, slippage and margin accounting stay consistent with live fills
+        // and trade attribution is recorded correctly.
         let mut prices = HashMap::new();
         for (sym, k) in &self.last_kline_by_asset {
             prices.insert(sym.clone(), k.close);
         }
-        self.account.force_close_all(&prices, self.config.end_time);
+        let force_close_targets = self.account.open_positions_for_force_close(&prices);
+        for (pos_id, _asset, price) in force_close_targets {
+            if let Some(pos) = self
+                .account
+                .positions
+                .iter()
+                .find(|p| p.position_id == pos_id && p.closed_at.is_none())
+                .cloned()
+            {
+                let fill = self
+                    .matching
+                    .close_position_at_price(&pos, price, self.config.end_time);
+                self.apply_fill_to_account(&pos.asset, &fill, Some("force_close".into()));
+            }
+        }
 
         // Build final performance report
         let perf = PerformanceEngine;
@@ -205,30 +230,80 @@ impl BacktestRunner {
     }
 
     async fn handle_signal(&mut self, signal: &AlphaSignal) {
-        // Validate signal
-        if signal.is_hold() || signal.is_expired(&signal.event_time) {
-            return;
-        }
-        let conf = signal.confidence.unwrap_or(0.0);
-        let strength = signal.signal_strength.unwrap_or(0.0);
-        if conf < self.config.min_signal_confidence || strength < self.config.min_signal_strength {
+        // Validate signal expiry
+        if signal.is_expired(&signal.event_time) {
             return;
         }
 
-        // Convert signal -> trade intent
+        // Get current price data
         let kline = match self.last_kline_by_asset.get(&signal.asset) {
             Some(k) => k.clone(),
             None => return, // no price data for this asset yet
         };
         let current_price = kline.close;
+        if current_price <= 0.0 {
+            return;
+        }
 
-        let side = if signal.is_long() { "buy" } else { "sell" };
-        let position_pct = (0.05 * strength).min(self.config.risk.max_single_position_pct);
+        // P1-1: Use DecisionEngine (EV/CVaR) instead of simple confidence/strength threshold
+        let regime = self
+            .current_regime_by_asset
+            .get(&signal.asset)
+            .and_then(|s| MarketRegime::from_str(s));
+
+        // Estimate asset volatility from K-line history (ATR-based)
+        let asset_volatility = self.estimate_volatility(&signal.asset);
+
+        let decision_input = DecisionInput {
+            signal,
+            regime,
+            account: &self.account.state,
+            current_price,
+            asset_volatility: Some(asset_volatility),
+        };
+        let decision = self.decision.decide(&decision_input);
+
+        if decision.action == DecisionAction::Hold {
+            warn!(
+                "[BT] signal {} rejected by decision engine: blockers={:?}",
+                signal.signal_id, decision.blockers
+            );
+            return;
+        }
+
+        // P1-2: Use PositionSizingEngine (Kelly/vol target/risk budget) for position sizing
+        let confidence = signal.confidence.unwrap_or(0.5);
+        let expected_return_bps = signal.expected_return_bps.unwrap_or(100.0);
+        let avg_win = expected_return_bps.max(0.0) / 10000.0;
+        let avg_loss = expected_return_bps.abs().min(500.0) / 10000.0;
+        let stop_loss_pct = Some(0.02); // 默认 2% 止损
+
+        let sizing = self.position_sizing.calculate(
+            current_price,
+            confidence,
+            avg_win,
+            avg_loss,
+            asset_volatility,
+            stop_loss_pct,
+        );
+
+        // 使用仓位引擎结果，但受决策引擎的 regime 调整约束
+        let position_pct = sizing.position_pct.min(decision.position_pct.max(0.0));
+        if position_pct <= 0.0 {
+            warn!(
+                "[BT] signal {} position too small: kelly={:.4} decision_pct={:.4}",
+                signal.signal_id, sizing.kelly_raw, decision.position_pct
+            );
+            return;
+        }
+
         let notional = self.account.state.total_equity.max(0.0) * position_pct;
-        if notional <= 0.0 || current_price <= 0.0 {
+        if notional <= 0.0 {
             return;
         }
         let quantity = notional / current_price;
+
+        let side = if decision.action == DecisionAction::OpenLong { "buy" } else { "sell" };
 
         let intent = TradeIntent {
             intent_id: Uuid::new_v4(),
@@ -247,9 +322,7 @@ impl BacktestRunner {
             limit_price: None,
             max_slippage_bps: None,
             leverage: 1,
-            stop_loss_price: signal
-                .expected_return_bps
-                .map(|bps| current_price * (1.0 - bps / 10000.0 * 2.0)),
+            stop_loss_price: sizing.stop_loss_price,
             take_profit_price: signal
                 .expected_return_bps
                 .map(|bps| current_price * (1.0 + bps / 10000.0)),
@@ -412,6 +485,46 @@ impl BacktestRunner {
     }
     pub fn closed_trades(&self) -> &[TradeAttribution] {
         &self.closed_trades
+    }
+
+    /// 从 K 线历史估算资产年化波动率（基于收益率标准差）
+    /// P1-1/P1-2: 供 DecisionEngine 和 PositionSizingEngine 使用
+    fn estimate_volatility(&self, asset: &str) -> f64 {
+        let history = match self.kline_history_by_asset.get(asset) {
+            Some(h) if h.len() >= 2 => h,
+            _ => return 0.6, // 默认 60% 年化波动率
+        };
+
+        // 计算对数收益率序列
+        let returns: Vec<f64> = history
+            .windows(2)
+            .map(|w| {
+                let prev = w[0].3; // close
+                let curr = w[1].3;
+                if prev > 0.0 && curr > 0.0 {
+                    (curr / prev).ln()
+                } else {
+                    0.0
+                }
+            })
+            .collect();
+
+        if returns.len() < 2 {
+            return 0.6;
+        }
+
+        // 计算标准差
+        let mean = returns.iter().sum::<f64>() / returns.len() as f64;
+        let variance = returns.iter().map(|r| (r - mean).powi(2)).sum::<f64>()
+            / (returns.len() - 1) as f64;
+        let std = variance.sqrt();
+
+        // 年化：假设 1H K 线，一年 24*365 = 8760 根
+        // sqrt(8760) ≈ 93.6
+        let annualized = std * 93.6;
+
+        // 限制在合理范围 [0.1, 5.0]
+        annualized.clamp(0.1, 5.0)
     }
 }
 
