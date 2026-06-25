@@ -14,7 +14,8 @@
 -- 1. trade_attributions：交易后归因分析
 --    对每笔已平仓交易做归因：盈亏来源分解
 -- ---------------------------------------------
-CREATE TABLE IF NOT EXISTS trade_attributions (
+DROP TABLE IF EXISTS trade_attributions CASCADE;
+CREATE TABLE trade_attributions (
     attribution_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     job_id UUID REFERENCES backtest_jobs(job_id) ON DELETE CASCADE,
     user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,

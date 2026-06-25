@@ -19,27 +19,53 @@
 -- ---------------------------------------------
 -- 1. 迁移 market_data 数据到 klines（如果存在）
 -- ---------------------------------------------
-INSERT INTO klines (symbol, "interval", open_time, open, high, low, close, volume, quote_volume, trades_count, is_closed, created_at)
-SELECT
-    symbol,
-    "interval",
-    open_time,
-    open,
-    high,
-    low,
-    close,
-    volume,
-    COALESCE(quote_volume, 0),
-    COALESCE(trades_count, 0),
-    true,
-    created_at
-FROM market_data
-ON CONFLICT (symbol, "interval", open_time) DO NOTHING;
+DO $$
+BEGIN
+    -- 仅当 market_data 是一个普通表（非视图）时才执行迁移
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'market_data' AND table_schema = 'public'
+    ) THEN
+        EXECUTE format('
+            INSERT INTO klines (symbol, "interval", open_time, open, high, low, close, volume, quote_volume, trades_count, is_closed, created_at)
+            SELECT
+                symbol,
+                "interval",
+                open_time,
+                open,
+                high,
+                low,
+                close,
+                volume,
+                COALESCE(quote_volume, 0),
+                COALESCE(trades_count, 0),
+                true,
+                created_at
+            FROM market_data
+            ON CONFLICT (symbol, "interval", open_time) DO NOTHING
+        ');
+    END IF;
+END $$;
 
 -- ---------------------------------------------
--- 2. 删除旧的 market_data 表
+-- 2. 删除旧的 market_data 表或视图
 -- ---------------------------------------------
-DROP TABLE IF EXISTS market_data;
+DO $$
+BEGIN
+    -- 如果是视图，用 DROP VIEW
+    IF EXISTS (
+        SELECT 1 FROM information_schema.views
+        WHERE table_name = 'market_data' AND table_schema = 'public'
+    ) THEN
+        EXECUTE 'DROP VIEW IF EXISTS market_data CASCADE';
+    -- 如果是表，用 DROP TABLE
+    ELSIF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'market_data' AND table_schema = 'public'
+    ) THEN
+        EXECUTE 'DROP TABLE IF EXISTS market_data CASCADE';
+    END IF;
+END $$;
 
 -- ---------------------------------------------
 -- 3. 创建 market_data 视图（从 klines 查询）

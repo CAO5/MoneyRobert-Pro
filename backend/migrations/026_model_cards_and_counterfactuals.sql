@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS model_cards (
     updated_at           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_model_cards_status ON model_cards(status);
-CREATE INDEX idx_model_cards_model_type ON model_cards(model_type);
+CREATE INDEX IF NOT EXISTS idx_model_cards_status ON model_cards(status);
+CREATE INDEX IF NOT EXISTS idx_model_cards_model_type ON model_cards(model_type);
 
 -- 自动更新 updated_at
 CREATE OR REPLACE FUNCTION update_model_cards_updated_at()
@@ -63,6 +63,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_model_cards_updated_at ON model_cards;
 CREATE TRIGGER trg_model_cards_updated_at
     BEFORE UPDATE ON model_cards
     FOR EACH ROW
@@ -103,9 +104,9 @@ CREATE TABLE IF NOT EXISTS counterfactual_explanations (
     created_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_counterfactual_attribution ON counterfactual_explanations(attribution_id);
-CREATE INDEX idx_counterfactual_job ON counterfactual_explanations(job_id);
-CREATE INDEX idx_counterfactual_scenario ON counterfactual_explanations(scenario_type);
+CREATE INDEX IF NOT EXISTS idx_counterfactual_attribution ON counterfactual_explanations(attribution_id);
+CREATE INDEX IF NOT EXISTS idx_counterfactual_job ON counterfactual_explanations(job_id);
+CREATE INDEX IF NOT EXISTS idx_counterfactual_scenario ON counterfactual_explanations(scenario_type);
 
 -- ============================================================================
 -- 3. 视图：模型卡摘要（方便前端展示）

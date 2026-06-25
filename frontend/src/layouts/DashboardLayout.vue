@@ -8,7 +8,8 @@ import {
   BookOpen, Newspaper, FileText, BarChart3, Shield, Target,
   ChevronRight, Swords, Layers, FlaskConical, Database,
   Gauge, ShieldAlert, Activity, Microscope,
-  GitBranch, Network, Calculator, Repeat
+  GitBranch, Network, Calculator, Repeat,
+  BadgeCheck, GitCompare
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -53,8 +54,10 @@ const navigation = [
     items: [
       { name: '概率决策卡', path: '/signals/decision-card', icon: Layers },
       { name: '概率校准', path: '/signals/calibration', icon: Gauge },
+      { name: '模型卡', path: '/signals/model-card', icon: BadgeCheck },
       { name: '回测中心', path: '/backtest', icon: FlaskConical },
       { name: '归因分析', path: '/backtest/attribution', icon: BarChart3 },
+      { name: '反事实解释', path: '/backtest/counterfactual', icon: GitCompare },
       { name: '失效告警', path: '/backtest/strategy-failure', icon: ShieldAlert },
       { name: 'Walk-forward', path: '/backtest/walk-forward', icon: Repeat },
       { name: '组合风险', path: '/backtest/portfolio-risk', icon: Network },

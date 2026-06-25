@@ -899,4 +899,159 @@ export class DataQualityApi {
   }
 }
 
+// =========================================================
+// 模型卡 API（/model-cards/*）
+// =========================================================
+
+export interface ModelCardSummary {
+  card_id: string
+  model_version: string
+  model_type: string
+  model_name: string
+  status: string
+  promotion_eligible: boolean
+  brier_score?: number
+  log_loss?: number
+  accuracy?: number
+  calibration_report_id?: string
+  trust_assessment_id?: string
+  shadow_period_start?: string
+  shadow_period_end?: string
+  previous_version?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ModelCardDetail extends ModelCardSummary {
+  description?: string
+  intended_use?: string
+  out_of_scope?: string
+  training_data_summary?: unknown
+  feature_version?: string
+  features_used?: unknown
+  calibration_curve?: unknown
+  invalidation_conditions?: unknown
+  known_limitations?: unknown
+  ethical_considerations?: string
+  created_by?: number
+  approved_by?: number
+  approved_at?: string
+}
+
+export class ModelCardApi {
+  /// 查询模型卡列表
+  static async listCards(params?: { status?: string; limit?: number }) {
+    const { data } = await api.get<{ cards: ModelCardSummary[]; count: number }>('/model-cards', { params })
+    return data
+  }
+
+  /// 查询单个模型卡详情
+  static async getCard(modelVersion: string) {
+    const { data } = await api.get<ModelCardDetail>(`/model-cards/${modelVersion}`)
+    return data
+  }
+
+  /// 创建/聚合生成模型卡
+  static async createCard(req: {
+    model_version: string
+    model_type: string
+    model_name: string
+    description?: string
+    intended_use?: string
+    out_of_scope?: string
+    training_data_summary?: unknown
+    feature_version?: string
+    features_used?: unknown
+    invalidation_conditions?: unknown
+    known_limitations?: unknown
+    ethical_considerations?: string
+  }) {
+    const { data } = await api.post('/model-cards', req)
+    return data
+  }
+
+  /// 发布门禁：变更状态
+  static async promoteCard(modelVersion: string, newStatus: string) {
+    const { data } = await api.post(`/model-cards/${modelVersion}/promote`, { new_status: newStatus })
+    return data
+  }
+
+  /// 回滚到之前的版本
+  static async rollbackCard(modelVersion: string) {
+    const { data } = await api.post(`/model-cards/${modelVersion}/rollback`)
+    return data
+  }
+}
+
+// =========================================================
+// 反事实解释 API（/counterfactuals/*）
+// =========================================================
+
+export interface CounterfactualExplanation {
+  explanation_id: string
+  attribution_id?: string
+  decision_card_id?: string
+  job_id?: string
+  user_id?: number
+  symbol: string
+  scenario_type: string
+  scenario_description?: string
+  counterfactual_pnl?: number
+  actual_pnl: number
+  pnl_delta?: number
+  counterfactual_return?: number
+  explanation: string
+  key_drivers: unknown
+  what_if_inputs?: unknown
+  confidence: number
+  evidence: unknown
+  created_at: string
+}
+
+export class CounterfactualApi {
+  /// 生成反事实解释
+  static async generate(req: {
+    attribution_id?: string
+    decision_card_id?: string
+    job_id?: string
+    symbol: string
+    direction: string
+    actual_pnl: number
+    gross_pnl: number
+    entry_time: string
+    exit_time?: string
+    holding_period_sec?: number
+    fee_cost: number
+    slippage_cost: number
+    funding_cost: number
+    impact_cost: number
+    benchmark_return?: number
+    market_regime?: string
+    signal_confidence?: number
+    save?: boolean
+  }) {
+    const { data } = await api.post<{ explanations: CounterfactualExplanation[]; count: number; symbol: string; actual_pnl: number }>(
+      '/counterfactuals/generate',
+      req,
+    )
+    return data
+  }
+
+  /// 查询某笔交易的反事实场景
+  static async listByAttribution(attributionId: string) {
+    const { data } = await api.get<{ explanations: CounterfactualExplanation[]; count: number; attribution_id: string }>(
+      `/counterfactuals/attribution/${attributionId}`,
+    )
+    return data
+  }
+
+  /// 查询某 job 下所有反事实场景
+  static async listByJob(jobId: string) {
+    const { data } = await api.get<{ explanations: CounterfactualExplanation[]; count: number; job_id: string }>(
+      `/counterfactuals/job/${jobId}`,
+    )
+    return data
+  }
+}
+
 export default api

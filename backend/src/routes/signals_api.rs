@@ -32,10 +32,10 @@ pub fn router() -> Router<AppState> {
         .route("/calibration/compute", post(compute_calibration))
         // 校准模型管理
         .route("/calibration/models", get(list_calibration_models))
-        .route("/calibration/models/:model_id", get(get_calibration_model))
+        .route("/calibration/models/{model_id}", get(get_calibration_model))
         .route("/calibration/models/train", post(train_calibration_model))
-        .route("/calibration/models/:model_id/default", post(set_default_calibration_model))
-        .route("/calibration/models/:model_id/deprecate", post(deprecate_calibration_model))
+        .route("/calibration/models/{model_id}/default", post(set_default_calibration_model))
+        .route("/calibration/models/{model_id}/deprecate", post(deprecate_calibration_model))
         .route("/calibration/apply", post(apply_calibration))
 }
 
