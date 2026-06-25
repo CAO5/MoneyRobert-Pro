@@ -28,6 +28,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/decision-card", post(create_decision_card))
         .route("/decision-cards", get(list_decision_cards))
+        .route("/trade-recommendation", post(generate_trade_recommendation))
         .route("/calibration", get(get_calibration))
         .route("/calibration/compute", post(compute_calibration))
         // 校准模型管理
@@ -703,4 +704,232 @@ async fn apply_calibration(
         model_id_up,
         model_id_down,
     }))
+}
+
+// ============================================================
+// P2-2: 交易建议卡片 API
+// 依据《系统 2.0 待补全问题清单》9.2.1
+// ============================================================
+
+/// 交易建议请求
+#[derive(Debug, Deserialize)]
+struct TradeRecommendationRequest {
+    symbol: String,
+    /// 信号方向: long / short / hold
+    direction: String,
+    /// 信号置信度 (0-1)
+    confidence: f64,
+    /// 信号强度 (0-1)
+    signal_strength: f64,
+    /// 预期收益 (bps)
+    expected_return_bps: Option<f64>,
+    /// 当前价格
+    current_price: f64,
+    /// 资产年化波动率 (可选，默认 0.6)
+    asset_volatility: Option<f64>,
+    /// 账户总权益
+    total_equity: f64,
+    /// 已用保证金
+    margin_used: Option<f64>,
+    /// 已有持仓 notional
+    existing_position_notional: Option<f64>,
+    /// 市场状态 (trending_bull/trending_bear/ranging/high_volatility/crisis)
+    market_regime: Option<String>,
+}
+
+/// 交易建议响应
+#[derive(Debug, Serialize)]
+struct TradeRecommendationResponse {
+    /// 追踪 ID
+    trace_id: String,
+    /// 建议动作: open_long / open_short / hold
+    action: String,
+    /// 是否可执行
+    executable: bool,
+    /// 置信度 (0-1)
+    confidence: f64,
+    /// 期望价值 (净额，扣除成本)
+    expected_value: f64,
+    /// 条件风险价值 (CVaR，占权益比例)
+    cvar: f64,
+    /// 信任等级 A/B/C/D
+    trust_level: String,
+    /// 建议仓位占比 (0-1)
+    position_pct: f64,
+    /// 建议 notional
+    suggested_notional: f64,
+    /// 止损价格
+    stop_loss_price: Option<f64>,
+    /// 止盈价格
+    take_profit_price: Option<f64>,
+    /// 主要理由
+    reasons: Vec<String>,
+    /// 主要风险
+    risks: Vec<String>,
+    /// 不能交易的原因
+    blockers: Vec<String>,
+    /// 决策流水线步骤
+    pipeline_steps: Vec<String>,
+    /// 生成时间
+    generated_at: String,
+}
+
+/// 生成交易建议卡片
+///
+/// 调用决策编排器，综合 EV/CVaR/仓位/风控/信任等级，
+/// 返回完整的交易建议（含止损止盈/理由/风险/阻断原因）
+async fn generate_trade_recommendation(
+    _user: CurrentUser,
+    State(_state): State<AppState>,
+    Json(req): Json<TradeRecommendationRequest>,
+) -> Result<Json<TradeRecommendationResponse>> {
+    use crate::backtest::models::{AccountState, AlphaSignal};
+    use crate::backtest::risk_engine::{RiskConfig, RiskEngine};
+    use crate::backtest::position_sizing::PositionSizingEngine;
+    use crate::features::MarketRegime;
+    use crate::orchestration::decision_orchestrator::DecisionOrchestrator;
+    use crate::signals::decision_engine::DecisionAction;
+    use chrono::Utc;
+
+    // 构造 AlphaSignal
+    let signal = AlphaSignal {
+        signal_id: Uuid::new_v4(),
+        job_id: None,
+        strategy_id: None,
+        agent_id: None,
+        asset: req.symbol.clone(),
+        exchange: None,
+        timeframe: Some("1H".into()),
+        event_time: Utc::now(),
+        valid_until: Some(Utc::now() + chrono::Duration::hours(1)),
+        direction: req.direction.clone(),
+        signal_strength: Some(req.signal_strength),
+        confidence: Some(req.confidence),
+        expected_return_bps: req.expected_return_bps,
+        expected_holding_period_sec: Some(3600),
+        market_regime: req.market_regime.clone(),
+        features_used: None,
+        risk_flags: None,
+        explanation: None,
+    };
+
+    // 构造 AccountState
+    let account = AccountState {
+        job_id: Uuid::nil(),
+        timestamp: Utc::now(),
+        initial_equity: req.total_equity,
+        cash: req.total_equity - req.margin_used.unwrap_or(0.0),
+        margin_used: req.margin_used.unwrap_or(0.0),
+        unrealized_pnl: 0.0,
+        realized_pnl: 0.0,
+        total_equity: req.total_equity,
+        total_notional: req.existing_position_notional.unwrap_or(0.0),
+        leverage: 1.0,
+        drawdown_pct: 0.0,
+        peak_equity: req.total_equity,
+    };
+
+    // 解析市场状态
+    let regime = req.market_regime.as_deref().and_then(|s| match s {
+        "trending_bull" => Some(MarketRegime::TrendingBull),
+        "trending_bear" => Some(MarketRegime::TrendingBear),
+        "ranging" => Some(MarketRegime::Ranging),
+        "high_volatility" => Some(MarketRegime::HighVolatility),
+        "crisis" => Some(MarketRegime::Crisis),
+        _ => None,
+    });
+
+    // 创建编排器
+    let risk_engine = RiskEngine::new(RiskConfig::default());
+    let orchestrator = DecisionOrchestrator::with_defaults(risk_engine);
+
+    let asset_vol = req.asset_volatility.unwrap_or(0.6);
+
+    // 执行决策流水线
+    let result = orchestrator.orchestrate(
+        &signal,
+        regime,
+        &account,
+        req.current_price,
+        asset_vol,
+        req.existing_position_notional.unwrap_or(0.0),
+    );
+
+    // 计算止损止盈
+    let (stop_loss_price, take_profit_price) = {
+        let sl_pct = 0.02; // 2% 止损
+        let tp_pct = req
+            .expected_return_bps
+            .map(|bps| (bps / 10000.0).abs())
+            .unwrap_or(0.03);
+        match result.final_action {
+            DecisionAction::OpenLong => (
+                Some(req.current_price * (1.0 - sl_pct)),
+                Some(req.current_price * (1.0 + tp_pct)),
+            ),
+            DecisionAction::OpenShort => (
+                Some(req.current_price * (1.0 + sl_pct)),
+                Some(req.current_price * (1.0 - tp_pct)),
+            ),
+            DecisionAction::Hold => (None, None),
+        }
+    };
+
+    // 信任等级（基于 EV/CVaR/置信度）
+    let trust_level = if result.decision.expected_value > 0.01
+        && result.decision.cvar < 0.03
+        && req.confidence > 0.7
+    {
+        "A"
+    } else if result.decision.expected_value > 0.005
+        && result.decision.cvar < 0.05
+        && req.confidence > 0.5
+    {
+        "B"
+    } else if result.decision.expected_value > 0.0 {
+        "C"
+    } else {
+        "D"
+    };
+
+    // 主要风险
+    let mut risks = Vec::new();
+    if result.decision.cvar > 0.05 {
+        risks.push(format!("CVaR 占权益 {:.2}%，极端损失风险较高", result.decision.cvar * 100.0));
+    }
+    if asset_vol > 0.8 {
+        risks.push(format!("资产年化波动率 {:.0}%，波动性高", asset_vol * 100.0));
+    }
+    if let Some(ref regime_str) = req.market_regime {
+        if regime_str == "high_volatility" || regime_str == "crisis" {
+            risks.push(format!("市场状态为 {}，不适合大仓位", regime_str));
+        }
+    }
+    if req.confidence < 0.5 {
+        risks.push(format!("信号置信度 {:.0}% 低于阈值", req.confidence * 100.0));
+    }
+    if risks.is_empty() {
+        risks.push("市场风险正常".into());
+    }
+
+    let response = TradeRecommendationResponse {
+        trace_id: result.trace_id.to_string(),
+        action: result.final_action.as_str().to_string(),
+        executable: result.can_execute(),
+        confidence: result.decision.confidence,
+        expected_value: result.decision.expected_value,
+        cvar: result.decision.cvar,
+        trust_level: trust_level.to_string(),
+        position_pct: result.final_position_pct,
+        suggested_notional: result.final_notional,
+        stop_loss_price,
+        take_profit_price,
+        reasons: result.decision.reasons,
+        risks,
+        blockers: result.blockers,
+        pipeline_steps: result.pipeline_steps,
+        generated_at: Utc::now().to_rfc3339(),
+    };
+
+    Ok(Json(response))
 }

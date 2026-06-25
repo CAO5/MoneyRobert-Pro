@@ -9,7 +9,7 @@ import {
   ChevronRight, Swords, Layers, FlaskConical, Database,
   Gauge, ShieldAlert, Activity, Microscope,
   GitBranch, Network, Calculator, Repeat,
-  BadgeCheck, GitCompare
+  BadgeCheck, GitCompare, Lightbulb
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -53,6 +53,7 @@ const navigation = [
     group: '量化信号',
     items: [
       { name: '概率决策卡', path: '/signals/decision-card', icon: Layers },
+      { name: '交易建议', path: '/signals/trade-recommendation', icon: Lightbulb },
       { name: '概率校准', path: '/signals/calibration', icon: Gauge },
       { name: '模型卡', path: '/signals/model-card', icon: BadgeCheck },
       { name: '回测中心', path: '/backtest', icon: FlaskConical },

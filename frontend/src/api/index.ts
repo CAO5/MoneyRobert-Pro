@@ -490,6 +490,47 @@ export class SignalApi {
     const { data } = await api.post<CalibrationResponse>('/signals/calibration/compute', req)
     return data
   }
+
+  /// P2-2: 生成交易建议卡片
+  static async generateTradeRecommendation(req: TradeRecommendationRequest) {
+    const { data } = await api.post<TradeRecommendationResponse>('/signals/trade-recommendation', req)
+    return data
+  }
+}
+
+/// 交易建议请求
+export interface TradeRecommendationRequest {
+  symbol: string
+  direction: string
+  confidence: number
+  signal_strength: number
+  expected_return_bps?: number
+  current_price: number
+  asset_volatility?: number
+  total_equity: number
+  margin_used?: number
+  existing_position_notional?: number
+  market_regime?: string
+}
+
+/// 交易建议响应
+export interface TradeRecommendationResponse {
+  trace_id: string
+  action: string
+  executable: boolean
+  confidence: number
+  expected_value: number
+  cvar: number
+  trust_level: string
+  position_pct: number
+  suggested_notional: number
+  stop_loss_price?: number
+  take_profit_price?: number
+  reasons: string[]
+  risks: string[]
+  blockers: string[]
+  pipeline_steps: string[]
+  generated_at: string
 }
 
 // =========================================================

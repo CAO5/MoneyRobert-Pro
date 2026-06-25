@@ -15,6 +15,7 @@ const router = createRouter({
       { path: 'ai/predictions', name: 'ai-predictions', component: () => import('@/pages/AiPredictionsPage.vue') },
       { path: 'signals/decision-card', name: 'decision-card', component: () => import('@/pages/DecisionCardPage.vue') },
       { path: 'signals/calibration', name: 'calibration', component: () => import('@/pages/CalibrationPage.vue') },
+      { path: 'signals/trade-recommendation', name: 'trade-recommendation', component: () => import('@/pages/TradeRecommendationPage.vue') },
       { path: 'signals/model-card', name: 'model-card', component: () => import('@/pages/ModelCardPage.vue') },
       { path: 'backtest', name: 'backtest', component: () => import('@/pages/BacktestPage.vue') },
       { path: 'backtest/attribution', name: 'attribution', component: () => import('@/pages/AttributionPage.vue') },

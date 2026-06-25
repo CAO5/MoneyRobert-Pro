@@ -45,6 +45,8 @@ pub struct BacktestRunner {
     position_sizing: PositionSizingEngine,
     open_orders: Vec<SimulatedOrder>,
     closed_trades: Vec<TradeAttribution>,
+    /// P2: 每个仓位的累计手续费（position_id → fee），平仓时用于归因
+    position_fees: HashMap<Uuid, f64>,
     last_kline_by_asset: HashMap<String, crate::backtest::models::Kline>,
     /// 每个 asset 的历史 K 线（OHLCV 元组），用于市场状态识别
     kline_history_by_asset: HashMap<String, Vec<(f64, f64, f64, f64, f64)>>,
@@ -70,6 +72,7 @@ impl BacktestRunner {
             position_sizing: PositionSizingEngine::with_defaults(),
             open_orders: Vec::new(),
             closed_trades: Vec::new(),
+            position_fees: HashMap::new(),
             last_kline_by_asset: HashMap::new(),
             kline_history_by_asset: HashMap::new(),
             current_regime_by_asset: HashMap::new(),
@@ -410,6 +413,20 @@ impl BacktestRunner {
             self.matching
                 .apply_fill(fill, &mut self.account.positions, &mut self.account.state);
 
+        // P2: 记录开仓手续费到 position_fees（新仓位被创建时）
+        if let Some(new_pos) = &_new_pos {
+            self.position_fees.insert(new_pos.position_id, fill.fee);
+        } else {
+            // 非开仓场景：将本次 fill 的手续费累加到受影响的仓位
+            for pos in self.account.positions.iter() {
+                if pos.asset == fill.asset && pos.closed_at.is_none() {
+                    // 加仓或部分平仓：累加手续费
+                    *self.position_fees.entry(pos.position_id).or_insert(0.0) += fill.fee;
+                    break;
+                }
+            }
+        }
+
         // Track newly closed positions
         for (pid, side, qty, avg_price) in &before_positions {
             let pos = self
@@ -427,6 +444,9 @@ impl BacktestRunner {
                         0.0
                     };
                     let seconds = (fill.fill_time - pos.opened_at).num_seconds();
+                    // P2 修复：fee_total 包含开仓 + 平仓手续费
+                    let accumulated_fee = self.position_fees.get(pid).copied().unwrap_or(0.0);
+                    let fee_total = accumulated_fee + fill.fee;
                     // 入场时的市场状态（使用 asset 对应的当前 regime）
                     let regime_at_entry = self.current_regime_by_asset.get(asset).cloned();
                     self.closed_trades.push(TradeAttribution {
@@ -443,7 +463,7 @@ impl BacktestRunner {
                         quantity: *qty,
                         pnl: Some(pnl),
                         pnl_bps: Some(pnl_bps),
-                        fee_total: fill.fee,
+                        fee_total,
                         holding_period_sec: Some(seconds),
                         signal_confidence: None,
                         signal_strength: None,
@@ -456,6 +476,8 @@ impl BacktestRunner {
                         }),
                         market_regime_at_entry: regime_at_entry,
                     });
+                    // 清理已平仓仓位的手续费记录
+                    self.position_fees.remove(pid);
                 }
             }
         }
@@ -767,6 +789,289 @@ mod tests {
         // 验证 regime 已被记录（即使没有实际交易，regime 字段也应可用）
         let regime = runner.current_regime_by_asset.get("BTC-USDT-SWAP");
         assert!(regime.is_some(), "regime 应已被计算");
+    }
+
+    /// P2 测试清单 #8: 手续费进入 TradeAttribution（开仓+平仓手续费都记录）
+    #[tokio::test]
+    async fn test_fee_total_in_attribution_includes_open_and_close() {
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入足够 K 线建立 regime
+        let mut price = 100.0;
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let open = price;
+            price += 0.5;
+            let close = price;
+            let kline = make_kline("BTC-USDT-SWAP", open, close + 0.5, open - 0.5, close, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        // 手动构造开仓 fill
+        let open_kline = runner.last_kline_by_asset.get("BTC-USDT-SWAP").unwrap().clone();
+        let open_fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "buy".into(),
+            filled_quantity: 1.0,
+            filled_price: open_kline.close,
+            notional: Some(open_kline.close),
+            fee: 0.5,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some(open_kline.close * 3.0 / 10000.0),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("open_position".into()),
+            fill_time: open_kline.open_time,
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &open_fill, Some("open_position".into()));
+
+        // 手动构造平仓 fill
+        let close_fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "sell".into(),
+            filled_quantity: 1.0,
+            filled_price: open_kline.close + 10.0,
+            notional: Some(open_kline.close + 10.0),
+            fee: 0.6,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some((open_kline.close + 10.0) * 3.0 / 10000.0),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("close_position".into()),
+            fill_time: open_kline.open_time + chrono::Duration::hours(1),
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &close_fill, Some("close_position".into()));
+
+        // 验证 closed_trades 中记录了完整手续费（开仓 0.5 + 平仓 0.6 = 1.1）
+        assert_eq!(runner.closed_trades.len(), 1);
+        let trade = &runner.closed_trades[0];
+        assert!(
+            (trade.fee_total - 1.1).abs() < 1e-9,
+            "fee_total 应为开仓+平仓手续费之和 1.1，实际: {}",
+            trade.fee_total
+        );
+        // 验证滑点成本进入绩效统计
+        assert!(
+            runner.total_slippage_cost > 0.0,
+            "滑点成本应进入 total_slippage_cost"
+        );
+        assert!(
+            runner.total_fee > 0.0,
+            "手续费应进入 total_fee"
+        );
+    }
+
+    /// P2 测试清单 #7: 滑点成本进入绩效统计
+    #[tokio::test]
+    async fn test_slippage_cost_enters_performance_stats() {
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入 K 线
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let kline = make_kline("BTC-USDT-SWAP", 100.0, 101.0, 99.0, 100.5, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        let kline = runner.last_kline_by_asset.get("BTC-USDT-SWAP").unwrap().clone();
+        let fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "buy".into(),
+            filled_quantity: 2.0,
+            filled_price: 100.5,
+            notional: Some(201.0),
+            fee: 0.1,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some(201.0 * 3.0 / 10000.0),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("open_position".into()),
+            fill_time: kline.open_time,
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &fill, Some("open_position".into()));
+
+        let expected_slippage = 201.0 * 3.0 / 10000.0;
+        assert!(
+            (runner.total_slippage_cost - expected_slippage).abs() < 1e-9,
+            "total_slippage_cost 应为 {:.6}，实际: {:.6}",
+            expected_slippage,
+            runner.total_slippage_cost
+        );
+    }
+
+    /// P2 测试清单 #4 & #6: 回测结束强平产生 closed_trades，且与普通平仓一致
+    #[tokio::test]
+    async fn test_force_close_produces_attribution() {
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入 K 线建立 regime
+        let mut price = 100.0;
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let open = price;
+            price += 0.5;
+            let close = price;
+            let kline = make_kline("BTC-USDT-SWAP", open, close + 0.5, open - 0.5, close, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        // 开仓
+        let kline = runner.last_kline_by_asset.get("BTC-USDT-SWAP").unwrap().clone();
+        let open_fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "buy".into(),
+            filled_quantity: 1.0,
+            filled_price: kline.close,
+            notional: Some(kline.close),
+            fee: 0.5,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some(kline.close * 3.0 / 10000.0),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("open_position".into()),
+            fill_time: kline.open_time,
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &open_fill, Some("open_position".into()));
+        assert!(runner.closed_trades.is_empty(), "开仓不应产生 closed_trades");
+
+        // 模拟回测结束的强平链路（P0-3: 走撮合）
+        let pos = runner.account.positions.iter().find(|p| p.closed_at.is_none()).cloned().unwrap();
+        let end_time = runner.config.end_time;
+        let force_close_fill = runner.matching.close_position_at_price(&pos, kline.close + 5.0, end_time);
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &force_close_fill, Some("force_close".into()));
+
+        // 验证强平产生了 closed_trades
+        assert_eq!(runner.closed_trades.len(), 1, "强平应产生 1 条 closed_trade");
+        let trade = &runner.closed_trades[0];
+        assert_eq!(trade.exit_reason.as_deref(), Some("force_close"), "exit_reason 应为 force_close");
+        assert!(trade.fee_total > 0.0, "强平的 fee_total 应包含手续费");
+        assert!(trade.pnl.is_some(), "强平应有 pnl 记录");
+    }
+
+    /// P2 测试清单 #5: total_equity 不重复加 realized_pnl
+    #[tokio::test]
+    async fn test_total_equity_no_double_count_realized_pnl() {
+        let config = make_config();
+        let mut runner = BacktestRunner::new(config);
+        let base = Utc.with_ymd_and_hms(2026, 1, 1, 0, 0, 0).unwrap();
+
+        // 喂入 K 线
+        let mut price = 100.0;
+        for i in 0..60 {
+            let ts = base + chrono::Duration::hours(i);
+            let open = price;
+            price += 0.5;
+            let close = price;
+            let kline = make_kline("BTC-USDT-SWAP", open, close + 0.5, open - 0.5, close, ts);
+            runner.handle_kline(&kline).await;
+        }
+
+        let initial_equity = runner.account.state.total_equity;
+
+        // 开仓
+        let kline = runner.last_kline_by_asset.get("BTC-USDT-SWAP").unwrap().clone();
+        let open_fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "buy".into(),
+            filled_quantity: 1.0,
+            filled_price: 100.0,
+            notional: Some(100.0),
+            fee: 0.05,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some(0.03),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("open_position".into()),
+            fill_time: kline.open_time,
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &open_fill, Some("open_position".into()));
+
+        // 平仓（盈利 10）
+        let close_fill = crate::backtest::models::SimulatedFill {
+            fill_id: Uuid::new_v4(),
+            order_id: Uuid::new_v4(),
+            job_id: Some(runner.config.job_id),
+            asset: "BTC-USDT-SWAP".into(),
+            exchange: None,
+            side: "sell".into(),
+            filled_quantity: 1.0,
+            filled_price: 110.0,
+            notional: Some(110.0),
+            fee: 0.055,
+            slippage_bps: Some(3.0),
+            slippage_cost: Some(0.033),
+            maker_taker: "taker".into(),
+            signal_id: None,
+            strategy_id: None,
+            agent_id: None,
+            intent_type: Some("close_position".into()),
+            fill_time: kline.open_time + chrono::Duration::hours(1),
+        };
+        runner.apply_fill_to_account("BTC-USDT-SWAP", &close_fill, Some("close_position".into()));
+
+        // total_equity = cash + unrealized_pnl
+        // cash = 100000 - 0.05 (开仓 fee) + (10 - 0.055) (平仓 net_pnl) = 100009.895
+        // unrealized_pnl = 0 (已全平)
+        // total_equity 应 = 100009.895，不应再加 realized_pnl
+        let expected_equity = 100000.0 - 0.05 + (10.0 - 0.055);
+        assert!(
+            (runner.account.state.total_equity - expected_equity).abs() < 1e-6,
+            "total_equity 应为 {:.6}（不重复加 realized_pnl），实际: {:.6}",
+            expected_equity,
+            runner.account.state.total_equity
+        );
+        // realized_pnl 不应进入 total_equity（total_equity = cash + unrealized_pnl）
+        assert!(
+            runner.account.state.realized_pnl > 0.0,
+            "realized_pnl 应为正（盈利交易），实际: {:.6}",
+            runner.account.state.realized_pnl
+        );
+        // 关键断言：total_equity != cash + realized_pnl + unrealized_pnl（即 realized_pnl 不被重复计入）
+        let double_count_equity = runner.account.state.cash
+            + runner.account.state.realized_pnl
+            + runner.account.state.unrealized_pnl;
+        assert!(
+            (runner.account.state.total_equity - double_count_equity).abs() > 0.01,
+            "total_equity ({:.6}) 不应等于 cash + realized_pnl + unrealized_pnl ({:.6})，否则 realized_pnl 被重复计入",
+            runner.account.state.total_equity,
+            double_count_equity
+        );
     }
 }
 
