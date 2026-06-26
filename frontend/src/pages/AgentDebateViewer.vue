@@ -153,6 +153,18 @@ function getActionText(a: string): string {
   return a
 }
 
+// 决策状态映射（decision_status / score_status）
+function getDecisionStatusText(s: string | undefined): string {
+  if (!s) return ''
+  const map: Record<string, string> = {
+    insufficient_data: '数据不足',
+    directional_edge: '方向优势达标',
+    balanced_expected_value: '多空均衡·观望',
+    ai_conflict_hold: 'AI 冲突·暂持',
+  }
+  return map[s] ?? s
+}
+
 function getActionColor(a: string): string {
   if (a === 'long') return 'var(--profit)'
   if (a === 'short') return 'var(--loss)'
@@ -633,22 +645,22 @@ onUnmounted(() => {})
 
         <div v-if="fundManagerDecision.evidence_score" class="evidence-panel">
           <div class="evidence-header">
-            <span>Evidence score</span>
-            <span class="evidence-status">{{ fundManagerDecision.decision_status }}</span>
+            <span>证据评分</span>
+            <span class="evidence-status">{{ getDecisionStatusText(fundManagerDecision.decision_status) }}</span>
           </div>
           <div class="evidence-grid">
-            <div><span>Bull</span><strong>{{ (fundManagerDecision.evidence_score.bullish_score * 100).toFixed(1) }}%</strong></div>
-            <div><span>Bear</span><strong>{{ (fundManagerDecision.evidence_score.bearish_score * 100).toFixed(1) }}%</strong></div>
-            <div><span>Edge</span><strong>{{ (fundManagerDecision.evidence_score.directional_edge * 100).toFixed(1) }}%</strong></div>
-            <div><span>Data quality</span><strong>{{ (fundManagerDecision.evidence_score.data_quality * 100).toFixed(1) }}%</strong></div>
-            <div v-if="fundManagerDecision.evidence_score.minimum_edge != null"><span>Required edge</span><strong>{{ (fundManagerDecision.evidence_score.minimum_edge * 100).toFixed(1) }}%</strong></div>
-            <div v-if="fundManagerDecision.evidence_score.reliability_agents != null"><span>Learned agents</span><strong>{{ fundManagerDecision.evidence_score.reliability_agents }}</strong></div>
+            <div><span>看多证据</span><strong>{{ (fundManagerDecision.evidence_score.bullish_score * 100).toFixed(1) }}%</strong></div>
+            <div><span>看空证据</span><strong>{{ (fundManagerDecision.evidence_score.bearish_score * 100).toFixed(1) }}%</strong></div>
+            <div><span>方向边际</span><strong>{{ (fundManagerDecision.evidence_score.directional_edge * 100).toFixed(1) }}%</strong></div>
+            <div><span>数据质量</span><strong>{{ (fundManagerDecision.evidence_score.data_quality * 100).toFixed(1) }}%</strong></div>
+            <div v-if="fundManagerDecision.evidence_score.minimum_edge != null"><span>所需边际门槛</span><strong>{{ (fundManagerDecision.evidence_score.minimum_edge * 100).toFixed(1) }}%</strong></div>
+            <div v-if="fundManagerDecision.evidence_score.reliability_agents != null"><span>可信智能体数</span><strong>{{ fundManagerDecision.evidence_score.reliability_agents }}</strong></div>
           </div>
           <div v-if="fundManagerDecision.llm_status !== 'ok'" class="evidence-warning">
-            LLM status: {{ fundManagerDecision.llm_status }}; deterministic score was used.
+            大模型状态：{{ fundManagerDecision.llm_status }}；已回退为确定性评分。
           </div>
           <div v-else-if="fundManagerDecision.model_action && fundManagerDecision.model_action !== fundManagerDecision.action" class="evidence-warning">
-            Model suggested {{ fundManagerDecision.model_action }}, evidence guard selected {{ fundManagerDecision.action }}.
+            大模型建议 {{ getActionText(fundManagerDecision.model_action || '') }}，证据护栏最终选择 {{ getActionText(fundManagerDecision.action) }}。
           </div>
         </div>
         <div v-if="fundManagerDecision.action !== 'hold'" class="fund-stats">

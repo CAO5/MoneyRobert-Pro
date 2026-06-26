@@ -227,7 +227,12 @@ pub async fn get_proxy_config_from_db(pool: &PgPool) -> Option<String> {
 
     if enabled && !url.is_empty() {
         // Normalize proxy URL based on selected proxy_type
-        let normalized = normalize_proxy_url(&url, &proxy_type);
+        let mut normalized = normalize_proxy_url(&url, &proxy_type);
+        // In Docker environment, 127.0.0.1/localhost refers to container itself,
+        // need to use host.docker.internal to access host services
+        normalized = normalized
+            .replace("127.0.0.1", "host.docker.internal")
+            .replace("localhost", "host.docker.internal");
         Some(normalized)
     } else {
         None
