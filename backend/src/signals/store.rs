@@ -175,8 +175,9 @@ impl SignalStore {
                 expected_value, worst_case, position_suggestion, risk_budget_used,
                 applicable_regime, data_freshness_sec,
                 supporting_evidence, opposing_evidence, sample_performance, data_lineage,
-                invalidation_conditions, model_version, prediction_id, created_at)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)"#,
+                invalidation_conditions, reasons, blockers, trust_level,
+                model_version, prediction_id, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)"#,
         )
         .bind(card.card_id)
         .bind(card.user_id)
@@ -201,6 +202,9 @@ impl SignalStore {
         .bind(&card.sample_performance)
         .bind(&card.data_lineage)
         .bind(&card.invalidation_conditions)
+        .bind(&card.reasons)
+        .bind(&card.blockers)
+        .bind(&card.trust_level)
         .bind(&card.model_version)
         .bind(card.prediction_id)
         .bind(card.created_at)
@@ -222,7 +226,8 @@ impl SignalStore {
                       expected_value, worst_case, position_suggestion, risk_budget_used,
                       applicable_regime, data_freshness_sec,
                       supporting_evidence, opposing_evidence, sample_performance, data_lineage,
-                      invalidation_conditions, model_version, prediction_id,
+                      invalidation_conditions, reasons, blockers, trust_level,
+                      model_version, prediction_id,
                       user_action, user_feedback, acted_at, created_at
                FROM decision_cards
                WHERE user_id = $1
@@ -263,6 +268,9 @@ impl SignalStore {
                 sample_performance: row.get("sample_performance"),
                 data_lineage: row.get("data_lineage"),
                 invalidation_conditions: row.get("invalidation_conditions"),
+                reasons: row.get("reasons"),
+                blockers: row.get("blockers"),
+                trust_level: row.get("trust_level"),
                 model_version: row.get("model_version"),
                 prediction_id: row.get("prediction_id"),
                 user_action: row.get("user_action"),
@@ -272,6 +280,70 @@ impl SignalStore {
             })
             .collect();
         Ok(cards)
+    }
+
+    /// 查询单条决策卡详情（按 card_id + user_id 鉴权过滤）
+    /// 供 mobile GET /signals/decision-cards/{card_id} 详情接口使用
+    pub async fn get_decision_card_by_id(
+        pool: &PgPool,
+        card_id: Uuid,
+        user_id: i64,
+    ) -> Result<Option<DecisionCard>, sqlx::Error> {
+        let row = sqlx::query(
+            r#"SELECT card_id, user_id, symbol, generated_at,
+                      suggested_action, target_horizon_sec,
+                      p_up, p_down, p_flat, q10, q50, q90,
+                      expected_value, worst_case, position_suggestion, risk_budget_used,
+                      applicable_regime, data_freshness_sec,
+                      supporting_evidence, opposing_evidence, sample_performance, data_lineage,
+                      invalidation_conditions, reasons, blockers, trust_level,
+                      model_version, prediction_id,
+                      user_action, user_feedback, acted_at, created_at
+               FROM decision_cards
+               WHERE card_id = $1 AND user_id = $2"#,
+        )
+        .bind(card_id)
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(row.map(|row| DecisionCard {
+            card_id: row.get("card_id"),
+            user_id: row.get("user_id"),
+            symbol: row.get("symbol"),
+            generated_at: row.get("generated_at"),
+            suggested_action: super::models::SuggestedAction::from_str(
+                row.get::<String, _>("suggested_action").as_str(),
+            )
+            .unwrap_or(super::models::SuggestedAction::Hold),
+            target_horizon_sec: row.get("target_horizon_sec"),
+            p_up: row.get("p_up"),
+            p_down: row.get("p_down"),
+            p_flat: row.get("p_flat"),
+            q10: row.get("q10"),
+            q50: row.get("q50"),
+            q90: row.get("q90"),
+            expected_value: row.get("expected_value"),
+            worst_case: row.get("worst_case"),
+            position_suggestion: row.get("position_suggestion"),
+            risk_budget_used: row.get("risk_budget_used"),
+            applicable_regime: row.get("applicable_regime"),
+            data_freshness_sec: row.get("data_freshness_sec"),
+            supporting_evidence: row.get("supporting_evidence"),
+            opposing_evidence: row.get("opposing_evidence"),
+            sample_performance: row.get("sample_performance"),
+            data_lineage: row.get("data_lineage"),
+            invalidation_conditions: row.get("invalidation_conditions"),
+            reasons: row.get("reasons"),
+            blockers: row.get("blockers"),
+            trust_level: row.get("trust_level"),
+            model_version: row.get("model_version"),
+            prediction_id: row.get("prediction_id"),
+            user_action: row.get("user_action"),
+            user_feedback: row.get("user_feedback"),
+            acted_at: row.get("acted_at"),
+            created_at: row.get("created_at"),
+        }))
     }
 
     /// 更新用户对决策卡的反馈

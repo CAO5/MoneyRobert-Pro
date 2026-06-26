@@ -1,0 +1,361 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 工作台页面（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部 + 白色卡片浮起 + 清晰信息层级
+// 参考：招商银行 App 首页 / 蚂蚁财富 首页
+// ============================================
+
+.workbenchPage {
+  min-height: 100vh;
+  // 浅灰底色，衬托白色卡片
+  background: $color-bg-page;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+}
+
+// 顶部头部区域（品牌蓝渐变，保持视觉锚点）
+// 浅色风格的关键：头部有色，内容区留白，避免全屏压抑
+.header {
+  background: $gradient-primary;
+  padding: $spacing-xl $page-padding $spacing-2xl;
+  padding-top: calc(#{$spacing-xl} + env(safe-area-inset-top));
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  // 背景装饰光晕（柔化头部，增加层次）
+  &::before {
+    content: '';
+    position: absolute;
+    top: -120rpx;
+    right: -80rpx;
+    width: 320rpx;
+    height: 320rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -100rpx;
+    left: -60rpx;
+    width: 220rpx;
+    height: 220rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+  position: relative;
+  z-index: 1;
+}
+
+.orgSwitch {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-md;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.orgArrow {
+  margin-left: $spacing-xs;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.headerAction {
+  position: relative;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.28);
+  }
+}
+
+.actionBadge {
+  position: absolute;
+  top: -6rpx;
+  right: -6rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  border-radius: $radius-round;
+  background: $color-error;
+  color: $color-text-white;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  text-align: center;
+  padding: 0 8rpx;
+  border: 2rpx solid $color-primary-dark;
+}
+
+.greeting {
+  display: block;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-md;
+  letter-spacing: 1rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.85);
+  position: relative;
+  z-index: 1;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: baseline;
+  margin-right: $spacing-xl;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.summaryNumber {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-right: $spacing-xs;
+}
+
+// 内容区域（上提与头部重叠，卡片浮起感）
+.content {
+  padding: 0 $page-padding;
+  margin-top: -$spacing-lg;
+  position: relative;
+  z-index: 2;
+}
+
+// 指标卡片网格
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+// 区块
+.section {
+  margin-bottom: $spacing-xl;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sectionMore {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+// 风险提醒项（白色卡片 + 轻阴影 + 彩色指示点）
+.riskItem {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.riskDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  margin-top: 12rpx;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+
+  &.critical { background: $color-error; }
+  &.warning { background: $color-warning; }
+  &.info { background: $color-info; }
+}
+
+.riskContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.riskTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  @include text-ellipsis;
+}
+
+.riskDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  @include text-ellipsis-multi(2);
+}
+
+// 快捷入口（白色卡片网格）
+.quickEntries {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.quickEntry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md 0 $spacing-sm;
+  position: relative;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.96);
+  }
+}
+
+.quickIcon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-xs;
+}
+
+.quickLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.quickBadge {
+  position: absolute;
+  top: 8rpx;
+  right: 16rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  border-radius: $radius-round;
+  background: $color-error;
+  color: $color-text-white;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  text-align: center;
+  padding: 0 8rpx;
+}
+
+// 最近访问项（白色列表卡）
+.recentItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.recentIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.recentContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.recentTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.recentSubtitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+}
+
+.recentArrow {
+  color: $color-text-disabled;
+  margin-left: $spacing-sm;
+  font-size: $font-size-lg;
+}

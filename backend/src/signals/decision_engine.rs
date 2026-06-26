@@ -19,6 +19,12 @@ pub struct DecisionConfig {
     pub fee_bps: f64,
     /// 滑点率（bps）
     pub slippage_bps: f64,
+    /// 默认资金费率（bps，8h 周期）
+    pub default_funding_rate_bps: f64,
+    /// 默认持仓周期（秒，用于资金费率累计）
+    pub default_holding_period_sec: f64,
+    /// CVaR 置信度（0.95 = 95%）
+    pub cvar_confidence: f64,
 }
 
 impl Default for DecisionConfig {
@@ -28,7 +34,43 @@ impl Default for DecisionConfig {
             max_cvar_pct: 0.05,  // CVaR 不超过权益的 5%（加密货币波动率高）
             fee_bps: 5.0,
             slippage_bps: 3.0,
+            default_funding_rate_bps: 1.0, // 默认 1 bps / 8h
+            default_holding_period_sec: 86400.0 * 3.0, // 默认持仓 3 天
+            cvar_confidence: 0.95,
         }
+    }
+}
+
+/// 概率校准数据 — 从历史预测结果拟合，用于将原始置信度校准为真实概率
+#[derive(Debug, Clone, Default)]
+pub struct CalibrationData {
+    /// Brier Score（0=完美，1=最差）
+    pub brier_score: Option<f64>,
+    /// 校准曲线斜率（1.0 = 完美校准）
+    pub calibration_slope: Option<f64>,
+    /// 校准曲线截距（0.0 = 完美校准）
+    pub calibration_intercept: Option<f64>,
+    /// 样本量（用于判断校准数据是否足够）
+    pub sample_size: Option<i64>,
+}
+
+impl CalibrationData {
+    /// 将原始概率校准为真实概率
+    /// 使用线性校准：p_calibrated = slope * p_raw + intercept
+    pub fn calibrate(&self, p_raw: f64) -> f64 {
+        match (self.calibration_slope, self.calibration_intercept) {
+            (Some(slope), Some(intercept)) => {
+                // 线性校准 + clamp 到 [0.01, 0.99]
+                (slope * p_raw + intercept).clamp(0.01, 0.99)
+            }
+            _ => p_raw, // 无校准数据，返回原始概率
+        }
+    }
+
+    /// 校准数据是否足够可信（样本量 >= 30 且 Brier Score < 0.33）
+    pub fn is_reliable(&self) -> bool {
+        self.sample_size.unwrap_or(0) >= 30
+            && self.brier_score.map(|b| b < 0.33).unwrap_or(false)
     }
 }
 
@@ -41,6 +83,10 @@ pub struct DecisionInput<'a> {
     pub current_price: f64,
     /// 资产年化波动率（None 时使用默认 0.6）
     pub asset_volatility: Option<f64>,
+    /// 资金费率（bps / 8h），用于计算持仓成本
+    pub funding_rate_bps: Option<f64>,
+    /// 概率校准数据（从 DB 读取历史校准结果）
+    pub calibration: Option<CalibrationData>,
 }
 
 /// 决策输出
@@ -96,11 +142,11 @@ impl DecisionEngine {
 
     /// 根据信号、市场状态和账户状态做出交易决策
     ///
-    /// 决策流程：
-    /// 1. 从信号推导概率分布和预期收益
-    /// 2. 计算成本（手续费 + 滑点）
+    /// 决策流程（v1.8 增强版）：
+    /// 1. 从信号推导概率分布，若有校准数据则校准概率
+    /// 2. 计算成本（手续费 + 滑点 + 资金费率）
     /// 3. 计算净 EV
-    /// 4. 计算 CVaR（基于波动率和分位数）
+    /// 4. 计算 CVaR（基于波动率、仓位占比和持仓周期）
     /// 5. 根据 regime 调整 EV 阈值
     /// 6. 综合 EV、CVaR、regime 给出最终建议
     pub fn decide(&self, input: &DecisionInput) -> DecisionOutput {
@@ -122,16 +168,44 @@ impl DecisionEngine {
             };
         }
 
-        // 从信号推导概率分布
-        let confidence = signal.confidence.unwrap_or(0.0).clamp(0.0, 1.0);
+        // 从信号推导原始概率
+        let raw_confidence = signal.confidence.unwrap_or(0.0).clamp(0.0, 1.0);
         let strength = signal.signal_strength.unwrap_or(0.0).clamp(0.0, 1.0);
         let expected_return_bps = signal.expected_return_bps.unwrap_or(0.0);
 
-        // 概率分配：confidence 表示信号方向正确的概率
-        // 对于 long：p_win = p_up = confidence（价格上涨 = 盈利）
-        // 对于 short：p_win = p_down = confidence（价格下跌 = 盈利）
-        let p_win = confidence;
-        let p_loss = (1.0 - confidence) / 2.0;
+        // 1) 概率校准：若有校准数据，将原始置信度校准为真实概率
+        let (p_win, calibration_note) = match &input.calibration {
+            Some(cal) if cal.is_reliable() => {
+                let calibrated = cal.calibrate(raw_confidence);
+                (
+                    calibrated,
+                    format!(
+                        "calibrated: {:.3} -> {:.3} (slope={:?} intercept={:?} brier={:?} n={:?})",
+                        raw_confidence,
+                        calibrated,
+                        cal.calibration_slope,
+                        cal.calibration_intercept,
+                        cal.brier_score,
+                        cal.sample_size
+                    ),
+                )
+            }
+            Some(cal) => (
+                raw_confidence,
+                format!(
+                    "calibration_skipped: unreliable (brier={:?} n={:?})",
+                    cal.brier_score, cal.sample_size
+                ),
+            ),
+            None => (
+                raw_confidence,
+                "no_calibration_data: using raw confidence".into(),
+            ),
+        };
+        reasons.push(calibration_note);
+
+        // 概率分配：校准后的概率
+        let p_loss = (1.0 - p_win) / 2.0;
         let p_flat = 1.0 - p_win - p_loss;
 
         // 预期收益（将 bps 转为比例）
@@ -139,32 +213,53 @@ impl DecisionEngine {
         let mu_loss = expected_return_bps.abs().min(500.0) / 10000.0; // 限制最大 5%
         let mu_flat = 0.0;
 
-        // 成本计算
-        let cost_pct = (self.config.fee_bps + self.config.slippage_bps) / 10000.0;
+        // 2) 成本计算（手续费 + 滑点 + 资金费率）
+        let fee_cost_pct = (self.config.fee_bps + self.config.slippage_bps) / 10000.0;
+
+        // 资金费率成本：funding_rate_bps / 10000 * (holding_periods)
+        // holding_periods = holding_period_sec / 28800 (8h = 28800s)
+        let funding_rate_bps = input.funding_rate_bps.unwrap_or(self.config.default_funding_rate_bps);
+        let holding_sec = signal
+            .expected_holding_period_sec
+            .map(|v| v as f64)
+            .unwrap_or(self.config.default_holding_period_sec);
+        let funding_periods = (holding_sec / 28800.0).max(1.0);
+        let funding_cost_pct = (funding_rate_bps * funding_periods) / 10000.0;
+        let total_cost_pct = fee_cost_pct + funding_cost_pct;
+
         reasons.push(format!(
-            "costs: fee={}bps slippage={}bps total={:.4}%",
-            self.config.fee_bps,
-            self.config.slippage_bps,
-            cost_pct * 100.0
+            "costs: fee_slippage={:.4}% funding={:.4}% (rate={}bps periods={:.1}) total={:.4}%",
+            fee_cost_pct * 100.0,
+            funding_cost_pct * 100.0,
+            funding_rate_bps,
+            funding_periods,
+            total_cost_pct * 100.0
         ));
 
-        // 净 EV = p_win * mu_win + p_loss * (-mu_loss) + p_flat * mu_flat - cost
+        // 3) 净 EV = p_win * mu_win - p_loss * mu_loss + p_flat * mu_flat - cost
         let gross_ev = p_win * mu_win - p_loss * mu_loss + p_flat * mu_flat;
-        let net_ev = gross_ev - cost_pct;
+        let net_ev = gross_ev - total_cost_pct;
         reasons.push(format!(
             "ev: gross={:.6} net={:.6} (p_win={:.3} mu_win={:.4} p_loss={:.3} mu_loss={:.4})",
             gross_ev, net_ev, p_win, mu_win, p_loss, mu_loss
         ));
 
-        // CVaR 估算：基于波动率的尾部风险
-        // CVaR ≈ -1.65 * sigma * position_pct（95% 置信度下的条件期望损失）
+        // 4) CVaR 估算：基于波动率、仓位占比和持仓周期
+        // CVaR_95 ≈ z * sigma_daily * sqrt(holding_days) * position_pct
+        // 其中 z = 2.063 (95% CVaR for normal distribution)
+        // sigma_daily = asset_vol / sqrt(365) (年化波动率转日波动率)
         let asset_vol = input.asset_volatility.unwrap_or(0.6);
         let equity = input.account.total_equity.max(1.0);
+        let holding_days = (holding_sec / 86400.0).max(1.0).min(30.0); // 限制 1-30 天
+        let sigma_daily = asset_vol / (365.0_f64).sqrt();
+        let z_cvar = 2.063; // 95% CVaR 正态分布分位数
         let estimated_position_pct = 0.05; // 估算 5% 仓位用于 CVaR 计算
-        let cvar = 1.65 * asset_vol * estimated_position_pct; // 占权益比例
+        let cvar = z_cvar * sigma_daily * holding_days.sqrt() * estimated_position_pct;
         reasons.push(format!(
-            "cvar: asset_vol={:.3} est_cvar={:.4}% (limit={:.4}%)",
+            "cvar: asset_vol={:.3} sigma_daily={:.4} holding_days={:.1} est_cvar={:.4}% (limit={:.4}%)",
             asset_vol,
+            sigma_daily,
+            holding_days,
             cvar * 100.0,
             self.config.max_cvar_pct * 100.0
         ));
@@ -244,7 +339,7 @@ impl DecisionEngine {
             action,
             expected_value: net_ev,
             cvar,
-            confidence,
+            confidence: p_win, // 使用校准后的概率
             position_pct,
             reasons,
             blockers,
@@ -297,6 +392,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::Hold);
@@ -315,6 +412,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::Hold);
@@ -333,6 +432,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::OpenLong);
@@ -351,6 +452,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::Hold);
@@ -370,6 +473,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.3),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out_low_vol = engine.decide(&input_low_vol);
 
@@ -380,6 +485,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.9),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out_high_vol = engine.decide(&input_high_vol);
 
@@ -405,6 +512,8 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::OpenShort);
@@ -425,9 +534,109 @@ mod tests {
             account: &account,
             current_price: 100.0,
             asset_volatility: Some(2.0), // 极高波动率
+            funding_rate_bps: None,
+            calibration: None,
         };
         let out = engine.decide(&input);
         assert_eq!(out.action, DecisionAction::Hold);
         assert!(out.blockers.iter().any(|b| b.contains("cvar_exceeded")));
+    }
+
+    #[test]
+    fn test_calibration_adjusts_probability() {
+        let engine = DecisionEngine::with_defaults();
+        let signal = make_signal("long", 0.8, 0.9, 200.0);
+        let account = make_account();
+
+        // 模拟校准数据：slope=0.8, intercept=0.05（降低高置信度，提升低置信度）
+        let calibration = Some(CalibrationData {
+            brier_score: Some(0.15),
+            calibration_slope: Some(0.8),
+            calibration_intercept: Some(0.05),
+            sample_size: Some(100),
+        });
+
+        let input = DecisionInput {
+            signal: &signal,
+            regime: Some(MarketRegime::TrendingBull),
+            account: &account,
+            current_price: 100.0,
+            asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration,
+        };
+        let out = engine.decide(&input);
+        // 校准后概率 = 0.8 * 0.8 + 0.05 = 0.69
+        assert!((out.confidence - 0.69).abs() < 0.01);
+        assert!(out.reasons.iter().any(|r| r.contains("calibrated")));
+    }
+
+    #[test]
+    fn test_unreliable_calibration_skipped() {
+        let engine = DecisionEngine::with_defaults();
+        let signal = make_signal("long", 0.8, 0.9, 200.0);
+        let account = make_account();
+
+        // 不可靠的校准数据（样本量不足）
+        let calibration = Some(CalibrationData {
+            brier_score: Some(0.4),
+            calibration_slope: Some(0.5),
+            calibration_intercept: Some(0.1),
+            sample_size: Some(10),
+        });
+
+        let input = DecisionInput {
+            signal: &signal,
+            regime: Some(MarketRegime::TrendingBull),
+            account: &account,
+            current_price: 100.0,
+            asset_volatility: Some(0.6),
+            funding_rate_bps: None,
+            calibration,
+        };
+        let out = engine.decide(&input);
+        // 不可靠 → 使用原始概率
+        assert!((out.confidence - 0.8).abs() < 0.01);
+        assert!(out.reasons.iter().any(|r| r.contains("calibration_skipped")));
+    }
+
+    #[test]
+    fn test_funding_rate_increases_cost() {
+        let signal = make_signal("long", 0.7, 0.8, 150.0);
+        let account = make_account();
+
+        // 无资金费率
+        let input_no_funding = DecisionInput {
+            signal: &signal,
+            regime: Some(MarketRegime::TrendingBull),
+            account: &account,
+            current_price: 100.0,
+            asset_volatility: Some(0.6),
+            funding_rate_bps: Some(0.0),
+            calibration: None,
+        };
+        let out_no_funding = DecisionEngine::with_defaults().decide(&input_no_funding);
+
+        // 高资金费率（10 bps / 8h，持仓 3 天 = 9 个周期）
+        let input_high_funding = DecisionInput {
+            signal: &signal,
+            regime: Some(MarketRegime::TrendingBull),
+            account: &account,
+            current_price: 100.0,
+            asset_volatility: Some(0.6),
+            funding_rate_bps: Some(10.0),
+            calibration: None,
+        };
+        let out_high_funding = DecisionEngine::with_defaults().decide(&input_high_funding);
+
+        // 高资金费率下 EV 应更低
+        assert!(
+            out_high_funding.expected_value < out_no_funding.expected_value,
+            "高资金费率应降低净 EV: {} < {}",
+            out_high_funding.expected_value,
+            out_no_funding.expected_value
+        );
+        // 成本日志应包含 funding
+        assert!(out_high_funding.reasons.iter().any(|r| r.contains("funding")));
     }
 }

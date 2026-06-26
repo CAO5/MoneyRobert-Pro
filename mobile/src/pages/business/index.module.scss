@@ -1,0 +1,335 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 业务页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部（Tab 栏）+ 白色卡片列表 + 涨跌色清晰
+// 参考：雪球 App 行情页 / 蚂蚁财富 资讯页
+// ============================================
+
+.businessPage {
+  min-height: 100vh;
+  // 浅灰底色，衬托白色卡片
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+// 顶部 Tab 切换栏（品牌蓝渐变头部 + 白字 Tab）
+// 浅色风格的关键：头部有色，列表区留白
+.tabBar {
+  display: flex;
+  background: $gradient-primary;
+  padding: 0 $page-padding;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding-top: calc(#{$spacing-sm} + env(safe-area-inset-top));
+  padding-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.7);
+  position: relative;
+  transition: color $transition-base;
+
+  &:active {
+    color: $color-text-white;
+  }
+
+  &.active {
+    color: $color-text-white;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// 选中态下方指示器（白色，与品牌蓝头部对比）
+.tabIndicator {
+  position: absolute;
+  bottom: -#{$spacing-sm};
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: $color-text-white;
+  border-radius: $radius-round;
+}
+
+.tabContent {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom) + 160rpx);
+}
+
+// 行情列表项（白色卡片 + 轻阴影 + 涨跌色突出）
+.marketItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.symbolInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.symbolName {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.symbolMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.priceInfo {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: $spacing-md;
+}
+
+.price {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+// 涨跌百分比（红涨绿跌，A 股惯例）
+.changePercent {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+
+  &.up { color: $color-up; }
+  &.down { color: $color-down; }
+  &.flat { color: $color-flat; }
+}
+
+// 决策卡列表（白色卡片 + 概率条 + 期望值高亮）
+.decisionCard {
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.decisionCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.decisionCardSymbol {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.decisionCardContent {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+// 概率分布条（三段式，红涨/灰平/绿跌）
+.probBar {
+  display: flex;
+  height: 12rpx;
+  border-radius: $radius-round;
+  overflow: hidden;
+  flex: 1;
+  margin-right: $spacing-md;
+  background: $color-bg-subtle;
+}
+
+.probUp { background: $color-up; }
+.probFlat { background: $color-flat; }
+.probDown { background: $color-down; }
+
+.decisionCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.decisionCardEv {
+  font-variant-numeric: tabular-nums;
+
+  &.positive { color: $color-up; }
+  &.negative { color: $color-down; }
+}
+
+// 回测任务列表（白色卡片 + 进度条 + 指标网格）
+.backtestItem {
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.backtestHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.backtestName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  flex: 1;
+  min-width: 0;
+  @include text-ellipsis;
+  margin-right: $spacing-sm;
+}
+
+// 进度条区
+.progressWrap {
+  margin-bottom: $spacing-md;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.progressTrack {
+  height: 8rpx;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: $gradient-primary;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+}
+
+.backtestStats {
+  display: flex;
+  gap: $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.backtestStatValue {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+
+  &.up { color: $color-up; }
+  &.down { color: $color-down; }
+}
+
+// 报告列表（保留以备扩展使用）
+.reportItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.reportIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.reportInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.reportTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.reportSubtitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+}

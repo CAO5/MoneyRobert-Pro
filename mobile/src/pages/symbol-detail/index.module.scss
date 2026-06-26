@@ -1,0 +1,56 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 标的详情页（占位页 - 浅色主流移动端金融 App 风格）
+// 设计：浅灰底 + 主色浅蓝 icon 容器 + 中央占位文案
+// 参考：雪球 App 占位 / 蚂蚁财富 空状态
+// ============================================
+
+.placeholderPage {
+  min-height: 100vh;
+  // 浅灰底色
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholderContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl $page-padding;
+}
+
+// 占位图标容器（主色浅蓝底 + 主色文字，与品牌色呼应）
+.placeholderIcon {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: $radius-lg;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xl;
+}
+
+.placeholderTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  letter-spacing: 1rpx;
+  text-align: center;
+}
+
+.placeholderDesc {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-xl;
+}

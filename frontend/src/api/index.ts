@@ -405,6 +405,12 @@ export interface CreateDecisionCardRequest {
   data_lineage?: Record<string, unknown>
   /// 失效条件
   invalidation_conditions?: Record<string, unknown>
+  /// 决策原因
+  reasons?: string[]
+  /// 阻断原因
+  blockers?: string[]
+  /// 回测可信等级
+  trust_level?: string
 }
 
 /// 决策卡响应
@@ -435,6 +441,12 @@ export interface DecisionCardResponse {
   data_freshness_sec?: number
   /// 失效条件
   invalidation_conditions?: Record<string, unknown>
+  /// 决策原因
+  reasons?: string[]
+  /// 阻断原因
+  blockers?: string[]
+  /// 回测可信等级
+  trust_level?: string
   /// 模型版本
   model_version: string
 }

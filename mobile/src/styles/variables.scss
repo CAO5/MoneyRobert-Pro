@@ -1,0 +1,165 @@
+// 必须转发和使用 theme.scss
+@forward './theme.scss';
+@use './theme.scss' as *;
+
+// ============================================
+// 全局 SCSS 变量（浅色主流移动端金融 App 风格）
+// ============================================
+
+// 屏幕适配（设计稿基准 750rpx）
+$screen-width: 750rpx;
+$page-padding: 32rpx; // 页面左右安全边距
+$page-spacing: 32rpx;
+$max-content-width: 686rpx; // 750 - 32*2，内容最大宽度
+
+// 间距（8px 网格系统）
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+$spacing-2xl: 64rpx;
+
+// 圆角（语义化）—— 浅色风格：克制圆角，营造金融专业感
+$radius-xs: 8rpx;
+$radius-sm: 12rpx;
+$radius-md: 16rpx;   // 卡片默认圆角
+$radius-lg: 20rpx;
+$radius-xl: 24rpx;
+$radius-button: 48rpx;
+$radius-round: 999rpx;
+
+// 按钮高度
+$button-height-sm: 64rpx;
+$button-height-md: 80rpx;
+$button-height-lg: 96rpx;
+
+// 阴影（浅色风格：轻阴影 + 微透明，营造卡片浮起感）
+$shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+$shadow-card-hover: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+$shadow-float: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+$shadow-popup: 0 16rpx 48rpx rgba(0, 0, 0, 0.12);
+// 主色发光效果（用于头部 / 高亮按钮，克制使用）
+$shadow-glow: 0 8rpx 24rpx rgba(22, 93, 255, 0.2);
+
+// 字体大小
+$font-size-xs: 22rpx;
+$font-size-sm: 24rpx;
+$font-size-md: 28rpx;
+$font-size-lg: 32rpx;
+$font-size-xl: 36rpx;
+$font-size-xxl: 40rpx;
+
+// 行高
+$line-height-tight: 1.3;
+$line-height-normal: 1.5;
+$line-height-loose: 1.8;
+
+// 字重
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// 过渡动画
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+$transition-slow: 0.35s ease;
+
+// ============================================
+// 常用 Mixin
+// ============================================
+// 单行文本省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文本省略
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 清除浮动
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 水平垂直居中
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 极细分割线（1px，半透明）—— 顶部
+// 注意：CSS Modules 独立作用域，跨文件 @extend 会失败，统一用 @include
+@mixin hairline-top {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: $color-divider;
+    transform: scaleY(0.5);
+    transform-origin: top;
+  }
+}
+
+// 极细分割线（1px，半透明）—— 底部
+@mixin hairline-bottom {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: $color-divider;
+    transform: scaleY(0.5);
+    transform-origin: bottom;
+  }
+}
+
+// 横向滚动容器（微信小程序兼容）
+@mixin scroll-x-container {
+  white-space: nowrap;
+}
+
+// 横向滚动子项（微信小程序兼容）
+@mixin scroll-x-item($width) {
+  display: inline-block;
+  width: $width;
+  vertical-align: top;
+  white-space: normal;
+}
+
+// Button 样式重置与保护
+@mixin button-reset {
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+  text-align: inherit;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+
+  &::after {
+    border: none;
+  }
+}

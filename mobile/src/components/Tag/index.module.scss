@@ -1,0 +1,73 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// Tag 标签组件（浅色主流移动端金融 App 风格）
+// 设计：浅色语义底 + 语义色文字 + 圆角柔和
+// 参考：招商银行状态徽章、蚂蚁财富标签
+// 布局：inline-flex，垂直对齐到文本中线
+// ============================================
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;          // 12rpx 圆角柔和
+  white-space: nowrap;
+  line-height: 1.4;
+  box-sizing: border-box;             // padding 计入尺寸，避免布局抖动
+  vertical-align: middle;             // 与相邻文本垂直居中对齐
+}
+
+.text {
+  font-size: inherit;
+  font-weight: $font-weight-medium;
+}
+
+// 尺寸档位
+.size_sm {
+  font-size: $font-size-xs;           // 小字 22rpx
+  padding: 4rpx $spacing-xs;          // 垂直 4rpx，保证小尺寸下可读性
+}
+
+.size_md {
+  font-size: $font-size-sm;           // 辅助 24rpx
+  padding: 4rpx $spacing-sm;
+}
+
+// 变体配色：浅色底 + 语义色文字
+.variant_default {
+  color: $color-text-secondary;
+  background: $color-tag-bg-neutral;
+}
+
+.variant_primary {
+  color: $color-primary;
+  background: $color-tag-bg-primary;
+}
+
+.variant_success {
+  color: $color-success;
+  background: $color-tag-bg-success;
+}
+
+.variant_warning {
+  color: $color-warning;
+  background: $color-tag-bg-warning;
+}
+
+.variant_error {
+  color: $color-error;
+  background: $color-tag-bg-error;
+}
+
+// 风险提醒色（与 warning 同系底，文字用 risk 语义色）
+.variant_risk {
+  color: $color-risk;
+  background: $color-tag-bg-warning;
+}
+
+// 高级/特权标识色（金色浅底）
+.variant_premium {
+  color: $color-premium;
+  background: rgba(247, 186, 30, 0.12);
+}

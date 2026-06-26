@@ -1,0 +1,173 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 登录页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变全屏背景 + 白色登录卡片浮起 + 主色按钮
+// 参考：招商银行 App 登录页 / 蚂蚁财富 登录页
+// ============================================
+
+.loginPage {
+  min-height: 100vh;
+  // 品牌蓝渐变全屏背景，作为视觉锚点
+  background: $gradient-primary;
+  padding: 0 $page-padding;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-top: calc(#{$spacing-2xl} + env(safe-area-inset-top));
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+  position: relative;
+  overflow: hidden;
+
+  // 背景装饰光晕（柔化渐变，增加层次）
+  &::before {
+    content: '';
+    position: absolute;
+    top: -180rpx;
+    right: -120rpx;
+    width: 480rpx;
+    height: 480rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -160rpx;
+    left: -100rpx;
+    width: 360rpx;
+    height: 360rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+// 品牌区（顶部标题 + 副标题，白字）
+.brand {
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+  position: relative;
+  z-index: 1;
+}
+
+.brandTitle {
+  display: block;
+  font-size: 64rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+  letter-spacing: 2rpx;
+}
+
+.brandSubtitle {
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 1rpx;
+}
+
+// 登录卡片（白色卡片浮起，与品牌蓝背景形成对比）
+.formCard {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-2xl $spacing-xl;
+  box-shadow: $shadow-popup;
+  position: relative;
+  z-index: 1;
+}
+
+.formTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xl;
+  text-align: center;
+  letter-spacing: 1rpx;
+}
+
+.formItem {
+  margin-bottom: $spacing-lg;
+}
+
+.formLabel {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+  padding-left: $spacing-xs;
+}
+
+// 输入框容器（浅灰底，聚焦时主色边框）
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: $color-bg-subtle;
+  border-radius: $radius-md;
+  padding: 0 $spacing-md;
+  height: $button-height-md;
+  border: 2rpx solid transparent;
+  transition: all $transition-base;
+
+  &:focus-within {
+    background: $color-bg-card;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 4rpx rgba(22, 93, 255, 0.1);
+  }
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.eye {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+// 主色按钮（品牌蓝渐变 + 圆角胶囊 + 主色发光阴影）
+.submitButton {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  background: $gradient-primary;
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  margin-top: $spacing-lg;
+  transition: all $transition-base;
+  box-shadow: $shadow-glow;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.985);
+  }
+
+  &:disabled {
+    background: $color-text-disabled;
+    box-shadow: none;
+  }
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-top: $spacing-lg;
+  line-height: $line-height-normal;
+  padding: 0 $spacing-md;
+}

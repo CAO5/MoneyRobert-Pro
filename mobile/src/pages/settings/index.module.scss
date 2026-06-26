@@ -1,0 +1,206 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 设置页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部 + 平台信息卡 + 白色分组列表（账号/安全/显示/通知）
+// 参考：招商银行 App 设置 / 蚂蚁财富 设置
+// ============================================
+
+.settingsPage {
+  min-height: 100vh;
+  // 浅灰底色
+  background: $color-bg-page;
+  padding-bottom: calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+}
+
+// 顶部头部（品牌蓝渐变 + 白字 + 装饰光晕）
+.header {
+  background: $gradient-primary;
+  padding: $spacing-lg $page-padding $spacing-md;
+  padding-top: calc(#{$spacing-lg} + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -80rpx;
+    width: 260rpx;
+    height: 260rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60rpx;
+    left: -40rpx;
+    width: 180rpx;
+    height: 180rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.backButton {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -$spacing-xs;
+  margin-right: $spacing-sm;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $radius-md;
+  position: relative;
+  z-index: 1;
+  transition: all $transition-base;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.backIcon {
+  font-size: 56rpx;
+  color: $color-text-white;
+  line-height: 1;
+}
+
+.headerTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  letter-spacing: 1rpx;
+  position: relative;
+  z-index: 1;
+}
+
+// 平台信息卡（白色卡 + 主色浅蓝头部条 + 轻阴影）
+.platformCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  margin: $spacing-md $page-padding;
+  color: $color-text-primary;
+  position: relative;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  border-left: 6rpx solid $color-primary;
+}
+
+.platformTitle {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  letter-spacing: 1rpx;
+}
+
+.platformDesc {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+}
+
+.versionText {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-md;
+  font-variant-numeric: tabular-nums;
+}
+
+// 内容区
+.content {
+  padding: 0 $page-padding;
+}
+
+// 分组标题（小字 + 辅助灰）
+.groupTitle {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  padding: $spacing-sm $spacing-xs;
+  letter-spacing: 1rpx;
+}
+
+// 分组卡（白色卡 + 轻阴影，去掉边框）
+.groupCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+}
+
+// 设置项（带极细分割线 + 按压反馈）
+.settingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg $spacing-md;
+  position: relative;
+  transition: background $transition-base;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.settingLeft {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  // 复用于右侧值 + 箭头容器，保持水平排布
+  & + .settingLeft {
+    flex-shrink: 0;
+    margin-left: $spacing-md;
+  }
+}
+
+// 设置图标容器（主色浅蓝底，与品牌色呼应）
+.settingIcon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.settingLabel {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.settingValue {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-right: $spacing-xs;
+}
+
+.settingArrow {
+  color: $color-text-disabled;
+  font-size: $font-size-md;
+}

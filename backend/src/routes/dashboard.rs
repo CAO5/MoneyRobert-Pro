@@ -4,6 +4,7 @@ use axum::{
     Router,
     Json,
 };
+use chrono::Timelike; // hour() 方法来自 Timelike trait（Datelike 提供 year/month/day）
 use serde::Deserialize;
 use sqlx::Row;
 
@@ -20,6 +21,8 @@ pub fn router() -> Router<AppState> {
         .route("/strategy-summary", get(get_strategy_summary))
         .route("/market-tickers", get(get_market_tickers))
         .route("/positions", get(get_positions_summary))
+        // Mobile BFF：工作台首屏聚合接口，一次返回问候/指标/未读/快捷入口
+        .route("/workbench", get(get_workbench))
 }
 
 async fn get_metrics(
@@ -256,4 +259,95 @@ async fn get_positions_summary(
     }).collect();
 
     Ok(Json(success_response("Positions summary retrieved successfully", serde_json::json!(items))))
+}
+
+/// Mobile BFF：工作台首屏聚合
+/// 一次返回问候语、关键指标、未读消息数、快捷入口，避免首屏并发多个接口
+/// 对接 mobile workbenchService.getWorkbench()，响应由 request.ts unwrapResponse 自动解包 data
+async fn get_workbench(
+    user: CurrentUser,
+    State(state): State<AppState>,
+) -> Result<Json<serde_json::Value>> {
+    // 问候语（按当前小时分段）
+    let hour = chrono::Utc::now().hour();
+    let greeting = match hour {
+        5..=11 => "早上好",
+        12..=13 => "中午好",
+        14..=18 => "下午好",
+        _ => "晚上好",
+    };
+
+    // 未读消息数（从 notifications 表统计 is_read=false）
+    let unread_count = sqlx::query_scalar::<_, i64>(
+        r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false"#,
+    )
+    .bind(user.user_id as i64)
+    .fetch_one(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    // 总权益（最新一条 equity_snapshots）
+    let equity = sqlx::query(
+        r#"SELECT total_equity FROM equity_snapshots WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1"#,
+    )
+    .bind(user.user_id as i64)
+    .fetch_optional(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+    let total_equity = equity
+        .as_ref()
+        .and_then(|r| r.try_get::<f64, _>("total_equity").ok())
+        .unwrap_or(0.0);
+
+    // 今日已实现盈亏
+    let today_pnl = sqlx::query_scalar::<_, f64>(
+        r#"SELECT COALESCE(SUM(realized_pnl), 0) FROM equity_snapshots WHERE user_id = $1 AND created_at >= CURRENT_DATE"#,
+    )
+    .bind(user.user_id as i64)
+    .fetch_one(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    let today_trend = if today_pnl >= 0.0 { "up" } else { "down" };
+    let today_percent = if total_equity > 0.0 {
+        today_pnl / total_equity * 100.0
+    } else {
+        0.0
+    };
+
+    // 聚合返回（字段对齐 mobile WorkbenchData 类型）
+    Ok(Json(success_response(
+        "Workbench aggregated",
+        serde_json::json!({
+            "greeting": greeting,
+            "todo_count": 0,
+            "risk_alert_count": 0,
+            "unread_message_count": unread_count,
+            "metrics": [
+                {
+                    "key": "equity",
+                    "label": "总权益",
+                    "value": format!("{:.2}", total_equity),
+                    "unit": "USDT",
+                    "trend": today_trend,
+                    "change_percent": today_percent,
+                },
+                {
+                    "key": "today_pnl",
+                    "label": "今日盈亏",
+                    "value": format!("{:.2}", today_pnl),
+                    "unit": "USDT",
+                    "trend": today_trend,
+                },
+            ],
+            "risk_alerts": [],
+            "quick_entries": [
+                {"key": "business", "label": "业务", "route": "/pages/business/index"},
+                {"key": "todo", "label": "待办", "route": "/pages/todo/index"},
+                {"key": "message", "label": "消息", "route": "/pages/message/index", "badge": unread_count},
+                {"key": "mine", "label": "我的", "route": "/pages/mine/index"},
+            ],
+            "recent_items": [],
+        }),
+    )))
 }

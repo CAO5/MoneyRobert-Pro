@@ -1,0 +1,76 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// EmptyState 空状态组件（浅色主流移动端金融 App 风格）
+// 设计：浅色主色图标容器 + 中性文字 + 主色行动按钮
+// 参考：招商银行 / 蚂蚁财富 空状态
+// 布局：flex 纵向居中
+// ============================================
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl $spacing-lg;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// 图标容器：浅色主色底（替代深色风的渐变发光）
+.icon {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: $radius-round;
+  background: $color-primary-bg;      // 主色浅背景 #E8F0FF
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $spacing-lg;
+}
+
+.iconText {
+  font-size: 56rpx;
+  color: $color-primary;              // 主色文字
+  font-weight: $font-weight-semibold;
+  line-height: 1;
+}
+
+// 标题：次文字色（中性、不抢眼）
+.title {
+  font-size: $font-size-md;           // 正文 28rpx
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+  text-align: center;
+}
+
+// 描述：辅助文字色
+.description {
+  font-size: $font-size-sm;           // 辅助 24rpx
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+  line-height: $line-height-normal;
+}
+
+// 行动按钮：主色渐变 CTA，按压反馈遵循移动端规范
+.action {
+  margin-top: $spacing-sm;
+  padding: $spacing-xs $spacing-xl;
+  background: $gradient-primary;
+  border-radius: $radius-button;      // 48rpx 全圆角
+  box-shadow: $shadow-glow;           // 主色发光（高亮按钮克制使用）
+  box-sizing: border-box;
+  transition: background $transition-fast, transform $transition-fast;
+
+  &:active {
+    background: $color-primary-dark;  // 按压加深主色
+    transform: scale(0.99);
+  }
+}
+
+.actionText {
+  font-size: $font-size-sm;           // 辅助 24rpx
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}

@@ -1,0 +1,144 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 待办页（浅色主流移动端金融 App 风格）
+// 设计：白色筛选胶囊 + 白色卡片列表 + 优先级彩色指示点 + 处理按钮
+// 参考：招商银行 App 待办 / 蚂蚁财富 消息中心
+// ============================================
+
+.todoPage {
+  min-height: 100vh;
+  // 浅灰底色，衬托白色卡片
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+// 顶部筛选栏（白色背景 + 胶囊筛选，激活态主色填充）
+.filterBar {
+  display: flex;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  overflow-x: auto;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  @include hairline-bottom;
+}
+
+// 筛选项（胶囊形态，未选中灰底，选中主色填充）
+.filterItem {
+  display: inline-block;
+  padding: $spacing-xs $spacing-md;
+  margin-right: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+
+  &.active {
+    color: $color-text-white;
+    background: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.todoList {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom) + 160rpx);
+}
+
+// 待办卡片（白色卡片 + 轻阴影 + 优先级彩点）
+.todoItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.todoHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+// 优先级圆点（彩色，浅色风格去掉发光，保持克制）
+.todoPriorityDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+
+  &.critical { background: $color-error; }
+  &.high { background: $color-risk; }
+  &.medium { background: $color-warning; }
+  &.low { background: $color-text-tertiary; }
+}
+
+.todoTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  margin-right: $spacing-sm;
+}
+
+.todoDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-md;
+  @include text-ellipsis-multi(2);
+}
+
+.todoFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.todoMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  flex: 1;
+  min-width: 0;
+  @include text-ellipsis;
+  margin-right: $spacing-md;
+}
+
+// 处理按钮文字（主色，强调可点击）
+.todoAction {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.7;
+  }
+}

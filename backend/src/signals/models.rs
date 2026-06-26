@@ -143,6 +143,13 @@ pub struct DecisionCard {
     /// 失效条件列表
     pub invalidation_conditions: Option<serde_json::Value>,
 
+    /// 决策原因（来自 DecisionEngine 的 reasons 列表）
+    pub reasons: Option<Vec<String>>,
+    /// 阻断原因（来自 DecisionEngine 的 blockers 列表，仅 action != Hold 时为空）
+    pub blockers: Option<Vec<String>>,
+    /// 回测可信等级（display_only / comparable / promotion_eligible）
+    pub trust_level: Option<String>,
+
     /// 模型版本
     pub model_version: String,
     /// 关联的预测 ID
@@ -227,6 +234,7 @@ impl DecisionCardBuilder {
     }
 
     /// 构建决策卡
+    #[allow(clippy::too_many_arguments)]
     pub fn build(
         self,
         ev: f64,
@@ -240,6 +248,9 @@ impl DecisionCardBuilder {
         sample_performance: Option<serde_json::Value>,
         data_lineage: Option<serde_json::Value>,
         invalidation_conditions: Option<serde_json::Value>,
+        reasons: Option<Vec<String>>,
+        blockers: Option<Vec<String>>,
+        trust_level: Option<String>,
     ) -> DecisionCard {
         let now = Utc::now();
         DecisionCard {
@@ -266,6 +277,9 @@ impl DecisionCardBuilder {
             sample_performance,
             data_lineage,
             invalidation_conditions,
+            reasons,
+            blockers,
+            trust_level,
             model_version: self.model_version,
             prediction_id: Some(self.prediction.prediction_id),
             user_action: None,

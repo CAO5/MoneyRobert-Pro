@@ -1,0 +1,170 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 消息页（浅色主流移动端金融 App 风格）
+// 设计：白色列表项 + 未读红点 + 已读灰字 + 类型彩色图标容器
+// 参考：招商银行 App 消息中心 / 雪球 App 通知
+// ============================================
+
+.messagePage {
+  min-height: 100vh;
+  // 浅灰底色，衬托白色卡片
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+// 顶部栏（白色背景 + 主色激活态 + 全部已读按钮）
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  @include hairline-bottom;
+}
+
+.filterTabs {
+  display: flex;
+  gap: $spacing-xl;
+}
+
+.filterTab {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  padding: $spacing-xs 0;
+  position: relative;
+  transition: color $transition-base;
+
+  &:active {
+    color: $color-text-primary;
+  }
+
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.markAll {
+  font-size: $font-size-sm;
+  color: $color-primary;
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.messageList {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom) + 160rpx);
+}
+
+// 消息列表项（白色卡片 + 轻阴影 + 未读状态高亮）
+.messageItem {
+  display: flex;
+  align-items: flex-start;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  // 未读消息：左侧主色细条（浅色风格去掉发光）
+  &.unread {
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: $spacing-lg;
+      bottom: $spacing-lg;
+      width: 6rpx;
+      background: $color-primary;
+      border-radius: 0 $radius-round $radius-round 0;
+    }
+  }
+}
+
+// 消息图标容器（类型彩色背景，首字标识类型）
+.messageIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-right: $spacing-md;
+  margin-top: 4rpx;
+  flex-shrink: 0;
+
+  &.system { background: $color-tag-bg-neutral; color: $color-text-secondary; }
+  &.business { background: $color-tag-bg-primary; color: $color-primary; }
+  &.risk { background: $color-tag-bg-warning; color: $color-risk; }
+  &.approval { background: $color-tag-bg-error; color: $color-error; }
+  &.promotion { background: rgba(247, 186, 30, 0.15); color: $color-premium; }
+}
+
+.messageContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4rpx;
+}
+
+.messageTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  min-width: 0;
+  margin-right: $spacing-sm;
+}
+
+// 已读/时间：辅助灰字
+.messageTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.messageBody {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  @include text-ellipsis-multi(2);
+}
+
+// 未读红点（小尺寸，浅色风格去掉发光）
+.unreadDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  background: $color-error;
+  margin-left: $spacing-sm;
+  margin-top: $spacing-sm;
+  flex-shrink: 0;
+}

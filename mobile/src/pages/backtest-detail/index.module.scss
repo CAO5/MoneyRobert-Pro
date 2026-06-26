@@ -1,0 +1,351 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 回测详情页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部 + 白色卡片（指标网格/进度条/门禁检查）+ 可信等级标签
+// 参考：雪球 App 回测详情 / 蚂蚁财富 策略详情
+// ============================================
+
+.detailPage {
+  min-height: 100vh;
+  // 浅灰底色
+  background: $color-bg-page;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+}
+
+// 顶部头部（品牌蓝渐变 + 白字 + 装饰光晕）
+.header {
+  background: $gradient-primary;
+  padding: $spacing-lg $page-padding $spacing-xl;
+  padding-top: calc(#{$spacing-lg} + env(safe-area-inset-top));
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -80rpx;
+    width: 260rpx;
+    height: 260rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60rpx;
+    left: -40rpx;
+    width: 180rpx;
+    height: 180rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+  position: relative;
+  z-index: 1;
+}
+
+.backButton {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -$spacing-xs;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $radius-md;
+  transition: all $transition-base;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.backIcon {
+  font-size: 56rpx;
+  color: $color-text-white;
+  line-height: 1;
+}
+
+.moreButton {
+  font-size: $font-size-lg;
+  color: rgba(255, 255, 255, 0.9);
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.jobId {
+  display: block;
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: $spacing-xs;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+}
+
+.jobName {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-bottom: $spacing-md;
+  letter-spacing: 1rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  position: relative;
+  z-index: 1;
+}
+
+// 状态标签（半透明白底胶囊）
+.statusTag {
+  display: inline-block;
+  padding: 4rpx $spacing-md;
+  background: rgba(255, 255, 255, 0.2);
+  color: $color-text-white;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+// 内容区（上提与头部重叠，卡片浮起感）
+.content {
+  padding: $spacing-lg $page-padding 0;
+  margin-top: -$spacing-md;
+  position: relative;
+  z-index: 2;
+}
+
+.contentCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  letter-spacing: 1rpx;
+}
+
+// 指标网格（2 列）
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xl $spacing-md;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.metricValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+  color: $color-text-primary;
+
+  // 涨跌色（红涨绿跌）
+  &.positive { color: $color-up; }
+  &.negative { color: $color-down; }
+}
+
+// 进度条区
+.progressSection {
+  margin-top: $spacing-sm;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.progressTrack {
+  height: 12rpx;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: $gradient-primary;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+}
+
+// Tabs（浅灰底胶囊容器，激活态主色填充）
+.tabBar {
+  display: flex;
+  background: $color-bg-subtle;
+  border-radius: $radius-md;
+  padding: 4rpx;
+  margin-bottom: $spacing-md;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-base;
+
+  &:active {
+    color: $color-text-primary;
+  }
+
+  &.active {
+    background: $color-bg-card;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+    box-shadow: $shadow-card;
+  }
+}
+
+// Tab 内容容器（保留以备扩展使用）
+.tabContent {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  box-shadow: $shadow-card;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+}
+
+// 门禁检查项（带极细分割线）
+.checkItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md 0;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+}
+
+// 门禁图标（成功/失败彩色圆形）
+.checkIcon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-round;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+
+  &.pass {
+    background: $color-tag-bg-success;
+    color: $color-success;
+  }
+
+  &.fail {
+    background: $color-tag-bg-error;
+    color: $color-error;
+  }
+}
+
+.checkContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkLabel {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.checkValue {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+// 底部吸底操作区（白色 + 极细分割线）
+.actionBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  @include hairline-top;
+  z-index: 50;
+}
+
+.actionButton {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+
+  // 主操作（品牌蓝渐变 + 主色发光阴影）
+  &.primary {
+    background: $gradient-primary;
+    color: $color-text-white;
+    box-shadow: $shadow-glow;
+  }
+
+  // 次操作（浅灰底）
+  &.secondary {
+    background: $color-bg-subtle;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.99);
+  }
+}

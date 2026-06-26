@@ -1,0 +1,68 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// PageHeader 页面头部组件（浅色主流移动端金融 App 风格）
+// 设计：纯白背景 + 底部极细分割线 + 深色返回箭头
+// 参考：招商银行 / 蚂蚁财富 / 雪球 二级页导航（返回箭头均为深色，非主色）
+// 布局：flex 两端对齐，sticky 吸顶
+// ============================================
+
+.header {
+  // 先引入 hairline-bottom（内部设 position: relative），
+  // 再用 sticky 覆盖 relative；sticky 同样作为 ::after 的定位上下文，底部线正常显示
+  @include hairline-bottom;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88rpx;
+  padding: 0 $page-padding;
+  background: $color-bg-card;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+// 返回按钮：透明背景，按压时变浅灰（移动端按压反馈统一）
+.back {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -$spacing-xs;          // 向左外扩，使箭头视觉与页面左边距对齐
+  margin-right: $spacing-xs;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+// 返回箭头：深色（对齐主流金融 App 二级页导航惯例）
+.backIcon {
+  font-size: 48rpx;
+  color: $color-text-primary;
+  line-height: 1;
+}
+
+// 标题：32rpx / 600
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  letter-spacing: 1rpx;
+  @include text-ellipsis;
+}
+
+.right {
+  flex-shrink: 0;
+  margin-left: $spacing-md;
+}

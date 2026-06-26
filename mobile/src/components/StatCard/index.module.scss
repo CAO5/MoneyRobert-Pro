@@ -1,0 +1,88 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// StatCard 指标卡片组件（浅色主流移动端金融 App 风格）
+// 设计：纯白卡片 + 等宽数字 + 涨跌语义色
+// 涨跌色遵循 A 股惯例：红涨 #F53F3F / 绿跌 #00B42A
+// 布局：统一使用 flex（Taro 跨端兼容性更好，不用 grid）
+// ============================================
+
+.statCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;          // 卡片默认圆角 16rpx
+  padding: $spacing-lg;
+  border: 1rpx solid $color-border;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+
+  // 高亮变体：金融蓝渐变背景（突出主指标）
+  // 浅色风格：保留渐变作为视觉重点，发光阴影保留以突出主指标
+  &.highlight {
+    background: $gradient-primary;
+    border-color: transparent;
+    box-shadow: $shadow-glow;
+
+    .label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .value,
+    .unit {
+      color: $color-text-white;
+    }
+  }
+}
+
+// 指标名称（辅助文字色）
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+  @include text-ellipsis;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: $spacing-xs;
+}
+
+// 指标数值：等宽数字，避免数值跳动
+.value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  @include text-ellipsis;
+}
+
+.unit {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-left: $spacing-xs;
+}
+
+// 趋势行：红涨绿跌（A 股惯例）
+// 注：涨跌色为语义色，在 highlight 高亮模式下同样适用，无需重复定义
+.trend {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-xs;
+
+  &.up   { color: $color-up; }   // 红涨 #F53F3F
+  &.down { color: $color-down; } // 绿跌 #00B42A
+  &.flat { color: $color-flat; }
+}
+
+.trendIcon {
+  margin-right: $spacing-xs;
+  font-size: $font-size-sm;
+}
+
+.trendValue {
+  font-size: $font-size-xs;
+}

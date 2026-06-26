@@ -230,9 +230,54 @@ impl LedgerService {
         self.attributions.push(attribution);
     }
 
-    /// 获取匹配引擎引用（用于高级操作）
+    /// 获取匹配引擎引用（用于高级操作，如创建订单成交）
     pub fn matching(&self) -> &MatchingEngine {
         &self.matching
+    }
+
+    /// 应用已有成交到账户（统一账本入口）
+    ///
+    /// 当回测/模拟盘/实盘已通过 fill_market_order / fill_limit_order /
+    /// close_position_at_price 生成 SimulatedFill 后，统一通过此方法入账，
+    /// 确保每笔成交都记录 LedgerEntry，且仓位/保证金/权益更新口径一致。
+    pub fn apply_fill(
+        &mut self,
+        fill: &SimulatedFill,
+        account: &mut AccountState,
+        positions: &mut Vec<SimulatedPosition>,
+    ) -> (Option<SimulatedPosition>, f64) {
+        let margin_before = account.margin_used;
+        let result = self.matching.apply_fill(fill, positions, account);
+        let margin_after = account.margin_used;
+
+        let released_margin = (margin_before - margin_after).max(0.0);
+        let added_margin = (margin_after - margin_before).max(0.0);
+        let notional = fill.notional.unwrap_or(fill.filled_price * fill.filled_quantity);
+
+        // 判断操作类型：平仓类操作 vs 开仓/加仓
+        let operation = match fill.intent_type.as_deref() {
+            Some("stop_or_tp") | Some("force_close") | Some("close_position") => "close",
+            _ => "open",
+        };
+
+        let entry = LedgerEntry {
+            entry_id: Uuid::new_v4(),
+            position_id: result.0.as_ref().map(|p| p.position_id),
+            operation: operation.into(),
+            asset: fill.asset.clone(),
+            side: fill.side.clone(),
+            quantity: fill.filled_quantity,
+            price: fill.filled_price,
+            notional,
+            fee: fill.fee,
+            slippage_cost: fill.slippage_cost.unwrap_or(0.0),
+            realized_pnl: result.1,
+            released_margin,
+            added_margin,
+            timestamp: fill.fill_time,
+        };
+        self.entries.push(entry);
+        result
     }
 }
 

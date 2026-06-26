@@ -1,0 +1,215 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 我的页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部（头像+昵称）+ 白色统计卡 + 白色菜单分组列表
+// 参考：招商银行 App 我的 / 蚂蚁财富 我的
+// ============================================
+
+.minePage {
+  min-height: 100vh;
+  // 浅灰底色，衬托白色卡片
+  background: $color-bg-page;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+}
+
+// 用户信息头部（品牌蓝渐变，白字 + 装饰光晕）
+.userHeader {
+  background: $gradient-primary;
+  padding: $spacing-xl $page-padding $spacing-2xl;
+  padding-top: calc(#{$spacing-xl} + env(safe-area-inset-top));
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  // 背景装饰光晕
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100rpx;
+    right: -80rpx;
+    width: 280rpx;
+    height: 280rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -80rpx;
+    left: -60rpx;
+    width: 200rpx;
+    height: 200rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+// 头像（半透明白底圆 + 首字，叠加于品牌蓝头部）
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-round;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2rpx solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.userDetail {
+  flex: 1;
+  min-width: 0;
+}
+
+.username {
+  display: block;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: 4rpx;
+  letter-spacing: 1rpx;
+  @include text-ellipsis;
+}
+
+.userEmail {
+  display: block;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+  @include text-ellipsis;
+}
+
+.roleTag {
+  display: inline-block;
+  margin-top: $spacing-xs;
+  padding: 4rpx $spacing-sm;
+  background: rgba(255, 255, 255, 0.2);
+  color: $color-text-white;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+// 统计卡（白色卡片，负 margin 上提与头部重叠，营造卡片浮起感）
+.statsRow {
+  display: flex;
+  background: $color-bg-card;
+  margin: -#{$spacing-xl} $page-padding 0;
+  border-radius: $radius-md;
+  padding: $spacing-lg 0;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 2;
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.statValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 菜单分组（白色卡片 + 轻阴影 + 分割线，去掉边框）
+.menuGroup {
+  margin: $spacing-md $page-padding 0;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg $spacing-md;
+  transition: background $transition-base;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+// 菜单图标容器（主色浅蓝底，与品牌色呼应）
+.menuIcon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.menuLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.menuArrow {
+  color: $color-text-disabled;
+  font-size: $font-size-md;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+// 退出登录按钮（白底 + 红字 + 红边，强调危险操作）
+.logoutButton {
+  @include button-reset;
+  width: calc(100% - #{$page-padding * 2});
+  margin: $spacing-xl $page-padding 0;
+  height: $button-height-lg;
+  background: $color-bg-card;
+  color: $color-error;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  border: 2rpx solid rgba(245, 63, 63, 0.3);
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-tag-bg-error;
+    transform: scale(0.99);
+  }
+}

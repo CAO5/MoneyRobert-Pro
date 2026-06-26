@@ -34,6 +34,10 @@ const form = ref({
   worst_case: -0.025,
   risk_budget_used: 0.3,
   data_freshness_sec: 120,
+  // 信任闭环字段
+  reasons_text: '',   // 逗号分隔，后端转为 Vec<String>
+  blockers_text: '',  // 逗号分隔
+  trust_level: '',    // display_only / comparable / promotion_eligible
 })
 
 // 预测周期预设
@@ -91,6 +95,30 @@ function freshnessLevel(sec?: number): { label: string; color: string } {
   return { label: '过期', color: 'var(--loss)' }
 }
 
+/// 回测可信等级标签
+function trustLevelLabel(level: string): string {
+  switch (level) {
+    case 'promotion_eligible': return '可晋级'
+    case 'comparable': return '可比较'
+    case 'display_only': return '仅展示'
+    default: return level
+  }
+}
+
+/// 回测可信等级样式
+function trustLevelStyle(level: string): Record<string, string> {
+  switch (level) {
+    case 'promotion_eligible':
+      return { background: 'var(--profit)', color: '#fff', opacity: '0.9' }
+    case 'comparable':
+      return { background: 'var(--warning)', color: '#fff', opacity: '0.9' }
+    case 'display_only':
+      return { background: 'var(--error)', color: '#fff', opacity: '0.9' }
+    default:
+      return { background: 'var(--surface-secondary)', color: 'var(--text-secondary)' }
+  }
+}
+
 // =========================================================
 // 方法
 // =========================================================
@@ -120,6 +148,14 @@ async function generateCard() {
       worst_case: form.value.worst_case,
       risk_budget_used: form.value.risk_budget_used,
       data_freshness_sec: form.value.data_freshness_sec,
+      // 信任闭环字段：逗号分隔文本转为数组
+      reasons: form.value.reasons_text
+        ? form.value.reasons_text.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined,
+      blockers: form.value.blockers_text
+        ? form.value.blockers_text.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined,
+      trust_level: form.value.trust_level || undefined,
     }
     const card = await SignalApi.createDecisionCard(req)
     latestCard.value = card
@@ -341,6 +377,28 @@ onMounted(() => {
             <input v-model.number="form.data_freshness_sec" type="number" step="10" min="0" class="input" />
           </div>
 
+          <!-- 信任闭环字段 -->
+          <div class="space-y-3 p-3 rounded-lg" style="background: var(--surface-secondary)">
+            <div class="text-xs font-medium" style="color: var(--text-muted)">信任闭环（可选）</div>
+            <div>
+              <label class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary)">决策原因（逗号分隔）</label>
+              <input v-model="form.reasons_text" class="input" placeholder="ev_pass, cvar_pass, regime_ok" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary)">阻断原因（逗号分隔）</label>
+              <input v-model="form.blockers_text" class="input" placeholder="data_stale, cvar_exceeded" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary)">回测可信等级</label>
+              <select v-model="form.trust_level" class="input">
+                <option value="">未评估</option>
+                <option value="display_only">仅展示</option>
+                <option value="comparable">可比较</option>
+                <option value="promotion_eligible">可晋级</option>
+              </select>
+            </div>
+          </div>
+
           <!-- 生成按钮 -->
           <button
             @click="generateCard"
@@ -474,6 +532,38 @@ onMounted(() => {
                 <AlertTriangle class="w-3.5 h-3.5" /> 失效条件
               </div>
               <pre class="text-xs p-3 rounded-lg overflow-x-auto" style="background: var(--surface-secondary); color: var(--text-secondary)">{{ JSON.stringify(latestCard.invalidation_conditions, null, 2) }}</pre>
+            </div>
+
+            <!-- 决策原因 -->
+            <div v-if="latestCard.reasons && latestCard.reasons.length">
+              <div class="text-xs font-medium mb-2 flex items-center gap-1.5" style="color: var(--text-secondary)">
+                <CheckCircle class="w-3.5 h-3.5" /> 决策原因
+              </div>
+              <ul class="space-y-1">
+                <li v-for="(reason, i) in latestCard.reasons" :key="i" class="text-xs px-3 py-1.5 rounded-lg" style="background: var(--surface-secondary); color: var(--text-secondary)">
+                  {{ reason }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- 阻断原因 -->
+            <div v-if="latestCard.blockers && latestCard.blockers.length">
+              <div class="text-xs font-medium mb-2 flex items-center gap-1.5" style="color: var(--error)">
+                <ShieldAlert class="w-3.5 h-3.5" /> 阻断原因
+              </div>
+              <ul class="space-y-1">
+                <li v-for="(blocker, i) in latestCard.blockers" :key="i" class="text-xs px-3 py-1.5 rounded-lg" style="background: var(--surface-secondary); color: var(--error)">
+                  {{ blocker }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- 可信等级徽章 -->
+            <div v-if="latestCard.trust_level" class="flex items-center gap-2">
+              <span class="text-xs font-medium" style="color: var(--text-secondary)">可信等级:</span>
+              <span class="text-xs px-2 py-1 rounded font-medium" :style="trustLevelStyle(latestCard.trust_level)">
+                {{ trustLevelLabel(latestCard.trust_level) }}
+              </span>
             </div>
 
             <!-- 模型版本 & 数据血缘 -->

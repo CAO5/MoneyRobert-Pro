@@ -253,6 +253,11 @@ CREATE TABLE IF NOT EXISTS decision_cards (
     -- 失效条件
     invalidation_conditions JSONB,             -- 失效条件列表
 
+    -- 信任闭环字段（v1.8 新增）
+    reasons TEXT[],                              -- 决策原因（来自 DecisionEngine）
+    blockers TEXT[],                             -- 阻断原因（来自 DecisionEngine）
+    trust_level VARCHAR(30),                     -- 回测可信等级（display_only/comparable/promotion_eligible）
+
     -- 模型版本
     model_version VARCHAR(50) NOT NULL,
     prediction_id UUID REFERENCES signal_predictions(prediction_id) ON DELETE SET NULL,
@@ -389,3 +394,11 @@ CREATE INDEX IF NOT EXISTS idx_execution_audit_event_time ON execution_audit_log
 CREATE INDEX IF NOT EXISTS idx_execution_audit_type ON execution_audit_logs(event_type);
 
 COMMENT ON TABLE execution_audit_logs IS '执行审计日志：订单执行全链路审计，回答谁/何时/基于什么证据/通过什么规则';
+
+-- ============================================================
+-- v1.8 补充：decision_cards 表新增信任闭环字段
+-- 用于已部署的数据库（CREATE TABLE IF NOT EXISTS 不会添加新列）
+-- ============================================================
+ALTER TABLE decision_cards ADD COLUMN IF NOT EXISTS reasons TEXT[];
+ALTER TABLE decision_cards ADD COLUMN IF NOT EXISTS blockers TEXT[];
+ALTER TABLE decision_cards ADD COLUMN IF NOT EXISTS trust_level VARCHAR(30);

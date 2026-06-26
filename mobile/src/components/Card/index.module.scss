@@ -1,0 +1,79 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// Card 通用卡片组件（浅色主流移动端金融 App 风格）
+// 设计：纯白卡片 + 16rpx 圆角 + 轻阴影 + 按压反馈
+// 参考：招商银行 / 蚂蚁财富 卡片式布局
+// 布局：统一使用 flex（Taro 跨端兼容性更好，不用 grid）
+// ============================================
+
+.card {
+  background: $color-bg-card;       // 卡片纯白背景
+  border-radius: $radius-md;        // 卡片默认圆角 16rpx
+  border: 1rpx solid $color-border; // 极浅边框，辅助卡片分层
+  box-shadow: $shadow-card;         // 轻阴影，营造卡片浮起感
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+
+  // 可点击：按压时背景变浅灰 + 微缩放，遵循移动端按压反馈规范
+  &.clickable {
+    transition: background $transition-fast, transform $transition-fast;
+
+    &:active {
+      transform: scale(0.99);
+      background: $color-bg-hover;  // 普通卡片按压变浅灰 #F7F8FA
+    }
+
+    // 修复：渐变高亮卡片按压时若沿用浅灰背景会丢失渐变视觉重点，
+    // 这里用更高优先级选择器覆盖为主色深色，保留高亮语义
+    &.gradient:active {
+      background: $color-primary-dark;
+    }
+  }
+
+  // 高亮变体：金融蓝渐变背景（用于关键指标卡，克制使用）
+  // 浅色风格：保留渐变作为视觉重点，发光阴影保留以突出主指标
+  &.gradient {
+    background: $gradient-primary;
+    color: $color-text-white;
+    border-color: transparent;
+    box-shadow: $shadow-glow;
+  }
+}
+
+// 内边距档位（8rpx 网格）
+.padding_sm { padding: $spacing-md; }   // 紧凑 24rpx
+.padding_md { padding: $spacing-lg; }   // 默认 32rpx
+.padding_lg { padding: $spacing-xl; }   // 宽松 48rpx
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+// 标题：32rpx / 600
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  letter-spacing: 1rpx;
+  @include text-ellipsis;
+
+  // 渐变高亮卡片内标题使用白色
+  .gradient & {
+    color: $color-text-white;
+  }
+}
+
+.extra {
+  flex-shrink: 0;
+  margin-left: $spacing-md;
+}
+
+.body {
+  width: 100%;
+  min-width: 0; // flex 子项最小宽度，防止内部文本溢出撑破布局
+}

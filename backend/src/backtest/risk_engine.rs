@@ -30,6 +30,7 @@ pub struct DailyStats {
     pub current_day_start_equity: f64,
 }
 
+#[derive(Debug, Clone)]
 pub struct RiskEngine {
     pub config: RiskConfig,
     pub daily: DailyStats,

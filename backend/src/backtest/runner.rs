@@ -1,18 +1,25 @@
 //! End-to-end backtest runner: orchestrates replay, strategy, risk, matching, account, performance.
 //! 端到端回测运行器
+//!
+//! 架构收敛（v1.7）：
+//! - 决策流水线统一走 DecisionOrchestrator（信号→决策→仓位→风控→输出）
+//! - 交易执行统一走 LedgerService（开仓/平仓/反手 → apply_fill → 记录 LedgerEntry）
+//! - 组合风控接入主链路（PortfolioRiskEngine.check → CVaR/相关性/流动性约束）
 
 use crate::backtest::account_engine::{kline_prices, AccountEngine};
-use crate::backtest::matching_engine::{MatchingConfig, MatchingEngine};
+use crate::backtest::matching_engine::MatchingConfig;
 use crate::backtest::models::{
     AccountState, AlphaSignal, BacktestJob, BacktestStatus, PerformanceReport,
-    SimulatedOrder, TradeAttribution, TradeIntent,
+    SimulatedOrder, TradeAttribution,
 };
 use crate::backtest::performance_engine::PerformanceEngine;
-use crate::backtest::position_sizing::{PositionSizingConfig, PositionSizingEngine};
+use crate::backtest::portfolio_risk::{AssetRiskProfile, PortfolioRiskEngine};
 use crate::backtest::replay_engine::{ReplayConfig, ReplayEngine};
 use crate::backtest::risk_engine::{RiskConfig, RiskEngine};
 use crate::features::{MarketRegime, RegimeClassifier, RegimeConfig};
-use crate::signals::decision_engine::{DecisionAction, DecisionEngine, DecisionInput};
+use crate::orchestration::decision_orchestrator::DecisionOrchestrator;
+use crate::orchestration::ledger_service::LedgerService;
+use crate::signals::decision_engine::DecisionAction;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::collections::HashMap;
@@ -36,13 +43,15 @@ pub struct BacktestRunnerConfig {
 
 pub struct BacktestRunner {
     config: BacktestRunnerConfig,
-    matching: MatchingEngine,
+    /// 账本服务 — 统一交易执行入口（封装 MatchingEngine）
+    ledger: LedgerService,
+    /// 单资产风控引擎（日亏/单仓上限/总杠杆）
     risk: RiskEngine,
     account: AccountEngine,
-    /// P1-1: 决策引擎（EV/CVaR）
-    decision: DecisionEngine,
-    /// P1-2: 仓位计算引擎（Kelly/波动率目标/风险预算）
-    position_sizing: PositionSizingEngine,
+    /// 决策编排器 — 统一决策流水线（信号→决策→仓位→风控→输出）
+    orchestrator: DecisionOrchestrator,
+    /// 组合风控引擎（CVaR/相关性/流动性约束）
+    portfolio_risk: PortfolioRiskEngine,
     open_orders: Vec<SimulatedOrder>,
     closed_trades: Vec<TradeAttribution>,
     /// P2: 每个仓位的累计手续费（position_id → fee），平仓时用于归因
@@ -64,12 +73,14 @@ impl BacktestRunner {
         let regime_config = config.regime_config.clone().unwrap_or_default();
         let regime_classifier = RegimeClassifier::new(regime_config);
         let now = config.start_time;
+        let risk_engine = RiskEngine::new(config.risk.clone());
         Self {
-            matching: MatchingEngine::new(config.matching.clone()),
-            risk: RiskEngine::new(config.risk.clone()),
+            ledger: LedgerService::new(config.matching.clone()),
+            risk: risk_engine.clone(),
             account: AccountEngine::new(config.job_id, config.initial_equity, now),
-            decision: DecisionEngine::with_defaults(),
-            position_sizing: PositionSizingEngine::with_defaults(),
+            // 统一决策流水线：信号→决策→仓位→风控→输出
+            orchestrator: DecisionOrchestrator::with_defaults(risk_engine),
+            portfolio_risk: PortfolioRiskEngine::with_defaults(),
             open_orders: Vec::new(),
             closed_trades: Vec::new(),
             position_fees: HashMap::new(),
@@ -134,8 +145,9 @@ impl BacktestRunner {
                 .cloned()
             {
                 let fill = self
-                    .matching
-                    .close_position_at_price(&pos, price, self.config.end_time);
+                .ledger
+                .matching()
+                .close_position_at_price(&pos, price, self.config.end_time);
                 self.apply_fill_to_account(&pos.asset, &fill, Some("force_close".into()));
             }
         }
@@ -195,7 +207,8 @@ impl BacktestRunner {
                 .cloned()
             {
                 let fill = self
-                    .matching
+                    .ledger
+                    .matching()
                     .close_position_at_price(&pos, price, kline.open_time);
                 stop_fills.push((fill, pos.asset.clone()));
             }
@@ -214,7 +227,8 @@ impl BacktestRunner {
             }
             if order.order_type == "limit" {
                 if let Some(fill) = self
-                    .matching
+                    .ledger
+                    .matching()
                     .fill_limit_order(&order, kline, kline.open_time)
                 {
                     fills_to_apply.push(fill);
@@ -233,129 +247,85 @@ impl BacktestRunner {
     }
 
     async fn handle_signal(&mut self, signal: &AlphaSignal) {
-        // Validate signal expiry
+        // 1) 信号过期校验
         if signal.is_expired(&signal.event_time) {
             return;
         }
 
-        // Get current price data
+        // 2) 获取当前价格
         let kline = match self.last_kline_by_asset.get(&signal.asset) {
             Some(k) => k.clone(),
-            None => return, // no price data for this asset yet
+            None => return, // 暂无该资产行情
         };
         let current_price = kline.close;
         if current_price <= 0.0 {
             return;
         }
 
-        // P1-1: Use DecisionEngine (EV/CVaR) instead of simple confidence/strength threshold
+        // 3) 市场状态与波动率
         let regime = self
             .current_regime_by_asset
             .get(&signal.asset)
             .and_then(|s| MarketRegime::from_str(s));
-
-        // Estimate asset volatility from K-line history (ATR-based)
         let asset_volatility = self.estimate_volatility(&signal.asset);
 
-        let decision_input = DecisionInput {
+        // 4) 统一调用 DecisionOrchestrator（信号→决策→仓位→风控→输出）
+        let existing_notional = self.account.open_position_notional_for_asset(&signal.asset);
+        let orch_result = self.orchestrator.orchestrate(
             signal,
             regime,
-            account: &self.account.state,
+            &self.account.state,
             current_price,
-            asset_volatility: Some(asset_volatility),
-        };
-        let decision = self.decision.decide(&decision_input);
-
-        if decision.action == DecisionAction::Hold {
-            warn!(
-                "[BT] signal {} rejected by decision engine: blockers={:?}",
-                signal.signal_id, decision.blockers
-            );
-            return;
-        }
-
-        // P1-2: Use PositionSizingEngine (Kelly/vol target/risk budget) for position sizing
-        let confidence = signal.confidence.unwrap_or(0.5);
-        let expected_return_bps = signal.expected_return_bps.unwrap_or(100.0);
-        let avg_win = expected_return_bps.max(0.0) / 10000.0;
-        let avg_loss = expected_return_bps.abs().min(500.0) / 10000.0;
-        let stop_loss_pct = Some(0.02); // 默认 2% 止损
-
-        let sizing = self.position_sizing.calculate(
-            current_price,
-            confidence,
-            avg_win,
-            avg_loss,
             asset_volatility,
-            stop_loss_pct,
+            existing_notional,
         );
 
-        // 使用仓位引擎结果，但受决策引擎的 regime 调整约束
-        let position_pct = sizing.position_pct.min(decision.position_pct.max(0.0));
-        if position_pct <= 0.0 {
+        if !orch_result.can_execute() {
             warn!(
-                "[BT] signal {} position too small: kelly={:.4} decision_pct={:.4}",
-                signal.signal_id, sizing.kelly_raw, decision.position_pct
+                "[BT] signal {} blocked by orchestrator: blockers={:?}",
+                signal.signal_id, orch_result.blockers
             );
             return;
         }
 
-        let notional = self.account.state.total_equity.max(0.0) * position_pct;
-        if notional <= 0.0 {
+        // 5) 组合风控检查（CVaR/相关性/流动性约束）
+        let final_notional = self.apply_portfolio_risk_check(
+            &signal.asset,
+            orch_result.final_position_pct,
+            asset_volatility,
+            current_price,
+        );
+        if final_notional <= 0.0 {
+            warn!(
+                "[BT] signal {} blocked by portfolio risk",
+                signal.signal_id
+            );
             return;
         }
-        let quantity = notional / current_price;
 
-        let side = if decision.action == DecisionAction::OpenLong { "buy" } else { "sell" };
-
-        let intent = TradeIntent {
-            intent_id: Uuid::new_v4(),
-            job_id: signal.job_id,
-            source_signal_id: Some(signal.signal_id),
-            strategy_id: signal.strategy_id.clone(),
-            agent_id: signal.agent_id.clone(),
-            asset: signal.asset.clone(),
-            exchange: signal.exchange.clone(),
-            side: side.into(),
-            intent_type: "open_position".into(),
-            target_position_pct: Some(position_pct),
-            target_notional: Some(notional),
-            target_quantity: Some(quantity),
-            order_type: "market".into(),
-            limit_price: None,
-            max_slippage_bps: None,
-            leverage: 1,
-            stop_loss_price: sizing.stop_loss_price,
-            take_profit_price: signal
-                .expected_return_bps
-                .map(|bps| current_price * (1.0 + bps / 10000.0)),
-            event_time: signal.event_time,
+        // 6) 构造订单并执行
+        let side = if orch_result.final_action == DecisionAction::OpenLong {
+            "buy"
+        } else {
+            "sell"
         };
-
-        // Risk check
-        let existing_notional = self.account.open_position_notional_for_asset(&intent.asset);
-        let risk_result =
-            self.risk
-                .validate_intent(&intent, &self.account.state, existing_notional);
-        if !risk_result.passed {
-            warn!(
-                "[BT] signal {} rejected by risk: {:?}",
-                signal.signal_id, risk_result.reasons
-            );
-            return;
-        }
-
-        // Build order
-        let effective_notional = risk_result.reduced_notional.unwrap_or(notional);
-        let effective_qty = effective_notional / current_price;
+        let effective_qty = final_notional / current_price;
         if effective_qty <= 1e-9 {
             return;
         }
 
+        let stop_loss_price = orch_result
+            .sizing
+            .as_ref()
+            .and_then(|s| s.stop_loss_price);
+        let take_profit_price = signal
+            .expected_return_bps
+            .map(|bps| current_price * (1.0 + bps / 10000.0));
+
         let order = SimulatedOrder {
             order_id: Uuid::new_v4(),
             job_id: signal.job_id,
-            intent_id: Some(intent.intent_id),
+            intent_id: Some(Uuid::new_v4()),
             source_signal_id: Some(signal.signal_id),
             strategy_id: signal.strategy_id.clone(),
             agent_id: signal.agent_id.clone(),
@@ -365,26 +335,117 @@ impl BacktestRunner {
             order_type: "market".into(),
             price: Some(current_price),
             quantity: effective_qty,
-            notional: Some(effective_notional),
+            notional: Some(final_notional),
             filled_quantity: 0.0,
             filled_price: None,
             fee: 0.0,
             slippage_bps: None,
             leverage: 1,
-            stop_loss: intent.stop_loss_price,
-            take_profit: intent.take_profit_price,
+            stop_loss: stop_loss_price,
+            take_profit: take_profit_price,
             status: "submitted".into(),
             submitted_at: signal.event_time,
             filled_at: None,
         };
 
-        // Immediate market-fill at next K-line open (which is current_price for the step):
+        // 7) 通过 LedgerService 撮合并入账
         if let Some(fill) = self
-            .matching
+            .ledger
+            .matching()
             .fill_market_order(&order, &kline, signal.event_time)
         {
-            self.apply_fill_to_account(&order.asset, &fill, Some(intent.intent_type.clone()));
+            self.apply_fill_to_account(&order.asset, &fill, Some("open_position".into()));
         }
+    }
+
+    /// 组合风控检查 — 在单资产风控通过后，进行组合层面的 CVaR/相关性/流动性约束
+    ///
+    /// 如果组合风控不通过，返回按比例缩减后的 notional；通过则返回原始 notional。
+    fn apply_portfolio_risk_check(
+        &self,
+        new_asset: &str,
+        new_position_pct: f64,
+        new_asset_volatility: f64,
+        _current_price: f64,
+    ) -> f64 {
+        let nav = self.account.state.total_equity.max(0.0);
+        if nav <= 0.0 {
+            return 0.0;
+        }
+
+        // 构建当前持仓 + 新信号的资产风险画像
+        let mut assets: Vec<AssetRiskProfile> = Vec::new();
+
+        // 已有持仓
+        for pos in &self.account.positions {
+            if pos.closed_at.is_some() {
+                continue;
+            }
+            let pos_pct = (pos.quantity * pos.avg_entry_price) / nav;
+            let vol = self
+                .estimate_volatility(&pos.asset)
+                .max(0.01);
+            // 简化：用近期 K 线成交量作为日均成交量估计
+            let avg_vol = self
+                .last_kline_by_asset
+                .get(&pos.asset)
+                .map(|k| k.volume * k.close)
+                .unwrap_or(1_000_000.0);
+            assets.push(AssetRiskProfile {
+                symbol: pos.asset.clone(),
+                position_pct: pos_pct,
+                volatility: vol,
+                avg_daily_volume: avg_vol,
+                risk_contribution: 0.0,
+            });
+        }
+
+        // 新信号对应的资产
+        let avg_vol = self
+            .last_kline_by_asset
+            .get(new_asset)
+            .map(|k| k.volume * k.close)
+            .unwrap_or(1_000_000.0);
+        // 如果新资产已在持仓中，累加仓位；否则新增
+        if let Some(existing) = assets.iter_mut().find(|a| a.symbol == new_asset) {
+            existing.position_pct += new_position_pct;
+            existing.avg_daily_volume = avg_vol;
+        } else {
+            assets.push(AssetRiskProfile {
+                symbol: new_asset.to_string(),
+                position_pct: new_position_pct,
+                volatility: new_asset_volatility.max(0.01),
+                avg_daily_volume: avg_vol,
+                risk_contribution: 0.0,
+            });
+        }
+
+        // 简化相关性矩阵：加密资产间默认 0.5 相关（同资产 1.0）
+        let corr_matrix: HashMap<(String, String), f64> = {
+            let mut m = HashMap::new();
+            for i in &assets {
+                for j in &assets {
+                    let corr = if i.symbol == j.symbol { 1.0 } else { 0.5 };
+                    m.insert((i.symbol.clone(), j.symbol.clone()), corr);
+                }
+            }
+            m
+        };
+
+        let check_result = self.portfolio_risk.check(&assets, &corr_matrix, nav);
+        if !check_result.passed {
+            warn!(
+                "[BT] portfolio risk violations: {:?}",
+                check_result.violations
+            );
+            // 使用调整后的仓位
+            if let Some(adj_pct) = check_result.adjusted_positions.get(new_asset) {
+                return nav * adj_pct;
+            }
+            return 0.0;
+        }
+
+        nav * new_position_pct
     }
 
     fn apply_fill_to_account(
@@ -409,9 +470,10 @@ impl BacktestRunner {
             .map(|p| p.position_id)
             .collect();
 
-        let (_new_pos, _pnl) =
-            self.matching
-                .apply_fill(fill, &mut self.account.positions, &mut self.account.state);
+        // 通过 LedgerService 统一入账（封装 matching.apply_fill + 记录 LedgerEntry）
+        let (_new_pos, _pnl) = self
+            .ledger
+            .apply_fill(fill, &mut self.account.state, &mut self.account.positions);
 
         // P2: 记录开仓手续费到 position_fees（新仓位被创建时）
         if let Some(new_pos) = &_new_pos {

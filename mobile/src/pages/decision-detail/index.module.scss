@@ -1,0 +1,300 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 决策卡详情页（浅色主流移动端金融 App 风格）
+// 设计：渐变顶部（建议卡头部）+ 白色卡片堆叠（概率分布/EV/风险/证据链）+ 吸底操作区
+// 参考：雪球 App 个股详情 / 蚂蚁财富 决策详情
+// ============================================
+
+.detailPage {
+  min-height: 100vh;
+  // 浅灰底色
+  background: $color-bg-page;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+}
+
+// 顶部建议卡（品牌蓝渐变 + 白字 + 装饰光晕）
+.suggestionCard {
+  background: $gradient-primary;
+  padding: $spacing-lg $page-padding $spacing-xl;
+  padding-top: calc(#{$spacing-lg} + env(safe-area-inset-top));
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  // 背景装饰光晕
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -80rpx;
+    width: 260rpx;
+    height: 260rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60rpx;
+    left: -40rpx;
+    width: 180rpx;
+    height: 180rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.suggestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+  position: relative;
+  z-index: 1;
+}
+
+// 返回按钮（半透明白底）
+.backButton {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -$spacing-xs;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $radius-md;
+  transition: all $transition-base;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.backIcon {
+  font-size: 56rpx;
+  color: $color-text-white;
+  line-height: 1;
+}
+
+.shareButton {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.symbolRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  position: relative;
+  z-index: 1;
+}
+
+.symbolText {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-right: $spacing-md;
+  letter-spacing: 1rpx;
+}
+
+.actionTag {
+  display: inline-block;
+  padding: 6rpx $spacing-md;
+  background: rgba(255, 255, 255, 0.22);
+  color: $color-text-white;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.metaRow {
+  display: flex;
+  gap: $spacing-xl;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 1;
+}
+
+// 内容区（上提与头部重叠，卡片浮起感）
+.content {
+  padding: $spacing-lg $page-padding 0;
+  margin-top: -$spacing-md;
+  position: relative;
+  z-index: 2;
+}
+
+// 内容卡片（白色 + 轻阴影，去掉边框）
+.contentCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  letter-spacing: 1rpx;
+}
+
+// 概率分布条
+.probSection {
+  margin-bottom: $spacing-lg;
+}
+
+.probRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.probLabel {
+  width: 100rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+// 概率条轨道（浅灰底）
+.probBarWrap {
+  flex: 1;
+  height: 24rpx;
+  background: $color-bg-subtle;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  margin: 0 $spacing-md;
+}
+
+.probFill {
+  height: 100%;
+  border-radius: $radius-sm;
+  transition: width $transition-base;
+}
+
+.probFillUp { background: $color-up; }
+.probFillFlat { background: $color-flat; }
+.probFillDown { background: $color-down; }
+
+.probValue {
+  width: 80rpx;
+  text-align: right;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+// 指标网格（2 列）
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg $spacing-md;
+}
+
+.metricItem {
+  padding: $spacing-sm 0;
+}
+
+.metricLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.metricValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+
+  &.positive { color: $color-up; }
+  &.negative { color: $color-down; }
+}
+
+// 列表内容（带主色项目符号）
+.textItem {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-loose;
+  margin-bottom: $spacing-xs;
+  padding-left: $spacing-md;
+  position: relative;
+
+  &::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: $color-primary;
+    font-weight: $font-weight-bold;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// 底部吸底操作区（白色 + 极细分割线）
+.actionBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  @include hairline-top;
+  z-index: 50;
+}
+
+.actionButton {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+
+  // 主操作（品牌蓝渐变 + 主色发光阴影）
+  &.primary {
+    background: $gradient-primary;
+    color: $color-text-white;
+    box-shadow: $shadow-glow;
+  }
+
+  // 次操作（浅灰底）
+  &.secondary {
+    background: $color-bg-subtle;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.99);
+  }
+}

@@ -1,0 +1,78 @@
+// ============================================
+// 主题配色变量 - MoneyRobert 移动多端应用
+// 浅色主流移动端金融 App 风格
+// 参考：招商银行 / 蚂蚁财富 / 雪球 等主流金融 App
+// 设计：浅色基底 + 金融蓝主色 + 卡片式布局 + 清晰层级
+// ============================================
+
+// 品牌主题色：金融蓝（与 app.config.ts 的 tabBar selectedColor 保持一致）
+$color-primary: #165dff;
+$color-primary-light: #4080ff;
+$color-primary-dark: #0e42d2;
+// 主色浅背景（用于 tag / icon 容器）
+$color-primary-bg: #e8f0ff;
+
+// 功能色（清晰、克制）
+$color-success: #00b42a;
+$color-warning: #ff7d00;
+$color-error: #f53f3f;
+$color-info: #165dff;
+
+// 背景色（浅色系）
+$color-bg-page: #f5f7fa;       // 页面底色：浅灰
+$color-bg-card: #ffffff;        // 卡片：纯白
+$color-bg-hover: #f7f8fa;       // 按压/悬停底
+$color-bg-subtle: #f2f3f5;      // 次级容器背景
+
+// 文本色（金融级对比度，参考 ArcoDesign 字色）
+$color-text-primary: #1d2129;    // 主文字：近黑
+$color-text-secondary: #4e5969;  // 次文字：深灰
+$color-text-tertiary: #86909c;   // 辅助文字：中灰
+$color-text-disabled: #c9cdd4;   // 禁用：浅灰
+$color-text-white: #ffffff;
+
+// 边框色（极浅，营造卡片边界）
+$color-border: #f2f3f5;
+$color-divider: #e5e6eb;
+
+// ============================================
+// 业务语义色（金融/风控场景专用）
+// ============================================
+
+// 风险提醒色（橙色，浅色背景下醒目）
+$color-risk: #ff7d00;
+// 链接色（主色蓝）
+$color-link: #165dff;
+// 高级/特权标识色（金色）
+$color-premium: #f7ba1e;
+// 中性强调（青色）
+$color-neutral-accent: #0fc6c2;
+
+// 可信等级色（A/B/C/D 四级）
+$color-trust-a: #00b42a;
+$color-trust-b: #165dff;
+$color-trust-c: #ff7d00;
+$color-trust-d: #f53f3f;
+
+// 涨跌色（金融市场专用，红涨绿跌 —— A 股惯例）
+$color-up: #f53f3f;
+$color-down: #00b42a;
+$color-flat: #86909c;
+
+// 渐变（柔和、专业，避免过度炫技）
+$gradient-primary: linear-gradient(135deg, #165dff 0%, #4080ff 100%);
+$gradient-page: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
+$gradient-risk: linear-gradient(135deg, #ff7d00 0%, #ffb659 100%);
+$gradient-success: linear-gradient(135deg, #00b42a 0%, #23c343 100%);
+$gradient-subtle: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+
+// 标签背景色（主色低饱和度底，浅色风格专用）
+$color-tag-bg-primary: #e8f0ff;
+$color-tag-bg-success: #e8ffea;
+$color-tag-bg-warning: #fff3e8;
+$color-tag-bg-error: #ffece8;
+$color-tag-bg-neutral: #f2f3f5;
+
+// TabBar 选中色（必须与主题色保持一致）
+$color-tabbar-active: $color-primary;
+$color-tabbar-inactive: #86909c;

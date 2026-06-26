@@ -133,6 +133,8 @@ impl DecisionOrchestrator {
             account,
             current_price,
             asset_volatility: Some(asset_volatility),
+            funding_rate_bps: None, // TODO: 从行情数据接入资金费率
+            calibration: None,     // TODO: 从 DB 读取历史校准数据
         };
         let decision = self.decision_engine.decide(&decision_input);
         pipeline_steps.push(format!(

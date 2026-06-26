@@ -16,7 +16,7 @@ use crate::signals::{
 };
 use crate::state::AppState;
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     routing::{get, post},
     Json, Router,
 };
@@ -28,6 +28,8 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/decision-card", post(create_decision_card))
         .route("/decision-cards", get(list_decision_cards))
+        // 决策卡详情（mobile GET /signals/decision-cards/{card_id}）
+        .route("/decision-cards/{card_id}", get(get_decision_card))
         .route("/trade-recommendation", post(generate_trade_recommendation))
         .route("/calibration", get(get_calibration))
         .route("/calibration/compute", post(compute_calibration))
@@ -80,6 +82,12 @@ struct CreateDecisionCardRequest {
     data_lineage: Option<serde_json::Value>,
     /// 失效条件
     invalidation_conditions: Option<serde_json::Value>,
+    /// 决策原因（来自 DecisionEngine 的 reasons）
+    reasons: Option<Vec<String>>,
+    /// 阻断原因（来自 DecisionEngine 的 blockers）
+    blockers: Option<Vec<String>>,
+    /// 回测可信等级（display_only / comparable / promotion_eligible）
+    trust_level: Option<String>,
 }
 
 /// 决策卡响应
@@ -103,6 +111,12 @@ struct DecisionCardResponse {
     applicable_regime: Option<String>,
     data_freshness_sec: Option<f64>,
     invalidation_conditions: Option<serde_json::Value>,
+    /// 决策原因
+    reasons: Option<Vec<String>>,
+    /// 阻断原因
+    blockers: Option<Vec<String>>,
+    /// 回测可信等级
+    trust_level: Option<String>,
     model_version: String,
 }
 
@@ -127,6 +141,9 @@ impl From<crate::signals::models::DecisionCard> for DecisionCardResponse {
             applicable_regime: c.applicable_regime,
             data_freshness_sec: c.data_freshness_sec,
             invalidation_conditions: c.invalidation_conditions,
+            reasons: c.reasons,
+            blockers: c.blockers,
+            trust_level: c.trust_level,
             model_version: c.model_version,
         }
     }
@@ -211,6 +228,9 @@ async fn create_decision_card(
         req.sample_performance,
         req.data_lineage,
         req.invalidation_conditions,
+        req.reasons,
+        req.blockers,
+        req.trust_level,
     );
 
     // 保存决策卡
@@ -238,6 +258,21 @@ async fn list_decision_cards(
         .map_err(|e| AppError::Internal(format!("list decision cards failed: {}", e)))?;
 
     Ok(Json(cards.into_iter().map(Into::into).collect()))
+}
+
+/// 查询决策卡详情（mobile GET /signals/decision-cards/{card_id}）
+/// 按 card_id + user_id 鉴权过滤，只能查到自己的卡
+async fn get_decision_card(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Path(card_id): Path<Uuid>,
+) -> Result<Json<DecisionCardResponse>> {
+    let card = SignalStore::get_decision_card_by_id(&state.db_pool, card_id, user.user_id)
+        .await
+        .map_err(|e| AppError::Internal(format!("get decision card failed: {}", e)))?
+        .ok_or_else(|| AppError::NotFound("决策卡不存在或无权访问".to_string()))?;
+
+    Ok(Json(card.into()))
 }
 
 /// 查询概率校准报告
