@@ -1638,7 +1638,7 @@ async fn get_dashboard(
 
     // Recalculate win_rate from closed trades for accuracy
     let closed_count = closed_trades.len() as i32;
-    let closed_wins = closed_trades.iter().filter(|t| t.pnl.map_or(false, |p| p > 0.0)).count() as i32;
+    let closed_wins = closed_trades.iter().filter(|t| t.net_pnl_percent.map_or(false, |p| p > 0.0)).count() as i32;
     let recalculated_win_rate = if closed_count > 0 {
         closed_wins as f64 / closed_count as f64
     } else {

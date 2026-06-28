@@ -172,6 +172,8 @@ pub struct AiSimulationTrade {
     pub pnl_percent: Option<f64>,
     pub fee_percent: f64,
     pub net_pnl_percent: Option<f64>,
+    pub slippage_bps: f64,
+    pub funding_rate_8h: f64,
 
     pub status: String,
     pub close_reason: Option<String>,

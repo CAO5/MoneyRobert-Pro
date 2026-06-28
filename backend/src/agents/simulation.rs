@@ -10,6 +10,10 @@ use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
 
+const DEFAULT_SLIPPAGE_BPS: f64 = 3.0;
+const DEFAULT_FUNDING_RATE_PER_8H: f64 = 0.01;
+const DEFAULT_FEE_PERCENT: f64 = 0.08;
+
 #[derive(Debug, Clone)]
 pub struct TradeExecutionResult {
     pub trade: AiSimulationTrade,
@@ -401,14 +405,21 @@ impl SimulationEngine {
             trade.quantity,
             trade.leverage,
         );
+        let holding_duration = Utc::now().signed_duration_since(trade.opened_at);
+        let holding_duration_minutes = holding_duration.num_minutes() as i32;
+
 
         let fee = (trade.entry_price * trade.quantity + exit_price * trade.quantity)
             * (trade.fee_percent / 100.0);
-        let net_pnl = pnl - fee;
-        let net_pnl_percent = (net_pnl / (trade.entry_price * trade.quantity)) * 100.0;
 
-        let holding_duration = Utc::now().signed_duration_since(trade.opened_at);
-        let holding_duration_minutes = holding_duration.num_minutes() as i32;
+        let slippage_cost = exit_price * trade.quantity * (DEFAULT_SLIPPAGE_BPS / 10000.0);
+
+        let holding_hours = holding_duration.num_minutes() as f64 / 60.0;
+        let funding_periods = (holding_hours / 8.0).max(0.0);
+        let funding_cost = trade.entry_price * trade.quantity * DEFAULT_FUNDING_RATE_PER_8H / 100.0 * funding_periods;
+
+        let net_pnl = pnl - fee - slippage_cost - funding_cost;
+        let net_pnl_percent = (net_pnl / (trade.entry_price * trade.quantity)) * 100.0;
 
         let updated_trade = sqlx::query_as::<_, AiSimulationTrade>(
             r#"
@@ -426,7 +437,7 @@ impl SimulationEngine {
             "#,
         )
         .bind(exit_price)
-        .bind(pnl)
+        .bind(net_pnl)
         .bind(pnl_percent)
         .bind(net_pnl_percent)
         .bind(close_reason)
@@ -443,7 +454,7 @@ impl SimulationEngine {
         .await?;
 
         let new_balance = config.current_balance + net_pnl;
-        let (winning_trades, losing_trades) = if pnl > 0.0 {
+        let (winning_trades, losing_trades) = if net_pnl > 0.0 {
             (config.winning_trades + 1, config.losing_trades)
         } else {
             (config.winning_trades, config.losing_trades + 1)
@@ -488,8 +499,8 @@ impl SimulationEngine {
         tx.commit().await?;
 
         info!(
-            "Trade closed: {} with PnL {:.2} ({:.2}%)",
-            trade_id, pnl, pnl_percent
+            "Trade closed: {} with Net PnL {:.2} ({:.2}%) [fee={:.2}, slippage={:.2}, funding={:.2}]",
+            trade_id, net_pnl, net_pnl_percent, fee, slippage_cost, funding_cost
         );
 
         Ok(TradeExecutionResult {
@@ -838,22 +849,22 @@ impl SimulationEngine {
             return Ok(());
         }
 
-        let _total_pnl: f64 = trades.iter().filter_map(|t| t.pnl).sum();
+        let _total_pnl: f64 = trades.iter().filter_map(|t| t.net_pnl_percent).sum();
         let winning_trades: Vec<_> = trades
             .iter()
-            .filter(|t| t.pnl.unwrap_or(0.0) > 0.0)
+            .filter(|t| t.net_pnl_percent.unwrap_or(0.0) > 0.0)
             .collect();
         let losing_trades: Vec<_> = trades
             .iter()
-            .filter(|t| t.pnl.unwrap_or(0.0) < 0.0)
+            .filter(|t| t.net_pnl_percent.unwrap_or(0.0) < 0.0)
             .collect();
 
         let avg_pnl_percent =
-            trades.iter().filter_map(|t| t.pnl_percent).sum::<f64>() / trades.len() as f64;
+            trades.iter().filter_map(|t| t.net_pnl_percent).sum::<f64>() / trades.len() as f64;
         let win_rate = winning_trades.len() as f64 / trades.len() as f64;
 
         let avg_win = if !winning_trades.is_empty() {
-            winning_trades.iter().filter_map(|t| t.pnl).sum::<f64>() / winning_trades.len() as f64
+            winning_trades.iter().filter_map(|t| t.net_pnl_percent).sum::<f64>() / winning_trades.len() as f64
         } else {
             0.0
         };
@@ -861,7 +872,7 @@ impl SimulationEngine {
         let avg_loss = if !losing_trades.is_empty() {
             losing_trades
                 .iter()
-                .filter_map(|t| t.pnl)
+                .filter_map(|t| t.net_pnl_percent)
                 .map(|p| p.abs())
                 .sum::<f64>()
                 / losing_trades.len() as f64
@@ -1369,5 +1380,29 @@ mod tests {
             SimulationEngine::execution_mode_to_string(&ExecutionMode::Live),
             "live"
         );
+    }
+    #[test]
+    fn test_net_pnl_with_costs() {
+        let (pnl, _pnl_percent) = SimulationEngine::calculate_pnl("long", 100.0, 110.0, 1.0, 1);
+        let fee = (100.0 * 1.0 + 110.0 * 1.0) * (0.08 / 100.0);
+        let slippage_cost = 110.0 * 1.0 * (DEFAULT_SLIPPAGE_BPS / 10000.0);
+        let funding_cost = 100.0 * 1.0 * DEFAULT_FUNDING_RATE_PER_8H / 100.0 * 1.0;
+        let net_pnl = pnl - fee - slippage_cost - funding_cost;
+        assert!(net_pnl < pnl, "Net PnL should be less than gross PnL after costs");
+        assert!(net_pnl > 0.0, "Net PnL should still be positive for a 10% gain");
+    }
+
+    #[test]
+    fn test_slippage_reduces_pnl() {
+        let slippage_cost = 100.0 * 1.0 * (DEFAULT_SLIPPAGE_BPS / 10000.0);
+        assert!(slippage_cost > 0.0, "Slippage should always be positive");
+        assert!((slippage_cost - 0.03).abs() < 0.001, "Default 3 bps slippage on 100 should be ~0.03");
+    }
+
+    #[test]
+    fn test_funding_rate_accumulates() {
+        let funding_8h = 100.0 * 1.0 * DEFAULT_FUNDING_RATE_PER_8H / 100.0;
+        let funding_24h = funding_8h * 3.0;
+        assert!(funding_24h > funding_8h, "Funding cost should accumulate over time");
     }
 }

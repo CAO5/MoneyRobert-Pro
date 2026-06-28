@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS ai_simulation_trades (
     
     pnl DOUBLE PRECISION,
     pnl_percent DOUBLE PRECISION,
-    fee_percent DOUBLE PRECISION NOT NULL DEFAULT 0.05,
+    fee_percent DOUBLE PRECISION NOT NULL DEFAULT 0.08,
     net_pnl_percent DOUBLE PRECISION,
     
     status VARCHAR(20) NOT NULL DEFAULT 'open',
