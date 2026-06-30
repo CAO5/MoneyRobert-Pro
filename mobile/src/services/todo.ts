@@ -1,4 +1,4 @@
-import { http, MOCK_ENABLED } from './request';
+import { MOCK_ENABLED } from './request';
 import type { TodoItem, TodoDetail, ProcessTodoRequest } from '@/types/todo';
 import { mockTodos, mockTodoDetail, mockProcessTodo } from '@/data/todo';
 

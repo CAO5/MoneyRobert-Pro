@@ -13,6 +13,47 @@
   padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
 }
 
+.memberCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: $spacing-lg $page-padding 0;
+  padding: 28rpx;
+  border-radius: 22rpx;
+  color: #f7f2e7;
+  background: linear-gradient(135deg, #222b3b, #151a24);
+  box-shadow: 0 12rpx 30rpx rgba(24, 30, 41, 0.14);
+}
+
+.memberEyebrow {
+  display: block;
+  color: #d9bd82;
+  font-size: 18rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.memberTitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.memberDesc {
+  display: block;
+  margin-top: 7rpx;
+  color: #9ba5b5;
+  font-size: 20rpx;
+}
+
+.memberAction {
+  flex-shrink: 0;
+  margin-left: 18rpx;
+  color: #ead19d;
+  font-size: 21rpx;
+}
+
 // 用户信息头部（品牌蓝渐变，白字 + 装饰光晕）
 .userHeader {
   background: $gradient-primary;

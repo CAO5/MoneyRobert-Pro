@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from '@tarojs/components';
 import styles from './index.module.scss';
+import { useI18n } from '@/store/language';
 
 /**
  * 空状态组件
@@ -17,17 +18,18 @@ export interface EmptyStateProps {
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
-  title = '暂无数据',
+  title,
   description,
   actionText,
   onAction,
 }) => {
+  const { t } = useI18n();
   return (
     <View className={styles.empty}>
       <View className={styles.icon}>
         <Text className={styles.iconText}>·</Text>
       </View>
-      <Text className={styles.title}>{title}</Text>
+      <Text className={styles.title}>{title || t('暂无数据')}</Text>
       {description && <Text className={styles.description}>{description}</Text>}
       {actionText && (
         <View className={styles.action} onClick={onAction}>

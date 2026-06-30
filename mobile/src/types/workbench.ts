@@ -17,11 +17,44 @@ export interface MetricCard {
 /** 风险提醒 */
 export interface RiskAlert {
   id: string;
-  level: 'warning' | 'critical';
+  level: 'info' | 'warning' | 'critical';
   title: string;
   description: string;
   symbol?: string;
   created_at: string;
+}
+
+/** 今日最值得处理的一条交易洞察 */
+export interface DailyInsight {
+  id: string;
+  symbol: string;
+  symbol_name: string;
+  action: '关注' | '观察' | '减仓' | '止盈' | '规避';
+  title: string;
+  reason: string;
+  confidence: number;
+  expected_move: string;
+  expires_at: string;
+  route: string;
+  params?: Record<string, string>;
+}
+
+/** 自选行情快照 */
+export interface WatchlistQuote {
+  symbol: string;
+  display_name: string;
+  price: string;
+  change_percent: number;
+  signal: string;
+}
+
+/** 产品已为用户创造的可感知价值 */
+export interface ValueProof {
+  risks_avoided: number;
+  opportunities_found: number;
+  estimated_value: string;
+  analysis_count: number;
+  free_analysis_limit: number;
 }
 
 /** 快捷入口 */
@@ -55,4 +88,13 @@ export interface WorkbenchData {
   risk_alerts: RiskAlert[];
   quick_entries: QuickEntry[];
   recent_items: RecentItem[];
+  market_session: string;
+  market_tone: 'bullish' | 'neutral' | 'bearish';
+  market_summary: string;
+  net_asset: string;
+  today_pnl: string;
+  today_pnl_percent: number;
+  daily_insight: DailyInsight;
+  watchlist: WatchlistQuote[];
+  value_proof: ValueProof;
 }

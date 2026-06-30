@@ -7,7 +7,14 @@ export default {
   mini: {},
   h5: {
     devServer: {
-      open: false, //禁止自动打开浏览器
+      open: false,
+      proxy: [
+        {
+          context: ['/api'],
+          target: 'http://127.0.0.1:8001',
+          changeOrigin: true,
+        },
+      ],
     },
   },
 } satisfies UserConfigExport<'webpack5'>;

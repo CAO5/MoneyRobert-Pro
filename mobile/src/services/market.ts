@@ -15,6 +15,7 @@ import { mockMarketSnapshots, mockMarketRegimes } from '@/data/market';
 export const marketService = {
   /** 获取行情快照列表 */
   async getSnapshots(symbols?: string[]): Promise<MarketSnapshot[]> {
+    void symbols;
     if (MOCK_ENABLED) {
       return mockMarketSnapshots();
     }

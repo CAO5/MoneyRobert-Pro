@@ -1,4 +1,6 @@
 export default definePageConfig({
-  navigationBarTitleText: '工作台',
+  navigationBarTitleText: 'MoneyRobert',
+  navigationStyle: 'custom',
   enablePullDownRefresh: true,
+  backgroundColor: '#f4f6f8',
 });

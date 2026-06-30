@@ -11,6 +11,7 @@ import { DECISION_ACTION_LABELS } from '@/types/signal';
 import { BACKTEST_STATUS_LABELS } from '@/types/backtest';
 import Tag from '@/components/Tag';
 import EmptyState from '@/components/EmptyState';
+import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 type TabKey = 'market' | 'decision' | 'backtest' | 'report';
@@ -29,6 +30,8 @@ const BusinessPage: React.FC = () => {
   const [decisions, setDecisions] = useState<DecisionCardListItem[]>([]);
   const [backtests, setBacktests] = useState<BacktestJobSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
+  useLocalizedTitle('行情');
 
   // 从 URL 参数恢复 Tab（工作台快捷入口跳转用）
   useEffect(() => {
@@ -53,8 +56,7 @@ const BusinessPage: React.FC = () => {
           const data = await backtestService.listJobs();
           setBacktests(data);
         }
-      } catch (err) {
-        console.error(`[Business] load ${activeTab} failed:`, err);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -83,10 +85,10 @@ const BusinessPage: React.FC = () => {
   };
 
   const tabs: Array<{ key: TabKey; label: string }> = [
-    { key: 'market', label: '行情' },
-    { key: 'decision', label: '决策卡' },
-    { key: 'backtest', label: '回测' },
-    { key: 'report', label: '报告' },
+    { key: 'market', label: t('行情') },
+    { key: 'decision', label: t('决策卡') },
+    { key: 'backtest', label: t('回测') },
+    { key: 'report', label: t('报告') },
   ];
 
   return (
@@ -105,11 +107,11 @@ const BusinessPage: React.FC = () => {
       </View>
 
       <ScrollView scrollY className={styles.tabContent}>
-        {loading && <EmptyState title="加载中..." description="正在获取数据" />}
+        {loading && <EmptyState title={t('加载中...')} />}
 
         {!loading && activeTab === 'market' && (
           markets.length === 0 ? (
-            <EmptyState title="暂无行情数据" />
+            <EmptyState title={t('暂无行情数据')} />
           ) : (
             markets.map((m) => {
               const change = m.price_change_percent_24h;
@@ -122,7 +124,7 @@ const BusinessPage: React.FC = () => {
                 >
                   <View className={styles.symbolInfo}>
                     <Text className={styles.symbolName}>{m.symbol}</Text>
-                    <Text className={styles.symbolMeta}>24h 量 {m.volume_24h.toLocaleString()}</Text>
+                    <Text className={styles.symbolMeta}>{t('24h 量 {value}', { value: m.volume_24h.toLocaleString() })}</Text>
                   </View>
                   <View className={styles.priceInfo}>
                     <Text className={styles.price}>{m.current_price.toLocaleString()}</Text>
@@ -138,7 +140,7 @@ const BusinessPage: React.FC = () => {
 
         {!loading && activeTab === 'decision' && (
           decisions.length === 0 ? (
-            <EmptyState title="暂无决策卡" />
+            <EmptyState title={t('暂无决策卡')} />
           ) : (
             decisions.map((d) => {
               const actionLabel = DECISION_ACTION_LABELS[d.suggested_action];
@@ -157,7 +159,7 @@ const BusinessPage: React.FC = () => {
                 >
                   <View className={styles.decisionCardHeader}>
                     <Text className={styles.decisionCardSymbol}>{d.symbol}</Text>
-                    <Tag variant={variant}>{actionLabel}</Tag>
+                    <Tag variant={variant}>{t(actionLabel)}</Tag>
                   </View>
                   <View className={styles.decisionCardContent}>
                     <View className={styles.probBar}>
@@ -181,7 +183,7 @@ const BusinessPage: React.FC = () => {
 
         {!loading && activeTab === 'backtest' && (
           backtests.length === 0 ? (
-            <EmptyState title="暂无回测任务" />
+            <EmptyState title={t('暂无回测任务')} />
           ) : (
             backtests.map((b) => {
               const statusLabel = BACKTEST_STATUS_LABELS[b.status] || b.status;
@@ -195,13 +197,13 @@ const BusinessPage: React.FC = () => {
                   <View className={styles.backtestHeader}>
                     <Text className={styles.backtestName}>{b.job_name}</Text>
                     <Tag variant={b.status === 'completed' ? 'success' : b.status === 'running' ? 'primary' : 'default'}>
-                      {statusLabel}
+                      {t(statusLabel)}
                     </Tag>
                   </View>
                   {b.status === 'running' && (
                     <View className={styles.progressWrap}>
                       <View className={styles.progressLabel}>
-                        <Text>进度</Text>
+                        <Text>{t('进度')}</Text>
                         <Text>{b.progress}%</Text>
                       </View>
                       <View className={styles.progressTrack}>
@@ -212,19 +214,19 @@ const BusinessPage: React.FC = () => {
                   <View className={styles.backtestStats}>
                     {b.total_return_pct !== undefined && (
                       <Text>
-                        收益 <Text className={`${styles.backtestStatValue} ${returnClass}`}>
+                        {t('收益')} <Text className={`${styles.backtestStatValue} ${returnClass}`}>
                           {b.total_return_pct > 0 ? '+' : ''}{b.total_return_pct.toFixed(2)}%
                         </Text>
                       </Text>
                     )}
                     {b.sharpe_ratio !== undefined && (
                       <Text>
-                        夏普 <Text className={styles.backtestStatValue}>{b.sharpe_ratio.toFixed(2)}</Text>
+                        {t('夏普')} <Text className={styles.backtestStatValue}>{b.sharpe_ratio.toFixed(2)}</Text>
                       </Text>
                     )}
                     {b.max_drawdown_pct !== undefined && (
                       <Text>
-                        回撤 <Text className={`${styles.backtestStatValue} ${styles.down}`}>-{b.max_drawdown_pct.toFixed(2)}%</Text>
+                        {t('回撤')} <Text className={`${styles.backtestStatValue} ${styles.down}`}>-{b.max_drawdown_pct.toFixed(2)}%</Text>
                       </Text>
                     )}
                   </View>
@@ -236,9 +238,9 @@ const BusinessPage: React.FC = () => {
 
         {!loading && activeTab === 'report' && (
           <EmptyState
-            title="报告中心"
-            description="完整报告请前往桌面端查看"
-            actionText="查看示例报告"
+            title={t('报告中心')}
+            description={t('完整报告请前往桌面端查看')}
+            actionText={t('查看示例报告')}
             onAction={() => handleReportClick('report-2026q2')}
           />
         )}

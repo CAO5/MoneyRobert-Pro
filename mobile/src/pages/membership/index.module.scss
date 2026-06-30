@@ -1,0 +1,42 @@
+@use '@/styles/variables.scss' as *;
+
+.page { min-height: 100vh; background: #f4f6f8; color: #151b25; }
+.hero { padding: 52rpx 34rpx 42rpx; color: #fff; background: linear-gradient(150deg, #171d28 0%, #273248 100%); }
+.eyebrow { display: block; color: #e0c58e; font-size: 19rpx; font-weight: 800; letter-spacing: 2rpx; }
+.title { display: block; max-width: 620rpx; margin-top: 17rpx; font-size: 46rpx; line-height: 1.28; font-weight: 780; letter-spacing: -1rpx; }
+.subtitle { display: block; margin-top: 18rpx; color: #adb6c5; font-size: 24rpx; line-height: 1.65; }
+.proofRow { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 38rpx; padding: 24rpx; border: 1rpx solid rgba(255,255,255,.09); border-radius: 20rpx; background: rgba(255,255,255,.05); }
+.proofRow > view { padding-left: 20rpx; border-left: 1rpx solid rgba(255,255,255,.1); &:first-child { padding-left: 0; border-left: 0; } }
+.proofValue { display: block; font-size: 30rpx; font-weight: 750; }
+.proofLabel { display: block; margin-top: 5rpx; color: #929dad; font-size: 18rpx; }
+.body { padding: 34rpx 28rpx calc(48rpx + env(safe-area-inset-bottom)); }
+.sectionTitle { display: block; margin: 0 4rpx 18rpx; font-size: 30rpx; font-weight: 750; &:not(:first-child) { margin-top: 32rpx; } }
+.benefitList { padding: 8rpx 24rpx; border-radius: 24rpx; background: #fff; }
+.benefitItem { display: flex; align-items: flex-start; padding: 22rpx 0; border-bottom: 1rpx solid #eef0f3; &:last-child { border-bottom: 0; } }
+.check { width: 42rpx; height: 42rpx; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 17rpx; border-radius: 14rpx; background: #e7f7f1; color: #178663; font-size: 22rpx; font-weight: 800; }
+.benefitTitle { display: block; font-size: 25rpx; font-weight: 700; }
+.benefitDesc { display: block; margin-top: 6rpx; color: #7e8693; font-size: 21rpx; line-height: 1.5; }
+.exampleCard { padding: 24rpx; border-radius: 22rpx; background: #fff; }
+.exampleRow { display: flex; align-items: center; justify-content: space-between; padding: 10rpx 0; color: #69717e; font-size: 22rpx; }
+.exampleDivider { height: 1rpx; margin: 12rpx 0; background: #e8ebef; }
+.positive { color: #168966; font-size: 25rpx; font-weight: 750; }
+.fee { color: #9b6618; font-size: 25rpx; font-weight: 750; }
+.exampleHint { display: block; margin-top: 14rpx; padding: 16rpx; border-radius: 13rpx; color: #747d89; background: #f3f5f7; font-size: 19rpx; line-height: 1.55; }
+.sponsorGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; }
+.sponsorOption { padding: 22rpx 8rpx; text-align: center; border: 2rpx solid #e1e5ea; border-radius: 18rpx; background: #fff; }
+.sponsorOption.selected { border-color: #263146; background: #f5f7fa; }
+.sponsorAmount { display: block; font-size: 30rpx; font-weight: 800; }
+.sponsorLabel { display: block; margin-top: 6rpx; color: #858d99; font-size: 18rpx; }
+.amountHint { display: block; margin-top: 12rpx; color: #9097a2; text-align: center; font-size: 19rpx; }
+.priceCard { display: flex; align-items: center; justify-content: space-between; margin-top: 28rpx; padding: 25rpx; border: 2rpx solid #263146; border-radius: 21rpx; background: #fff; }
+.planName { display: block; font-size: 27rpx; font-weight: 750; }
+.planNote { display: block; max-width: 410rpx; margin-top: 6rpx; color: #8b929e; font-size: 19rpx; }
+.priceWrap { text-align: right; }
+.price { display: block; font-size: 44rpx; font-weight: 800; }
+.priceUnit { display: block; color: #8a919c; font-size: 18rpx; }
+.cta { height: 90rpx; margin-top: 20rpx; border: 0; border-radius: 45rpx; color: #fff; background: #1b2433; font-size: 27rpx; font-weight: 700; line-height: 90rpx; &::after { border: 0; } }
+.paymentHint { display: block; margin-top: 12rpx; text-align: center; color: #9299a4; font-size: 19rpx; }
+.laterButton { padding: 22rpx; text-align: center; color: #747c89; font-size: 21rpx; }
+.freePlan { margin-top: 26rpx; padding: 24rpx; border-radius: 19rpx; background: #eaedf1; }
+.freeTitle { display: block; font-size: 23rpx; font-weight: 700; }
+.freeDesc { display: block; margin-top: 8rpx; color: #747d8a; font-size: 20rpx; line-height: 1.6; }

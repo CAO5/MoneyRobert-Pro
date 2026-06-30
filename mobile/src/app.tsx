@@ -1,23 +1,28 @@
 import React, { useEffect } from 'react';
 import { useDidShow, useDidHide } from '@tarojs/taro';
 import { useAuthStore } from '@/store/auth';
+import { useLanguageStore } from '@/store/language';
+import { initializePrivacyProtection } from '@/security/privacy';
 // 全局样式
 import './app.scss';
 
 /**
  * 应用根组件
  * 负责应用启动时的初始化工作：
- * - 从本地存储恢复登录状态（Token、用户信息）
+ * - 初始化内存会话与隐私防护
  * - 监听应用显示/隐藏生命周期
  */
 function App(props: React.PropsWithChildren<unknown>) {
   // 从存储恢复认证状态
   const restoreAuth = useAuthStore((state) => state.restoreAuth);
+  const initializeLanguage = useLanguageStore((state) => state.initialize);
 
   useEffect(() => {
-    // 应用启动时尝试恢复登录态
+    initializeLanguage();
+    initializePrivacyProtection();
+    // 只检查当前进程内存会话；应用重启不会恢复敏感凭证。
     restoreAuth();
-  }, [restoreAuth]);
+  }, [initializeLanguage, restoreAuth]);
 
   // 应用进入前台
   useDidShow(() => {

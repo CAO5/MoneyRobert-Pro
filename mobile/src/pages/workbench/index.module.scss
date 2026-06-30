@@ -1,361 +1,254 @@
 @use '@/styles/variables.scss' as *;
 
-// ============================================
-// 工作台页面（浅色主流移动端金融 App 风格）
-// 设计：品牌蓝渐变头部 + 白色卡片浮起 + 清晰信息层级
-// 参考：招商银行 App 首页 / 蚂蚁财富 首页
-// ============================================
-
-.workbenchPage {
+.page {
   min-height: 100vh;
-  // 浅灰底色，衬托白色卡片
-  background: $color-bg-page;
-  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+  background: #f4f6f8;
+  color: #111827;
 }
 
-// 顶部头部区域（品牌蓝渐变，保持视觉锚点）
-// 浅色风格的关键：头部有色，内容区留白，避免全屏压抑
-.header {
-  background: $gradient-primary;
-  padding: $spacing-xl $page-padding $spacing-2xl;
-  padding-top: calc(#{$spacing-xl} + env(safe-area-inset-top));
-  color: $color-text-white;
-  position: relative;
-  overflow: hidden;
-  border-radius: 0 0 $spacing-lg $spacing-lg;
-
-  // 背景装饰光晕（柔化头部，增加层次）
-  &::before {
-    content: '';
-    position: absolute;
-    top: -120rpx;
-    right: -80rpx;
-    width: 320rpx;
-    height: 320rpx;
-    border-radius: $radius-round;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -100rpx;
-    left: -60rpx;
-    width: 220rpx;
-    height: 220rpx;
-    border-radius: $radius-round;
-    background: rgba(255, 255, 255, 0.06);
-  }
-}
-
-.headerTop {
+.topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: $spacing-lg;
-  position: relative;
-  z-index: 1;
+  padding: calc(24rpx + env(safe-area-inset-top)) 32rpx 22rpx;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1rpx solid rgba(17, 24, 39, 0.06);
 }
 
-.orgSwitch {
+.brand {
+  display: block;
+  font-size: 34rpx;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -1rpx;
+}
+
+.hello {
+  display: block;
+  margin-top: 5rpx;
+  color: #8a919f;
+  font-size: 22rpx;
+}
+
+.topActions {
   display: flex;
   align-items: center;
-  font-size: $font-size-md;
-  color: $color-text-white;
-  font-weight: $font-weight-medium;
+  gap: 14rpx;
 }
 
-.orgArrow {
-  margin-left: $spacing-xs;
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-}
-
-.headerAction {
-  position: relative;
-  width: 64rpx;
+.searchButton,
+.bellButton {
   height: 64rpx;
+  border-radius: 32rpx;
+  background: #f2f4f7;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: $radius-md;
-  font-size: $font-size-sm;
-
-  &:active {
-    background: rgba(255, 255, 255, 0.28);
-  }
+  color: #3b4351;
+  font-size: 23rpx;
+  position: relative;
 }
 
-.actionBadge {
+.searchButton { width: 64rpx; }
+.bellButton { padding: 0 24rpx; }
+.searchGlyph { font-size: 38rpx; transform: rotate(-15deg); }
+
+.badge {
   position: absolute;
+  right: -4rpx;
   top: -6rpx;
-  right: -6rpx;
   min-width: 28rpx;
   height: 28rpx;
-  border-radius: $radius-round;
-  background: $color-error;
-  color: $color-text-white;
-  font-size: 20rpx;
+  padding: 0 6rpx;
+  border-radius: 20rpx;
+  background: #ff5a55;
+  color: #fff;
+  border: 3rpx solid #fff;
+  font-size: 18rpx;
   line-height: 28rpx;
   text-align: center;
-  padding: 0 8rpx;
-  border: 2rpx solid $color-primary-dark;
 }
 
-.greeting {
-  display: block;
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
-  color: $color-text-white;
-  margin-bottom: $spacing-md;
-  letter-spacing: 1rpx;
-  position: relative;
-  z-index: 1;
+.scroll {
+  height: calc(100vh - 116rpx - env(safe-area-inset-top));
+  box-sizing: border-box;
 }
 
-.summaryRow {
+.marketPulse {
   display: flex;
   align-items: center;
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.85);
-  position: relative;
-  z-index: 1;
+  margin: 24rpx 28rpx 18rpx;
+  padding: 18rpx 22rpx;
+  border: 1rpx solid #e6e9ee;
+  border-radius: 18rpx;
+  background: #fff;
 }
 
-.summaryItem {
+.pulseDot {
+  width: 14rpx;
+  height: 14rpx;
+  margin-right: 18rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 0 8rpx rgba(245, 158, 11, 0.12);
+  background: #f59e0b;
+  &.bullish { background: #ef4444; box-shadow: 0 0 0 8rpx rgba(239, 68, 68, 0.1); }
+  &.bearish { background: #10b981; box-shadow: 0 0 0 8rpx rgba(16, 185, 129, 0.1); }
+}
+
+.marketCopy { flex: 1; min-width: 0; }
+.marketSession { display: block; font-size: 24rpx; font-weight: 650; color: #323946; }
+.marketSummary { display: block; margin-top: 4rpx; font-size: 21rpx; color: #9298a4; }
+.chevron { color: #b4bac4; font-size: 38rpx; }
+
+.assetCard {
+  margin: 0 28rpx 34rpx;
+  padding: 30rpx 28rpx 20rpx;
+  border-radius: 28rpx;
+  color: #fff;
+  background: linear-gradient(145deg, #171c27 0%, #252d3e 65%, #333d51 100%);
+  box-shadow: 0 18rpx 40rpx rgba(17, 24, 39, 0.17);
+  overflow: hidden;
+}
+
+.assetTop,
+.pnlRow,
+.confidenceMeta,
+.quoteTop,
+.valueHeader,
+.trialRow {
   display: flex;
-  align-items: baseline;
-  margin-right: $spacing-xl;
-
-  &:last-child {
-    margin-right: 0;
-  }
+  align-items: center;
+  justify-content: space-between;
 }
 
-.summaryNumber {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  color: $color-text-white;
-  margin-right: $spacing-xs;
+.eyebrow { color: #aeb6c5; font-size: 23rpx; }
+.assetValueRow { display: flex; align-items: baseline; margin-top: 10rpx; }
+.assetValue { font-size: 48rpx; line-height: 1.2; font-weight: 750; letter-spacing: -1rpx; font-variant-numeric: tabular-nums; }
+.eyeButton { margin-left: 18rpx; color: #919aac; font-size: 20rpx; }
+.syncPill { padding: 8rpx 15rpx; border-radius: 20rpx; background: rgba(74, 222, 128, 0.11); color: #75e69c; font-size: 20rpx; }
+
+.pnlRow { margin-top: 30rpx; }
+.pnlLabel { display: block; color: #929bad; font-size: 21rpx; }
+.pnlValue { display: block; margin-top: 5rpx; color: #ff8e8a; font-size: 26rpx; font-weight: 650; font-variant-numeric: tabular-nums; }
+.miniChart { height: 72rpx; width: 210rpx; display: flex; align-items: flex-end; gap: 6rpx; }
+.chartBar { flex: 1; min-height: 7rpx; border-radius: 5rpx; background: linear-gradient(180deg, #82e2ca, #36b99b); opacity: 0.85; }
+
+.rangeTabs {
+  display: flex;
+  align-items: center;
+  margin-top: 26rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.08);
 }
 
-// 内容区域（上提与头部重叠，卡片浮起感）
-.content {
-  padding: 0 $page-padding;
-  margin-top: -$spacing-lg;
-  position: relative;
-  z-index: 2;
+.rangeTab {
+  padding: 8rpx 15rpx;
+  border-radius: 18rpx;
+  color: #858fa2;
+  font-size: 21rpx;
 }
 
-// 指标卡片网格
-.metricsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-md;
-  margin-bottom: $spacing-xl;
-}
-
-// 区块
-.section {
-  margin-bottom: $spacing-xl;
-}
+.rangeActive { color: #fff; background: rgba(255, 255, 255, 0.12); }
+.assetDetail { margin-left: auto; color: #c5cad4; font-size: 21rpx; }
 
 .sectionHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: $spacing-md;
+  margin: 0 30rpx 17rpx;
 }
 
-.sectionTitle {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
+.sectionTitle { display: block; font-size: 32rpx; line-height: 1.3; font-weight: 750; letter-spacing: -0.5rpx; }
+.sectionHint { display: block; margin-top: 5rpx; color: #969ca8; font-size: 21rpx; }
+.sectionLink { color: #606978; font-size: 23rpx; padding: 10rpx 0; }
+.aiTag { padding: 8rpx 14rpx; border-radius: 10rpx; background: #e9f8f2; color: #178562; font-size: 19rpx; font-weight: 650; }
+
+.insightCard {
+  margin: 0 28rpx 20rpx;
+  padding: 27rpx;
+  border: 1rpx solid #e4e7ec;
+  border-radius: 24rpx;
+  background: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(17, 24, 39, 0.045);
 }
 
-.sectionMore {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-}
+.insightHeader { display: flex; align-items: center; }
+.symbolAvatar { width: 64rpx; height: 64rpx; border-radius: 19rpx; display: flex; align-items: center; justify-content: center; background: #fff4df; color: #b8690e; font-size: 28rpx; font-weight: 750; }
+.symbolCopy { flex: 1; margin-left: 17rpx; }
+.symbolName { display: block; font-size: 27rpx; font-weight: 700; }
+.expire { display: block; margin-top: 3rpx; color: #9aa0ab; font-size: 20rpx; }
+.actionTag { padding: 9rpx 18rpx; border-radius: 20rpx; background: #fff6e6; color: #bd741c; font-size: 22rpx; font-weight: 650; }
+.insightTitle { display: block; margin-top: 24rpx; font-size: 34rpx; line-height: 1.35; font-weight: 760; }
+.insightReason { display: block; margin-top: 12rpx; color: #666e7c; font-size: 24rpx; line-height: 1.65; }
+.confidenceRow { margin-top: 21rpx; }
+.confidenceMeta { color: #858c99; font-size: 20rpx; }
+.confidenceTrack { height: 8rpx; margin-top: 10rpx; border-radius: 8rpx; background: #eef0f3; overflow: hidden; }
+.confidenceFill { height: 100%; border-radius: 8rpx; background: linear-gradient(90deg, #36b99b, #7ad5be); }
+.insightAction { display: flex; justify-content: space-between; margin-top: 22rpx; padding-top: 20rpx; border-top: 1rpx solid #eef0f3; color: #1c765e; font-size: 23rpx; font-weight: 650; }
 
-// 风险提醒项（白色卡片 + 轻阴影 + 彩色指示点）
-.riskItem {
-  display: flex;
-  align-items: flex-start;
-  padding: $spacing-lg;
-  background: $color-bg-card;
-  border-radius: $radius-md;
-  margin-bottom: $spacing-sm;
-  box-shadow: $shadow-card;
-  transition: all $transition-base;
-
-  &:active {
-    background: $color-bg-hover;
-    transform: scale(0.99);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.riskDot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: $radius-round;
-  margin-top: 12rpx;
-  margin-right: $spacing-md;
-  flex-shrink: 0;
-
-  &.critical { background: $color-error; }
-  &.warning { background: $color-warning; }
-  &.info { background: $color-info; }
-}
-
-.riskContent {
-  flex: 1;
-  min-width: 0;
-}
-
-.riskTitle {
-  font-size: $font-size-md;
-  font-weight: $font-weight-medium;
-  color: $color-text-primary;
-  margin-bottom: $spacing-xs;
-  @include text-ellipsis;
-}
-
-.riskDesc {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: $line-height-normal;
-  @include text-ellipsis-multi(2);
-}
-
-// 快捷入口（白色卡片网格）
-.quickEntries {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $spacing-md;
-  margin-bottom: $spacing-xl;
-}
-
-.quickEntry {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: $color-bg-card;
-  border-radius: $radius-md;
-  padding: $spacing-md 0 $spacing-sm;
-  position: relative;
-  box-shadow: $shadow-card;
-  transition: all $transition-base;
-
-  &:active {
-    background: $color-bg-hover;
-    transform: scale(0.96);
-  }
-}
-
-.quickIcon {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: $radius-md;
-  background: $color-primary-bg;
-  color: $color-primary;
+.riskStrip {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  margin-bottom: $spacing-xs;
+  margin: 0 28rpx 36rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid #f4ded9;
+  background: #fff8f6;
 }
 
-.quickLabel {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+.riskIcon { width: 46rpx; height: 46rpx; border-radius: 14rpx; display: flex; align-items: center; justify-content: center; background: #ef695c; color: #fff; font-size: 24rpx; font-weight: 800; }
+.riskCopy { flex: 1; min-width: 0; margin-left: 16rpx; }
+.riskLabel { display: block; color: #c24f44; font-size: 19rpx; }
+.riskTitle { display: block; margin-top: 3rpx; color: #4b3432; font-size: 22rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.riskAction { margin-left: 14rpx; color: #b8483e; font-size: 21rpx; font-weight: 650; }
+
+.watchScroll { width: 100%; margin-bottom: 36rpx; white-space: nowrap; }
+.watchRow { display: inline-flex; gap: 16rpx; padding: 0 28rpx; }
+.quoteCard,
+.addQuote {
+  width: 238rpx;
+  box-sizing: border-box;
+  padding: 22rpx;
+  border: 1rpx solid #e5e8ed;
+  border-radius: 21rpx;
+  background: #fff;
 }
 
-.quickBadge {
-  position: absolute;
-  top: 8rpx;
-  right: 16rpx;
-  min-width: 28rpx;
-  height: 28rpx;
-  border-radius: $radius-round;
-  background: $color-error;
-  color: $color-text-white;
-  font-size: 20rpx;
-  line-height: 28rpx;
-  text-align: center;
-  padding: 0 8rpx;
+.quoteName { font-size: 24rpx; font-weight: 700; }
+.quoteUp { color: #e25750; font-size: 21rpx; }
+.quoteDown { color: #17a277; font-size: 21rpx; }
+.quotePrice { display: block; margin-top: 18rpx; font-size: 30rpx; font-weight: 720; font-variant-numeric: tabular-nums; }
+.quoteSignal { display: block; margin-top: 7rpx; color: #939aa6; font-size: 20rpx; }
+.addQuote { display: inline-flex; min-height: 160rpx; flex-direction: column; align-items: center; justify-content: center; color: #949ba7; font-size: 21rpx; border-style: dashed; }
+.addGlyph { display: block; margin-bottom: 8rpx; font-size: 36rpx; color: #626b79; }
+
+.valueCard {
+  margin: 0 28rpx 26rpx;
+  padding: 26rpx;
+  border-radius: 24rpx;
+  color: #ecf0f6;
+  background: linear-gradient(140deg, #273143, #1d2432);
 }
 
-// 最近访问项（白色列表卡）
-.recentItem {
-  display: flex;
-  align-items: center;
-  padding: $spacing-lg;
-  background: $color-bg-card;
-  border-radius: $radius-md;
-  margin-bottom: $spacing-sm;
-  box-shadow: $shadow-card;
-  transition: all $transition-base;
+.valueEyebrow { display: block; color: #9ea9bb; font-size: 20rpx; }
+.valueTitle { display: block; margin-top: 5rpx; font-size: 27rpx; font-weight: 700; }
+.proBadge { padding: 8rpx 13rpx; border: 1rpx solid #e7ca8d; border-radius: 10rpx; color: #f0d494; font-size: 18rpx; font-weight: 800; letter-spacing: 1rpx; }
+.valueStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10rpx; margin-top: 25rpx; }
+.valueStats > view { border-right: 1rpx solid rgba(255, 255, 255, 0.09); &:last-child { border-right: 0; } }
+.valueNumber { display: block; font-size: 29rpx; font-weight: 750; color: #fff; }
+.valueLabel { display: block; margin-top: 5rpx; color: #929daf; font-size: 19rpx; }
+.trialRow { margin-top: 23rpx; padding-top: 18rpx; border-top: 1rpx solid rgba(255, 255, 255, 0.09); color: #a7afbd; font-size: 20rpx; }
+.proLink { color: #efd28f; }
+.disclaimer { padding: 0 44rpx calc(42rpx + env(safe-area-inset-bottom)); text-align: center; color: #a5abb4; font-size: 19rpx; line-height: 1.6; }
 
-  &:active {
-    background: $color-bg-hover;
-    transform: scale(0.99);
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+.loadingHero,
+.loadingCard {
+  margin: 26rpx 28rpx;
+  border-radius: 26rpx;
+  background: linear-gradient(100deg, #eef0f3 20%, #f8f9fa 40%, #eef0f3 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite linear;
 }
-
-.recentIcon {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: $radius-md;
-  background: $color-primary-bg;
-  color: $color-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  margin-right: $spacing-md;
-  flex-shrink: 0;
-}
-
-.recentContent {
-  flex: 1;
-  min-width: 0;
-}
-
-.recentTitle {
-  font-size: $font-size-md;
-  font-weight: $font-weight-medium;
-  color: $color-text-primary;
-  margin-bottom: 4rpx;
-  @include text-ellipsis;
-}
-
-.recentSubtitle {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  @include text-ellipsis;
-}
-
-.recentArrow {
-  color: $color-text-disabled;
-  margin-left: $spacing-sm;
-  font-size: $font-size-lg;
-}
+.loadingHero { height: 310rpx; }
+.loadingCard { height: 260rpx; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }

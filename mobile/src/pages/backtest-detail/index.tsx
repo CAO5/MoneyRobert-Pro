@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, ScrollView } from '@tarojs/components';
+import { View, Text, Button } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import { backtestService } from '@/services/backtest';
 import type { BacktestJobDetail, BacktestReport, TrustLevelResponse } from '@/types/backtest';
 import { BACKTEST_STATUS_LABELS, TRUST_LEVEL_LABELS } from '@/types/backtest';
 import EmptyState from '@/components/EmptyState';
+import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 type TabKey = 'overview' | 'performance' | 'trust';
@@ -17,6 +18,8 @@ type TabKey = 'overview' | 'performance' | 'trust';
 const BacktestDetailPage: React.FC = () => {
   const router = useRouter();
   const jobId = router.params.id;
+  const { t } = useI18n();
+  useLocalizedTitle('回测');
 
   const [job, setJob] = useState<BacktestJobDetail | null>(null);
   const [report, setReport] = useState<BacktestReport | null>(null);
@@ -40,9 +43,8 @@ const BacktestDetailPage: React.FC = () => {
         setJob(jobData);
         setReport(reportData);
         setTrust(trustData);
-      } catch (err) {
-        console.error('[BacktestDetail] load failed:', err);
-        Taro.showToast({ title: '加载失败', icon: 'none' });
+      } catch {
+        Taro.showToast({ title: t('加载失败'), icon: 'none' });
       } finally {
         setLoading(false);
       }
@@ -57,13 +59,13 @@ const BacktestDetailPage: React.FC = () => {
   };
 
   const handleAction = (action: string) => {
-    Taro.showToast({ title: `已${action}`, icon: 'success' });
+    Taro.showToast({ title: t('已{action}', { action: t(action) }), icon: 'success' });
   };
 
   if (loading) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title="加载中..." />
+        <EmptyState title={t('加载中...')} />
       </View>
     );
   }
@@ -71,7 +73,7 @@ const BacktestDetailPage: React.FC = () => {
   if (!job) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title="任务不存在" actionText="返回" onAction={handleBack} />
+        <EmptyState title={t('任务不存在')} actionText={t('返回')} onAction={handleBack} />
       </View>
     );
   }
@@ -92,10 +94,10 @@ const BacktestDetailPage: React.FC = () => {
         <Text className={styles.jobId}>{job.job_id}</Text>
         <Text className={styles.jobName}>{job.job_name}</Text>
         <View className={styles.statusRow}>
-          <Text className={styles.statusTag}>{statusLabel}</Text>
+          <Text className={styles.statusTag}>{t(statusLabel)}</Text>
           {trustInfo && (
             <Text className={styles.statusTag} style={{ color: trustInfo.color, background: 'rgba(255,255,255,0.95)' }}>
-              可信 {trustInfo.label}
+              {t('可信 {value}', { value: trustInfo.label })}
             </Text>
           )}
         </View>
@@ -107,7 +109,7 @@ const BacktestDetailPage: React.FC = () => {
           <View className={styles.contentCard}>
             <View className={styles.progressSection}>
               <View className={styles.progressLabel}>
-                <Text>运行进度</Text>
+                <Text>{t('运行进度')}</Text>
                 <Text>{job.progress}%</Text>
               </View>
               <View className={styles.progressTrack}>
@@ -120,9 +122,9 @@ const BacktestDetailPage: React.FC = () => {
         {/* Tab 切换 */}
         <View className={styles.tabBar}>
           {[
-            { key: 'overview' as const, label: '概览' },
-            { key: 'performance' as const, label: '绩效' },
-            { key: 'trust' as const, label: '可信门禁' },
+            { key: 'overview' as const, label: t('概览') },
+            { key: 'performance' as const, label: t('绩效') },
+            { key: 'trust' as const, label: t('可信门禁') },
           ].map((tab) => (
             <View
               key={tab.key}
@@ -139,23 +141,23 @@ const BacktestDetailPage: React.FC = () => {
           <View className={styles.contentCard}>
             <View className={styles.metricsGrid}>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>初始资金</Text>
+                <Text className={styles.metricLabel}>{t('初始资金')}</Text>
                 <Text className={styles.metricValue}>
                   {job.initial_equity.toLocaleString()}
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>总交易数</Text>
+                <Text className={styles.metricLabel}>{t('总交易数')}</Text>
                 <Text className={styles.metricValue}>
                   {job.total_trades || 0}
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>数据频率</Text>
+                <Text className={styles.metricLabel}>{t('数据频率')}</Text>
                 <Text className={styles.metricValue}>{job.data_frequency}</Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>交易标的</Text>
+                <Text className={styles.metricLabel}>{t('交易标的')}</Text>
                 <Text className={styles.metricValue} style={{ fontSize: '24rpx' }}>
                   {job.assets.join(', ')}
                 </Text>
@@ -169,37 +171,37 @@ const BacktestDetailPage: React.FC = () => {
           <View className={styles.contentCard}>
             <View className={styles.metricsGrid}>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>总收益</Text>
+                <Text className={styles.metricLabel}>{t('总收益')}</Text>
                 <Text className={`${styles.metricValue} ${(report.total_return || 0) > 0 ? styles.positive : styles.negative}`}>
                   {((report.total_return || 0) * 100).toFixed(2)}%
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>年化收益</Text>
+                <Text className={styles.metricLabel}>{t('年化收益')}</Text>
                 <Text className={`${styles.metricValue} ${(report.annualized_return || 0) > 0 ? styles.positive : styles.negative}`}>
                   {((report.annualized_return || 0) * 100).toFixed(2)}%
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>夏普比率</Text>
+                <Text className={styles.metricLabel}>{t('夏普比率')}</Text>
                 <Text className={styles.metricValue}>
                   {(report.sharpe_ratio || 0).toFixed(2)}
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>最大回撤</Text>
+                <Text className={styles.metricLabel}>{t('最大回撤')}</Text>
                 <Text className={`${styles.metricValue} ${styles.negative}`}>
                   {((report.max_drawdown || 0) * 100).toFixed(2)}%
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>胜率</Text>
+                <Text className={styles.metricLabel}>{t('胜率')}</Text>
                 <Text className={styles.metricValue}>
                   {((report.win_rate || 0) * 100).toFixed(1)}%
                 </Text>
               </View>
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>盈亏比</Text>
+                <Text className={styles.metricLabel}>{t('盈亏比')}</Text>
                 <Text className={styles.metricValue}>
                   {(report.payoff_ratio || 0).toFixed(2)}
                 </Text>
@@ -216,8 +218,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.test_coverage_passed ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>测试覆盖</Text>
-                <Text className={styles.checkValue}>通过率 {(trust.test_pass_rate * 100).toFixed(1)}%</Text>
+                <Text className={styles.checkLabel}>{t('测试覆盖')}</Text>
+                <Text className={styles.checkValue}>{t('通过率 {value}%', { value: (trust.test_pass_rate * 100).toFixed(1) })}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>
@@ -225,8 +227,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.capital_conservation_passed ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>资金保全</Text>
-                <Text className={styles.checkValue}>{trust.capital_conservation_passed ? '通过' : '未通过'}</Text>
+                <Text className={styles.checkLabel}>{t('资金保全')}</Text>
+                <Text className={styles.checkValue}>{t(trust.capital_conservation_passed ? '通过' : '未通过')}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>
@@ -234,8 +236,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.slippage_accounted ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>滑点核算</Text>
-                <Text className={styles.checkValue}>{trust.slippage_accounted ? '已计入' : '未计入'}</Text>
+                <Text className={styles.checkLabel}>{t('滑点核算')}</Text>
+                <Text className={styles.checkValue}>{t(trust.slippage_accounted ? '已计入' : '未计入')}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>
@@ -243,8 +245,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.sample_size_sufficient ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>样本量充足</Text>
-                <Text className={styles.checkValue}>共 {trust.total_trades} 笔交易</Text>
+                <Text className={styles.checkLabel}>{t('样本量充足')}</Text>
+                <Text className={styles.checkValue}>{t('共 {value} 笔交易', { value: trust.total_trades })}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>
@@ -252,8 +254,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.walk_forward_validated ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>Walk-forward 验证</Text>
-                <Text className={styles.checkValue}>{trust.walk_forward_validated ? '已通过' : '未通过'}</Text>
+                <Text className={styles.checkLabel}>{t('Walk-forward 验证')}</Text>
+                <Text className={styles.checkValue}>{t(trust.walk_forward_validated ? '已通过' : '未通过')}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>
@@ -261,8 +263,8 @@ const BacktestDetailPage: React.FC = () => {
                 <Text>{trust.calibration_healthy ? '✓' : '✗'}</Text>
               </View>
               <View className={styles.checkContent}>
-                <Text className={styles.checkLabel}>校准健康</Text>
-                <Text className={styles.checkValue}>{trust.calibration_healthy ? '正常' : '异常'}</Text>
+                <Text className={styles.checkLabel}>{t('校准健康')}</Text>
+                <Text className={styles.checkValue}>{t(trust.calibration_healthy ? '正常' : '异常')}</Text>
               </View>
             </View>
           </View>
@@ -275,13 +277,13 @@ const BacktestDetailPage: React.FC = () => {
           className={`${styles.actionButton} ${styles.secondary}`}
           onClick={() => handleAction('分享')}
         >
-          分享
+          {t('分享')}
         </Button>
         <Button
           className={`${styles.actionButton} ${styles.primary}`}
           onClick={() => handleAction('发起复评')}
         >
-          发起复评
+          {t('发起复评')}
         </Button>
       </View>
     </View>

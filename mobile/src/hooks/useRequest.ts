@@ -30,7 +30,6 @@ export function useRequest<T, P extends unknown[] = unknown[]>(
       } catch (err) {
         const appErr = err as AppError;
         setError(appErr);
-        console.error('[useRequest] fetch failed:', appErr);
         options?.onError?.(appErr);
         throw appErr;
       } finally {

@@ -6,6 +6,7 @@ import type { TodoItem } from '@/types/todo';
 import { TODO_TYPE_LABELS, TODO_PRIORITY_LABELS } from '@/types/todo';
 import Tag from '@/components/Tag';
 import EmptyState from '@/components/EmptyState';
+import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 type FilterKey = 'all' | 'risk_confirmation' | 'exception_review' | 'promotion_approval' | 'alert_acknowledgement';
@@ -18,14 +19,15 @@ const TodoPage: React.FC = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(false);
+  const { t, locale } = useI18n();
+  useLocalizedTitle('策略');
 
   const loadTodos = async () => {
     setLoading(true);
     try {
       const data = await todoService.listTodos();
       setTodos(data);
-    } catch (err) {
-      console.error('[Todo] load failed:', err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -49,11 +51,11 @@ const TodoPage: React.FC = () => {
   };
 
   const filters: Array<{ key: FilterKey; label: string }> = [
-    { key: 'all', label: '全部' },
-    { key: 'risk_confirmation', label: '风险确认' },
-    { key: 'exception_review', label: '异常审核' },
-    { key: 'promotion_approval', label: '升级审批' },
-    { key: 'alert_acknowledgement', label: '告警确认' },
+    { key: 'all', label: t('全部') },
+    { key: 'risk_confirmation', label: t('风险确认') },
+    { key: 'exception_review', label: t('异常审核') },
+    { key: 'promotion_approval', label: t('升级审批') },
+    { key: 'alert_acknowledgement', label: t('告警确认') },
   ];
 
   // 优先级颜色
@@ -79,9 +81,9 @@ const TodoPage: React.FC = () => {
       </View>
 
       <ScrollView scrollY className={styles.todoList}>
-        {loading && <EmptyState title="加载中..." />}
+        {loading && <EmptyState title={t('加载中...')} />}
         {!loading && filteredTodos.length === 0 ? (
-          <EmptyState title="暂无待办" description="所有任务已处理完成" />
+          <EmptyState title={t('暂无待办')} description={t('所有任务已处理完成')} />
         ) : (
           filteredTodos.map((todo) => (
             <View
@@ -91,18 +93,18 @@ const TodoPage: React.FC = () => {
             >
               <View className={styles.todoHeader}>
                 <View className={`${styles.todoPriorityDot} ${styles[todo.priority]}`} />
-                <Text className={styles.todoTitle}>{todo.title}</Text>
+                <Text className={styles.todoTitle}>{t(todo.title)}</Text>
                 <Tag variant={getPriorityVariant(todo.priority)}>
                   {TODO_PRIORITY_LABELS[todo.priority]}
                 </Tag>
               </View>
-              <Text className={styles.todoDesc}>{todo.description}</Text>
+              <Text className={styles.todoDesc}>{t(todo.description)}</Text>
               <View className={styles.todoFooter}>
                 <Text className={styles.todoMeta}>
-                  {TODO_TYPE_LABELS[todo.type]}
-                  {todo.due_at && ` · 截止 ${new Date(todo.due_at).toLocaleDateString()}`}
+                  {t(TODO_TYPE_LABELS[todo.type])}
+                  {todo.due_at && ` · ${t('截止 {date}', { date: new Date(todo.due_at).toLocaleDateString(locale) })}`}
                 </Text>
-                <Text className={styles.todoAction}>处理 ›</Text>
+                <Text className={styles.todoAction}>{t('处理 ›')}</Text>
               </View>
             </View>
           ))

@@ -7,7 +7,7 @@ import { authService } from '@/services/auth';
 
 /**
  * 认证状态管理（zustand）
- * 负责登录态管理、Token 持久化、用户信息获取
+ * 负责登录态管理与用户信息获取；Token 仅保存在当前进程内存。
  */
 interface AuthStore {
   // 状态
@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: false,
 
   /**
-   * 应用启动时从本地存储恢复登录态
+   * 检查当前进程内存中的登录态（应用重启后需要重新登录）
    * 在 app.tsx useEffect 中调用
    */
   async restoreAuth() {
@@ -50,9 +50,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // 后台异步刷新用户信息
       try {
         await get().refreshUser();
-      } catch (err) {
-        // 静默失败：用户信息可能已过期，但 Token 仍有效
-        console.warn('[Auth] refreshUser failed during restore:', err);
+      } catch {
+        // 静默失败：不把认证错误对象写入终端或远程日志。
       }
     }
   },

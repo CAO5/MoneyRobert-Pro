@@ -5,6 +5,8 @@ import { messageService } from '@/services/message';
 import type { MessageItem, MessageType } from '@/types/message';
 import { MESSAGE_TYPE_LABELS } from '@/types/message';
 import EmptyState from '@/components/EmptyState';
+import { useI18n, useLocalizedTitle } from '@/store/language';
+import { buildSafeNavigationQuery } from '@/security/transport';
 import styles from './index.module.scss';
 
 type FilterKey = 'all' | MessageType;
@@ -17,14 +19,15 @@ const MessagePage: React.FC = () => {
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(false);
+  const { t, locale } = useI18n();
+  useLocalizedTitle('消息');
 
   const loadMessages = async () => {
     setLoading(true);
     try {
       const data = await messageService.listMessages();
       setMessages(data);
-    } catch (err) {
-      console.error('[Message] load failed:', err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -50,16 +53,19 @@ const MessagePage: React.FC = () => {
         setMessages((prev) =>
           prev.map((m) => (m.id === msg.id ? { ...m, status: 'read' } : m)),
         );
-      } catch (err) {
-        console.error('[Message] markRead failed:', err);
+      } catch {
       }
     }
     if (msg.link) {
-      const query = msg.link.params
-        ? `?${Object.entries(msg.link.params).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')}`
-        : '';
+      let query = '';
+      try {
+        query = buildSafeNavigationQuery(msg.link.params);
+      } catch {
+        Taro.showToast({ title: t('操作失败'), icon: 'none' });
+        return;
+      }
       Taro.navigateTo({ url: `${msg.link.page}${query}` }).catch(() => {
-        Taro.showToast({ title: '页面不存在', icon: 'none' });
+        Taro.showToast({ title: t('页面不存在'), icon: 'none' });
       });
     }
   };
@@ -69,18 +75,18 @@ const MessagePage: React.FC = () => {
     try {
       await messageService.markAllRead();
       setMessages((prev) => prev.map((m) => ({ ...m, status: 'read' })));
-      Taro.showToast({ title: '已全部标记为已读', icon: 'success' });
+      Taro.showToast({ title: t('已全部标记为已读'), icon: 'success' });
     } catch (err) {
-      Taro.showToast({ title: '操作失败', icon: 'none' });
+      Taro.showToast({ title: t('操作失败'), icon: 'none' });
     }
   };
 
   const filters: Array<{ key: FilterKey; label: string }> = [
-    { key: 'all', label: '全部' },
-    { key: 'risk', label: '风险' },
-    { key: 'business', label: '业务' },
-    { key: 'approval', label: '审批' },
-    { key: 'system', label: '系统' },
+    { key: 'all', label: t('全部') },
+    { key: 'risk', label: t('风险') },
+    { key: 'business', label: t('业务') },
+    { key: 'approval', label: t('审批') },
+    { key: 'system', label: t('系统') },
   ];
 
   // 图标首字
@@ -102,13 +108,13 @@ const MessagePage: React.FC = () => {
             </View>
           ))}
         </View>
-        <Text className={styles.markAll} onClick={handleMarkAll}>全部已读</Text>
+        <Text className={styles.markAll} onClick={handleMarkAll}>{t('全部已读')}</Text>
       </View>
 
       <ScrollView scrollY className={styles.messageList}>
-        {loading && <EmptyState title="加载中..." />}
+        {loading && <EmptyState title={t('加载中...')} />}
         {!loading && filteredMessages.length === 0 ? (
-          <EmptyState title="暂无消息" description="新的消息会显示在这里" />
+          <EmptyState title={t('暂无消息')} description={t('新的消息会显示在这里')} />
         ) : (
           filteredMessages.map((msg) => (
             <View
@@ -121,12 +127,12 @@ const MessagePage: React.FC = () => {
               </View>
               <View className={styles.messageContent}>
                 <View className={styles.messageHeader}>
-                  <Text className={styles.messageTitle}>{msg.title}</Text>
+                  <Text className={styles.messageTitle}>{t(msg.title)}</Text>
                   <Text className={styles.messageTime}>
-                    {new Date(msg.created_at).toLocaleDateString()}
+                    {new Date(msg.created_at).toLocaleDateString(locale)}
                   </Text>
                 </View>
-                <Text className={styles.messageBody}>{msg.content}</Text>
+                <Text className={styles.messageBody}>{t(msg.content)}</Text>
               </View>
               {msg.status === 'unread' && <View className={styles.unreadDot} />}
             </View>

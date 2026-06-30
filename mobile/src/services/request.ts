@@ -2,11 +2,16 @@ import Taro from '@tarojs/taro';
 import {
   ApiResponse,
   AppError,
-  ClientPlatform,
   getClientPlatform,
   CLIENT_VERSION,
 } from '@/types/common';
-import { TARO_ENV, TARO_APP_API_URL, TARO_APP_MOCK } from '@/utils/env';
+import {
+  TARO_ENV,
+  TARO_APP_API_URL,
+  TARO_APP_MOCK,
+} from '@/utils/env';
+import { getActiveLocale } from '@/store/language';
+import { assertNoSensitiveQuery, assertSecureTransport } from '@/security/transport';
 
 /**
  * 统一后台 API 基础地址
@@ -20,57 +25,72 @@ import { TARO_ENV, TARO_APP_API_URL, TARO_APP_MOCK } from '@/utils/env';
 export const API_BASE_URL =
   TARO_ENV === 'h5'
     ? '/api/v1'
-    : TARO_APP_API_URL || 'http://localhost:8001/api/v1';
+    : TARO_APP_API_URL || '';
 
 /**
  * 是否启用 mock 模式
  * - TARO_APP_MOCK=true 时强制启用 mock（无后端的纯前端预览）
  * - 否则默认走真实后端（H5 经 ipv4-proxy 转发 /api 到 8001）
  */
-export const MOCK_ENABLED = TARO_APP_MOCK === 'true';
+// Mock 仅允许 H5 本地预览，防止小程序/原生生产包因误配置绕过真实认证。
+export const MOCK_ENABLED = TARO_ENV === 'h5' && TARO_APP_MOCK === 'true';
 
-/** Token 存储键 */
+/** 旧版本曾使用的明文存储键，仅用于迁移清理。 */
 const ACCESS_TOKEN_KEY = 'mr_access_token';
 const REFRESH_TOKEN_KEY = 'mr_refresh_token';
 const USER_KEY = 'mr_user';
 
-/** 本地存储封装（兼容多端） */
-export const tokenStorage = {
-  getAccessToken(): string | null {
-    try {
-      return Taro.getStorageSync(ACCESS_TOKEN_KEY) || null;
-    } catch {
-      return null;
-    }
-  },
-  getRefreshToken(): string | null {
-    try {
-      return Taro.getStorageSync(REFRESH_TOKEN_KEY) || null;
-    } catch {
-      return null;
-    }
-  },
-  setTokens(access: string, refresh: string) {
-    Taro.setStorageSync(ACCESS_TOKEN_KEY, access);
-    Taro.setStorageSync(REFRESH_TOKEN_KEY, refresh);
-  },
-  clearTokens() {
+let memoryAccessToken: string | null = null;
+let memoryRefreshToken: string | null = null;
+let memoryUser: unknown = null;
+let legacyStoragePurged = false;
+
+function purgeLegacyCredentialStorage() {
+  if (legacyStoragePurged) return;
+  try {
     Taro.removeStorageSync(ACCESS_TOKEN_KEY);
     Taro.removeStorageSync(REFRESH_TOKEN_KEY);
+    Taro.removeStorageSync(USER_KEY);
+    legacyStoragePurged = true;
+  } catch {
+    // 下一次访问时继续尝试，绝不回读旧版明文凭证。
+  }
+}
+
+/**
+ * 敏感会话仅保存在当前 JS 内存，不写入 localStorage/小程序 Storage。
+ * 应用进程结束后会话失效，换取凭证不落盘的安全边界。
+ */
+export const tokenStorage = {
+  getAccessToken(): string | null {
+    purgeLegacyCredentialStorage();
+    return memoryAccessToken;
+  },
+  getRefreshToken(): string | null {
+    purgeLegacyCredentialStorage();
+    return memoryRefreshToken;
+  },
+  setTokens(access: string, refresh: string) {
+    purgeLegacyCredentialStorage();
+    memoryAccessToken = access;
+    memoryRefreshToken = refresh;
+  },
+  clearTokens() {
+    memoryAccessToken = null;
+    memoryRefreshToken = null;
+    purgeLegacyCredentialStorage();
   },
   getUser<T>(): T | null {
-    try {
-      const raw = Taro.getStorageSync(USER_KEY);
-      return raw ? (JSON.parse(raw) as T) : null;
-    } catch {
-      return null;
-    }
+    purgeLegacyCredentialStorage();
+    return (memoryUser as T | null) || null;
   },
   setUser(user: unknown) {
-    Taro.setStorageSync(USER_KEY, JSON.stringify(user));
+    purgeLegacyCredentialStorage();
+    memoryUser = user;
   },
   clearUser() {
-    Taro.removeStorageSync(USER_KEY);
+    memoryUser = null;
+    purgeLegacyCredentialStorage();
   },
 };
 
@@ -120,7 +140,7 @@ function unwrapResponse<T>(data: unknown): T {
         (typeof obj.error === 'string' ? obj.error : obj.error?.message) ||
         obj.message ||
         '请求失败';
-      throw new AppError(msg, undefined, 'BUSINESS_ERROR', obj);
+      throw new AppError(msg, undefined, 'BUSINESS_ERROR');
     }
   }
   return data as T;
@@ -154,11 +174,17 @@ async function refreshAccessToken(): Promise<string> {
 
   refreshPromise = (async () => {
     try {
+      const refreshUrl = `${API_BASE_URL}/auth/refresh`;
+      assertSecureTransport(refreshUrl);
       const res = await Taro.request({
-        url: `${API_BASE_URL}/auth/refresh`,
+        url: refreshUrl,
         method: 'POST',
         data: { refresh_token: refreshToken },
-        header: { 'Content-Type': 'application/json' },
+        header: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+          Pragma: 'no-cache',
+        },
         timeout: 15000,
       });
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -213,12 +239,18 @@ export async function request<T = unknown>(options: RequestOptions): Promise<T> 
   } = options;
 
   // 拼接 URL
+  assertNoSensitiveQuery(params);
   const queryString = params ? buildQueryString(params) : '';
   const fullUrl = `${API_BASE_URL}${url}${queryString}`;
+  if (!MOCK_ENABLED) assertSecureTransport(fullUrl);
 
   // 注入鉴权头
   const finalHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+    Pragma: 'no-cache',
+    // 报告生成、正文读取等内容型接口必须以当前界面语言响应。
+    'Accept-Language': getActiveLocale(),
     // 多端版本协商头（按深度研究报告建议）
     'X-Client-Platform': getClientPlatform(),
     'X-Client-Version': CLIENT_VERSION,
@@ -247,7 +279,6 @@ export async function request<T = unknown>(options: RequestOptions): Promise<T> 
       // 递归重试一次（携带新 Token）
       return request<T>({ ...options, auth: true });
     } catch (err) {
-      console.error('[Request] Token refresh failed:', err);
       throw err;
     }
   }
@@ -255,8 +286,7 @@ export async function request<T = unknown>(options: RequestOptions): Promise<T> 
   // 非 2xx 视为错误
   if (res.statusCode < 200 || res.statusCode >= 300) {
     const message = extractErrorMessage(res.statusCode, res.data);
-    console.error(`[Request] ${method} ${url} failed (${res.statusCode}):`, message);
-    throw new AppError(message, res.statusCode, 'HTTP_ERROR', res.data);
+    throw new AppError(message, res.statusCode, 'HTTP_ERROR');
   }
 
   // 解包业务响应
@@ -269,13 +299,13 @@ export async function request<T = unknown>(options: RequestOptions): Promise<T> 
 /** 便捷方法 */
 export const http = {
   get<T = unknown>(url: string, params?: Record<string, unknown>, options?: Partial<RequestOptions>) {
-    return request<T>({ url, method: 'GET', params, ...options });
+    return request<T>({ url, method: 'GET', params: params as RequestOptions['params'], ...options });
   },
   post<T = unknown>(url: string, data?: unknown, options?: Partial<RequestOptions>) {
-    return request<T>({ url, method: 'POST', data, ...options });
+    return request<T>({ url, method: 'POST', data: data as RequestOptions['data'], ...options });
   },
   put<T = unknown>(url: string, data?: unknown, options?: Partial<RequestOptions>) {
-    return request<T>({ url, method: 'PUT', data, ...options });
+    return request<T>({ url, method: 'PUT', data: data as RequestOptions['data'], ...options });
   },
   delete<T = unknown>(url: string, options?: Partial<RequestOptions>) {
     return request<T>({ url, method: 'DELETE', ...options });

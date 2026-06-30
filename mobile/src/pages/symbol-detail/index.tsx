@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import PageHeader from '@/components/PageHeader';
+import { useI18n } from '@/store/language';
 import styles from './index.module.scss';
 
 /**
@@ -11,7 +12,8 @@ import styles from './index.module.scss';
  */
 const SymbolDetailPage: React.FC = () => {
   const router = useRouter();
-  const symbol = router.params.symbol || '未知标的';
+  const { t } = useI18n();
+  const symbol = router.params.symbol || t('未知标的');
 
   const handleBack = () => {
     Taro.navigateBack({ delta: 1 }).catch(() => {
@@ -26,9 +28,9 @@ const SymbolDetailPage: React.FC = () => {
         <View className={styles.placeholderIcon}>
           <Text>{symbol.slice(0, 1)}</Text>
         </View>
-        <Text className={styles.placeholderTitle}>{symbol} 详情</Text>
+        <Text className={styles.placeholderTitle}>{t('{symbol} 详情', { symbol })}</Text>
         <Text className={styles.placeholderDesc}>
-          标的详情功能正在开发中{'\n'}当前可查看决策卡、回测详情中的相关数据
+          {t('标的详情功能正在开发中')}{'\n'}{t('当前可查看决策卡、回测详情中的相关数据')}
         </Text>
       </View>
     </View>

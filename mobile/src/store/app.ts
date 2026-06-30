@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import Taro from '@tarojs/taro';
 
 /**
  * 应用全局状态
@@ -43,8 +44,7 @@ export const useAppStore = create<AppStore>((set) => ({
         systemInfo,
         statusBarHeight: systemInfo.statusBarHeight || 0,
       });
-    } catch (err) {
-      console.error('[App] getSystemInfo failed:', err);
+    } catch {
     }
   },
 

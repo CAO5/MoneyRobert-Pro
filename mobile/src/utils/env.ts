@@ -21,15 +21,39 @@ export function getEnvVar(key: string): string | undefined {
   return undefined;
 }
 
-/** 当前构建平台（process.env.TARO_ENV 的安全版本，默认 h5） */
-export const TARO_ENV: string = getEnvVar('TARO_ENV') || 'h5';
+declare const __TARO_APP_API_URL__: string;
+declare const __TARO_APP_MOCK__: string;
 
-/** 后端 API 地址环境变量（来自 TARO_APP_API_URL） */
-export const TARO_APP_API_URL: string | undefined = getEnvVar('TARO_APP_API_URL');
+/**
+ * 以下变量必须使用静态属性访问，Taro/webpack 才能在编译期替换。
+ * try/catch 负责兼容未经过 Taro 构建的浏览器预览。
+ */
+export const TARO_ENV: string = (() => {
+  try {
+    return process.env.TARO_ENV || 'h5';
+  } catch {
+    return 'h5';
+  }
+})();
+
+/** 后端 API 地址环境变量（生产小程序必须是 HTTPS 绝对地址） */
+export const TARO_APP_API_URL: string | undefined = (() => {
+  try {
+    return __TARO_APP_API_URL__ || undefined;
+  } catch {
+    return undefined;
+  }
+})();
 
 /**
  * 是否强制启用 mock 模式（来自 TARO_APP_MOCK）
  * - 显式设置 TARO_APP_MOCK=true 时强制走 mock（用于无后端的纯前端预览）
  * - 默认 false：H5 通过 ipv4-proxy 转发 /api 到后端 8001，走真实接口
  */
-export const TARO_APP_MOCK: string | undefined = getEnvVar('TARO_APP_MOCK');
+export const TARO_APP_MOCK: string | undefined = (() => {
+  try {
+    return __TARO_APP_MOCK__;
+  } catch {
+    return undefined;
+  }
+})();

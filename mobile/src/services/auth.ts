@@ -25,7 +25,6 @@ export const authService = {
   /** 注册 */
   async register(req: RegisterRequest): Promise<{ message: string }> {
     if (MOCK_ENABLED) {
-      console.info('[MockAuth] 模拟注册：', req.username);
       return { message: '注册成功（mock）' };
     }
     return http.post<{ message: string }>('/auth/register', req, { auth: false });

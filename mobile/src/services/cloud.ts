@@ -14,7 +14,6 @@ export async function callFunction<T = any>(
   const res = await Taro.cloud.callFunction({ name, data })
   const result = res.result as { code: number; message: string; data: T }
   if (result.code !== 0) {
-    console.error(`[Cloud] ${name} failed:`, result.message)
     throw new Error(result.message || '请求失败')
   }
   return result.data

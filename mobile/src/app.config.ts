@@ -12,6 +12,7 @@ export default defineAppConfig({
     'pages/symbol-detail/index',
     'pages/todo-detail/index',
     'pages/report-detail/index',
+    'pages/membership/index',
     'pages/settings/index',
   ],
   // 全局窗口配置
@@ -22,25 +23,24 @@ export default defineAppConfig({
     navigationBarTextStyle: 'black',
     backgroundColor: '#f5f6f7',
   },
-  // 底部导航：遵循深度研究报告建议的"工作台/业务/待办/消息/我的"五项
-  // 仅显示文字（按 Skill 规范，模型无法生成 icon 文件）
+  // 面向个人交易者的任务式导航：从看盘到判断、执行与复盘。
   tabBar: {
-    color: '#86909c',
-    selectedColor: '#165dff',
+    color: '#8c929f',
+    selectedColor: '#111827',
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [
       {
         pagePath: 'pages/workbench/index',
-        text: '工作台',
+        text: '首页',
       },
       {
         pagePath: 'pages/business/index',
-        text: '业务',
+        text: '行情',
       },
       {
         pagePath: 'pages/todo/index',
-        text: '待办',
+        text: '策略',
       },
       {
         pagePath: 'pages/message/index',

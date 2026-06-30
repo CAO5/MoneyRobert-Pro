@@ -5,6 +5,7 @@ import { signalService } from '@/services/signal';
 import type { DecisionCard } from '@/types/signal';
 import { DECISION_ACTION_LABELS } from '@/types/signal';
 import EmptyState from '@/components/EmptyState';
+import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 /**
@@ -15,6 +16,8 @@ import styles from './index.module.scss';
 const DecisionDetailPage: React.FC = () => {
   const router = useRouter();
   const cardId = router.params.id;
+  const { t, locale } = useI18n();
+  useLocalizedTitle('决策卡');
 
   const [card, setCard] = useState<DecisionCard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,9 +31,8 @@ const DecisionDetailPage: React.FC = () => {
       try {
         const data = await signalService.getCard(cardId);
         setCard(data);
-      } catch (err) {
-        console.error('[DecisionDetail] load failed:', err);
-        Taro.showToast({ title: '加载失败', icon: 'none' });
+      } catch {
+        Taro.showToast({ title: t('加载失败'), icon: 'none' });
       } finally {
         setLoading(false);
       }
@@ -46,7 +48,7 @@ const DecisionDetailPage: React.FC = () => {
 
   const handleAction = (action: string) => {
     Taro.showToast({
-      title: `已${action}`,
+      title: t('已{action}', { action: t(action) }),
       icon: 'success',
     });
   };
@@ -54,7 +56,7 @@ const DecisionDetailPage: React.FC = () => {
   if (loading) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title="加载中..." />
+        <EmptyState title={t('加载中...')} />
       </View>
     );
   }
@@ -62,7 +64,7 @@ const DecisionDetailPage: React.FC = () => {
   if (!card) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title="决策卡不存在" description="可能已被删除或链接错误" actionText="返回" onAction={handleBack} />
+        <EmptyState title={t('决策卡不存在')} description={t('可能已被删除或链接错误')} actionText={t('返回')} onAction={handleBack} />
       </View>
     );
   }
@@ -79,15 +81,15 @@ const DecisionDetailPage: React.FC = () => {
           <View className={styles.backButton} onClick={handleBack}>
             <Text className={styles.backIcon}>‹</Text>
           </View>
-          <Text className={styles.shareButton}>分享</Text>
+          <Text className={styles.shareButton}>{t('分享')}</Text>
         </View>
         <View className={styles.symbolRow}>
           <Text className={styles.symbolText}>{card.symbol}</Text>
-          <Text className={styles.actionTag}>{actionLabel}</Text>
+          <Text className={styles.actionTag}>{t(actionLabel)}</Text>
         </View>
         <View className={styles.metaRow}>
-          <Text>模型 {card.model_version}</Text>
-          <Text>周期 {horizonMin}min</Text>
+          <Text>{t('模型 {value}', { value: card.model_version })}</Text>
+          <Text>{t('周期 {value}min', { value: horizonMin })}</Text>
         </View>
       </View>
 
@@ -95,10 +97,10 @@ const DecisionDetailPage: React.FC = () => {
       <View className={styles.content}>
         {/* 概率分布 */}
         <View className={styles.contentCard}>
-          <Text className={styles.cardTitle}>概率分布</Text>
+          <Text className={styles.cardTitle}>{t('概率分布')}</Text>
           <View className={styles.probSection}>
             <View className={styles.probRow}>
-              <Text className={styles.probLabel}>上涨</Text>
+              <Text className={styles.probLabel}>{t('上涨')}</Text>
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillUp}`}
@@ -108,7 +110,7 @@ const DecisionDetailPage: React.FC = () => {
               <Text className={styles.probValue}>{(card.p_up * 100).toFixed(1)}%</Text>
             </View>
             <View className={styles.probRow}>
-              <Text className={styles.probLabel}>持平</Text>
+              <Text className={styles.probLabel}>{t('持平')}</Text>
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillFlat}`}
@@ -118,7 +120,7 @@ const DecisionDetailPage: React.FC = () => {
               <Text className={styles.probValue}>{(card.p_flat * 100).toFixed(1)}%</Text>
             </View>
             <View className={styles.probRow}>
-              <Text className={styles.probLabel}>下跌</Text>
+              <Text className={styles.probLabel}>{t('下跌')}</Text>
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillDown}`}
@@ -130,26 +132,26 @@ const DecisionDetailPage: React.FC = () => {
           </View>
           <View className={styles.metricsGrid}>
             <View className={styles.metricItem}>
-              <Text className={styles.metricLabel}>净期望 EV</Text>
+              <Text className={styles.metricLabel}>{t('净期望 EV')}</Text>
               <Text className={`${styles.metricValue} ${evClass}`}>
                 {card.expected_value > 0 ? '+' : ''}{(card.expected_value * 100).toFixed(2)}bps
               </Text>
             </View>
             {card.worst_case !== undefined && (
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>最坏情形 CVaR</Text>
+                <Text className={styles.metricLabel}>{t('最坏情形 CVaR')}</Text>
                 <Text className={`${styles.metricValue} ${styles.negative}`}>
                   {(card.worst_case * 100).toFixed(2)}bps
                 </Text>
               </View>
             )}
             <View className={styles.metricItem}>
-              <Text className={styles.metricLabel}>建议仓位</Text>
+              <Text className={styles.metricLabel}>{t('建议仓位')}</Text>
               <Text className={styles.metricValue}>{(card.position_suggestion * 100).toFixed(1)}%</Text>
             </View>
             {card.risk_budget_used !== undefined && (
               <View className={styles.metricItem}>
-                <Text className={styles.metricLabel}>已用风险预算</Text>
+                <Text className={styles.metricLabel}>{t('已用风险预算')}</Text>
                 <Text className={styles.metricValue}>{(card.risk_budget_used * 100).toFixed(1)}%</Text>
               </View>
             )}
@@ -159,10 +161,10 @@ const DecisionDetailPage: React.FC = () => {
         {/* 适用场景 */}
         {card.applicable_regime && (
           <View className={styles.contentCard}>
-            <Text className={styles.cardTitle}>适用场景</Text>
-            <Text className={styles.textItem}>市场状态：{card.applicable_regime}</Text>
+            <Text className={styles.cardTitle}>{t('适用场景')}</Text>
+            <Text className={styles.textItem}>{t('市场状态：{value}', { value: card.applicable_regime })}</Text>
             {card.data_freshness_sec !== undefined && (
-              <Text className={styles.textItem}>数据新鲜度：{card.data_freshness_sec} 秒前更新</Text>
+              <Text className={styles.textItem}>{t('数据新鲜度：{value} 秒前更新', { value: card.data_freshness_sec })}</Text>
             )}
           </View>
         )}
@@ -170,7 +172,7 @@ const DecisionDetailPage: React.FC = () => {
         {/* 失效条件 */}
         {card.invalidation_conditions && (
           <View className={styles.contentCard}>
-            <Text className={styles.cardTitle}>失效条件</Text>
+            <Text className={styles.cardTitle}>{t('失效条件')}</Text>
             {Object.entries(card.invalidation_conditions).map(([k, v]) => (
               <Text key={k} className={styles.textItem}>
                 {k}：{String(v)}
@@ -181,10 +183,10 @@ const DecisionDetailPage: React.FC = () => {
 
         {/* 数据血缘 */}
         <View className={styles.contentCard}>
-          <Text className={styles.cardTitle}>数据血缘</Text>
-          <Text className={styles.textItem}>模型版本：{card.model_version}</Text>
-          <Text className={styles.textItem}>生成时间：{new Date(card.generated_at).toLocaleString()}</Text>
-          <Text className={styles.textItem}>决策卡 ID：{card.card_id}</Text>
+          <Text className={styles.cardTitle}>{t('数据血缘')}</Text>
+          <Text className={styles.textItem}>{t('模型版本：{value}', { value: card.model_version })}</Text>
+          <Text className={styles.textItem}>{t('生成时间：{value}', { value: new Date(card.generated_at).toLocaleString(locale) })}</Text>
+          <Text className={styles.textItem}>{t('决策卡 ID：{value}', { value: card.card_id })}</Text>
         </View>
       </View>
 
@@ -194,13 +196,13 @@ const DecisionDetailPage: React.FC = () => {
           className={`${styles.actionButton} ${styles.secondary}`}
           onClick={() => handleAction('加入关注')}
         >
-          加入关注
+          {t('加入关注')}
         </Button>
         <Button
           className={`${styles.actionButton} ${styles.primary}`}
           onClick={() => handleAction('提交待办')}
         >
-          提交待办
+          {t('提交待办')}
         </Button>
       </View>
     </View>
