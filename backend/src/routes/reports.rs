@@ -33,6 +33,98 @@ struct ReportQuery {
     page_size: Option<u32>,
 }
 
+#[derive(Debug, Deserialize)]
+struct ReportLocaleQuery {
+    locale: Option<String>,
+}
+
+fn normalize_report_locale(locale: Option<&str>) -> &'static str {
+    let value = locale.unwrap_or("en-US").replace('_', "-").to_lowercase();
+    if value == "zh-tw" || value == "zh-hk" || value.contains("hant") {
+        "zh-TW"
+    } else if value.starts_with("zh") {
+        "zh-CN"
+    } else {
+        "en-US"
+    }
+}
+
+fn infer_legacy_report_locale(report: &serde_json::Value) -> &'static str {
+    let text = format!(
+        "{} {}",
+        report.get("title").and_then(|value| value.as_str()).unwrap_or_default(),
+        report.get("content").map(|value| value.to_string()).unwrap_or_default()
+    );
+    if text.chars().any(|character| ('\u{4e00}'..='\u{9fff}').contains(&character)) {
+        "zh-CN"
+    } else {
+        "en-US"
+    }
+}
+
+/// Selects exactly the requested report translation. A mismatched legacy body is
+/// never silently returned because that would produce a mixed-language report.
+fn localize_report(mut report: serde_json::Value, requested_locale: &str) -> serde_json::Value {
+    let translations = report
+        .get("content")
+        .and_then(|content| content.get("translations"))
+        .and_then(|translations| translations.as_object());
+
+    let available_locales: Vec<String> = translations
+        .map(|items| items.keys().cloned().collect())
+        .unwrap_or_else(|| vec![infer_legacy_report_locale(&report).to_string()]);
+
+    let localized = translations.and_then(|items| items.get(requested_locale)).cloned();
+    let has_translation = localized.is_some();
+    let source_locale = report
+        .get("content")
+        .and_then(|content| content.get("locale"))
+        .and_then(|locale| locale.as_str())
+        .map(str::to_string)
+        .unwrap_or_else(|| infer_legacy_report_locale(&report).to_string());
+    let language_match = has_translation || source_locale == requested_locale;
+    let response_locale = if has_translation {
+        requested_locale.to_string()
+    } else {
+        source_locale.clone()
+    };
+
+    if let Some(object) = report.as_object_mut() {
+        if let Some(translation) = localized {
+            if let Some(title) = translation.get("title").and_then(|value| value.as_str()) {
+                object.insert("title".to_string(), serde_json::Value::String(title.to_string()));
+            }
+            object.insert(
+                "content".to_string(),
+                translation
+                    .get("content")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null),
+            );
+        } else if !language_match {
+            object.insert("content".to_string(), serde_json::Value::Null);
+        }
+        object.insert(
+            "locale".to_string(),
+            serde_json::Value::String(response_locale),
+        );
+        object.insert(
+            "requested_locale".to_string(),
+            serde_json::Value::String(requested_locale.to_string()),
+        );
+        object.insert(
+            "language_match".to_string(),
+            serde_json::Value::Bool(language_match),
+        );
+        object.insert(
+            "available_locales".to_string(),
+            serde_json::json!(available_locales),
+        );
+    }
+
+    report
+}
+
 async fn get_report_statistics(
     user: CurrentUser,
     State(state): State<AppState>,
@@ -135,6 +227,7 @@ async fn get_report(
     user: CurrentUser,
     State(state): State<AppState>,
     Path(report_id): Path<Uuid>,
+    Query(query): Query<ReportLocaleQuery>,
 ) -> Result<Json<serde_json::Value>> {
     // 按 user_id 隔离：仅返回属于当前用户的报告
     let report = sqlx::query_scalar::<_, serde_json::Value>(
@@ -151,7 +244,10 @@ async fn get_report(
     .map_err(|e| AppError::Database(e))?
     .ok_or_else(|| AppError::NotFound("Report not found".to_string()))?;
 
-    Ok(Json(serde_json::json!({"data": report})))
+    let requested_locale = normalize_report_locale(query.locale.as_deref());
+    Ok(Json(serde_json::json!({
+        "data": localize_report(report, requested_locale)
+    })))
 }
 
 #[derive(Debug, Deserialize)]
@@ -323,4 +419,41 @@ async fn get_recent_reports(
     .map_err(|e| AppError::Database(e))?;
 
     Ok(Json(serde_json::json!({"reports": reports})))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn selects_requested_report_translation() {
+        let report = serde_json::json!({
+            "title": "BTC 报告",
+            "content": {
+                "locale": "zh-CN",
+                "translations": {
+                    "zh-CN": {"title": "BTC 报告", "content": "中文正文"},
+                    "en-US": {"title": "BTC Report", "content": "English body"}
+                }
+            }
+        });
+
+        let localized = localize_report(report, "en-US");
+        assert_eq!(localized["title"], "BTC Report");
+        assert_eq!(localized["content"], "English body");
+        assert_eq!(localized["requested_locale"], "en-US");
+        assert_eq!(localized["language_match"], true);
+    }
+
+    #[test]
+    fn never_returns_mismatched_legacy_content() {
+        let report = serde_json::json!({
+            "title": "BTC 分析报告",
+            "content": {"raw": "中文正文"}
+        });
+
+        let localized = localize_report(report, "en-US");
+        assert_eq!(localized["content"], serde_json::Value::Null);
+        assert_eq!(localized["language_match"], false);
+    }
 }
