@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 dist/
 target/
 .env
@@ -16,3 +16,12 @@ query
 stop
 .pai/
 .swc/
+.edge-cdp/
+.edge-wb/
+preview/
+screenshot.png
+moneyrobert-mobile-prototype/
+check-cdp.js
+check-workbench.js
+test-real.js
+wb-test.js
