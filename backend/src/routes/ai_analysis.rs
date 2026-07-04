@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::HeaderMap,
     response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
@@ -36,13 +36,65 @@ pub fn router() -> Router<AppState> {
         .route("/technical", post(technical_analysis))
         .route("/funding", post(funding_analysis))
         .route("/sentiment", post(sentiment_analysis))
-        .route("/comprehensive", post(comprehensive_analysis))
+        .route("/comprehensive", get(list_comprehensive_analyses))
         .route("/usage", get(get_usage))
         .route("/usage/reset", post(reset_usage))
         .route("/generate-report", post(generate_report))
         .route("/debate", post(start_debate_stream))
         .route("/debate/{session_id}", get(get_debate_session))
         .route("/debates", get(list_debate_sessions))
+}
+
+/// 查询综合分析历史
+/// GET /ai/comprehensive?symbol=BTC&limit=10
+/// 返回最近的分析记录（按 created_at 倒序）
+#[derive(Debug, Deserialize)]
+struct ListAnalysesQuery {
+    symbol: Option<String>,
+    limit: Option<u32>,
+}
+
+async fn list_comprehensive_analyses(
+    user: CurrentUser,
+    State(state): State<AppState>,
+    Query(query): Query<ListAnalysesQuery>,
+) -> Result<Json<Value>> {
+    let limit = query.limit.unwrap_or(10).min(50) as i64;
+
+    let rows = sqlx::query(
+        r#"SELECT id, symbol, analysis_type, content, confidence, risk_level, status, model_name, created_at
+           FROM ai_analyses
+           WHERE user_id = $1
+             AND analysis_type = 'comprehensive'
+             AND ($2::text IS NULL OR symbol = $2)
+           ORDER BY created_at DESC
+           LIMIT $3"#,
+    )
+    .bind(user.user_id)
+    .bind(query.symbol.as_deref())
+    .bind(limit)
+    .fetch_all(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    let items: Vec<Value> = rows
+        .into_iter()
+        .map(|r| {
+            json!({
+                "analysis_id": r.get::<uuid::Uuid, _>("id"),
+                "symbol": r.get::<String, _>("symbol"),
+                "analysis_type": r.get::<String, _>("analysis_type"),
+                "content": r.get::<serde_json::Value, _>("content"),
+                "confidence": r.get::<Option<f64>, _>("confidence"),
+                "risk_level": r.get::<Option<String>, _>("risk_level"),
+                "status": r.get::<String, _>("status"),
+                "model_name": r.get::<Option<String>, _>("model_name"),
+                "created_at": r.get::<chrono::DateTime<chrono::Utc>, _>("created_at"),
+            })
+        })
+        .collect();
+
+    Ok(Json(json!({ "data": items })))
 }
 
 async fn get_symbols(user: CurrentUser, State(state): State<AppState>) -> Result<Json<Value>> {
@@ -1404,7 +1456,12 @@ async fn start_debate_old(
         决策原则：\n\
         - 做多和做空应该有同等门槛，不要因为'避险'而偏向做空\n\
         - 如果多空信号势均力敌，选择hold比强行选方向更合理\n\
-        - 多空比极端值需要结合趋势方向判断，不能简单认为'拥挤=反转'\n\
+        - 多空比极端值的解读必须结合资金费率和OI变化：\n\
+          * 高多空比 + 资金费率温和(<0.01%) + OI稳定 → 动量延续，偏多\n\
+          * 高多空比 + 资金费率>0.1% + OI激增 → 多头过热，偏空\n\
+          * 低多空比 + 资金费率温和 + OI稳定 → 动量延续，偏空\n\
+          * 低多空比 + 资金费率<-0.05% + OI激增 → 空头过热，偏多\n\
+        - 日线趋势是仓位规模调节器（影响杠杆），不是方向否决器：短期(1h/4h)出现明确突破时允许逆日线方向交易\n\
         - 分析师给出neutral时，代表数据不明确，不应被忽略\n\
         - 不要将'谨慎'等同于'看空'\n\n\
         你必须以JSON格式回复，格式如下：\n\
@@ -1682,7 +1739,7 @@ async fn start_debate_stream(
     let orderbook_data = match okx_client
         .get_raw(
             "/api/v5/market/books",
-            Some(&[("instId", symbol.clone()), ("sz", "5")]),
+            Some(&[("instId", symbol.clone()), ("sz", "5".to_string())]),
         )
         .await
     {
@@ -1738,7 +1795,7 @@ async fn start_debate_stream(
     let open_interest_data = match okx_client
         .get_raw(
             "/api/v5/public/open-interest",
-            Some(&[("instType", "SWAP"), ("instId", symbol.as_str())]),
+            Some(&[("instType", "SWAP".to_string()), ("instId", symbol.clone())]),
         )
         .await
     {
@@ -2024,8 +2081,13 @@ async fn start_debate_stream(
                 1. 使用精确价格数字（如0.084740而非0.08），避免四舍五入导致误判\n\
                 2. 优先关注最强烈、最明确的信号\n\
                 3. 订单簿深度和持仓量数据是重要参考\n\
-                4. 多空比极端值需要结合趋势判断，不能简单认为'拥挤=反转'\n\
-                5. 如果数据信号完全不支撑你的视角，给出较低置信度并如实说明\n\n\
+                4. 多空比极端值的解读必须结合资金费率和OI变化，不能简单认为'拥挤=反转'：\n\
+                   - 高多空比 + 资金费率温和(<0.01%) + OI稳定 → 偏多（动量延续，散户空头被扫止损）\n\
+                   - 高多空比 + 资金费率>0.1% + OI激增 → 偏空（多头过热，反转风险）\n\
+                   - 低多空比 + 资金费率温和 + OI稳定 → 偏空（动量延续）\n\
+                   - 低多空比 + 资金费率<-0.05% + OI激增 → 偏多（空头过热，反弹风险）\n\
+                5. 如果数据信号完全不支撑你的视角，给出较低置信度并如实说明\n\
+                6. 日线趋势是仓位规模调节器（影响杠杆），不是方向否决器：短期(1h/4h)出现明确突破时允许逆日线方向交易\n\n\
                 你必须以JSON格式回复，格式如下：\n\
                 {{\"sentiment\": \"bullish\"|\"bearish\"|\"neutral\"|\"cautious\", \"confidence\": 0.0-1.0, \"analysis\": \"你的详细分析\", \"key_factors\": [\"因素1\", \"因素2\"]}}\n\
                 sentiment必须是bullish(看多)、bearish(看空)、neutral(中性)、cautious(谨慎)之一。\n\
@@ -2145,10 +2207,12 @@ async fn start_debate_stream(
                     1. 对手的论据中哪些是合理的？你是否忽略了这些信号？\n\
                     2. 你的原始论据中哪些可能存在偏差或过度解读？\n\
                     3. 综合双方论据后，你是否需要调整你的判断或置信度？\n\n\
-                    重要：\n\
-                    - 如果对手论据更有说服力，降低置信度或翻转方向\n\
+                    重要（防止反转过度）：\n\
+                    - 翻转方向需要对手有'压倒性'的证据优势，而非'略强'的证据\n\
+                    - 如果双方证据势均力敌，应保持原方向但降低置信度（而非翻转）\n\
+                    - 风险提示类论据（如'可能回调'、'存在风险'）不足以构成翻转理由，必须有明确的数据证据\n\
+                    - 多空比极端值的解读必须结合资金费率：高多空比+费率温和=动量延续而非反转\n\
                     - 但不要因为对手存在就自动让步——如果你有更强的数据支撑，坚持你的判断\n\
-                    - 多空比极端值不一定意味着反转，需要结合其他信号综合判断\n\
                     - 避免对同一数据做过度解读（如'多头拥挤=必跌'是过度简化）\n\
                     - 使用精确价格数字，不要四舍五入\n\n\
                     必须JSON回复：{{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"反驳后的重新分析\", \"key_factors\": [\"因素\"], \"revised\": true}}\n\
@@ -2326,8 +2390,25 @@ async fn start_debate_stream(
         // 8. Call LLM for fund manager decision
         let all_opinions_str = serde_json::to_string_pretty(&agent_opinions).unwrap_or_default();
         let all_reports_str = serde_json::to_string_pretty(&department_reports).unwrap_or_default();
-        let decision_score =
+        let raw_score =
             score_debate_opinions_with_reliability_and_config(&agent_opinions, &reliability_map, &tuning_config);
+        // 应用市场上下文调整（缺陷2+5：多周期背离 + 动量突破）
+        let market_adj = compute_market_edge_adjustment(
+            &tuning_config,
+            ctx.trend.as_str(),
+            ctx.rsi_14,
+            ctx.macd_signal.as_str(),
+            ctx.price_change_1h,
+            ctx.price_change_4h,
+            funding_rate,
+            long_short_ratio,
+            multi_timeframe_data.d1_trend.as_str(),
+            multi_timeframe_data.h1_trend.as_str(),
+            multi_timeframe_data.h4_trend.as_str(),
+            ctx.volatility.as_str(),
+            ctx.volume_profile.as_str(),
+        );
+        let decision_score = apply_market_adjustment(raw_score, &market_adj);
         let decision_evidence = json!({
             "bullish_score": decision_score.bullish_score,
             "bearish_score": decision_score.bearish_score,
@@ -2340,6 +2421,12 @@ async fn start_debate_stream(
             "minimum_edge": decision_score.minimum_edge,
             "reliability_agents": reliability_map.len(),
         "tuning": &tuning_config,
+        "market_adjustment": {
+            "divergence_bonus": market_adj.divergence_bonus,
+            "momentum_bonus": market_adj.momentum_bonus,
+            "overheat_penalty": market_adj.overheat_penalty,
+            "reason": market_adj.reason,
+        },
         });
 
         // 构建可信度字符串（与自动调用一致）
@@ -2357,6 +2444,12 @@ async fn start_debate_stream(
             r#"你是基金经理。综合各部门交叉辩论后的报告做独立评估。当前价: {:.6}。{}{}
 做多和做空使用相同门槛。hold只能用于数据不足、净证据均衡、成本可能覆盖优势或风险预算不足，必须明确原因。
 不要为了避免hold而强行交易，也不要把谨慎等同于看空。
+多空比极端值的解读必须结合资金费率和OI变化：
+- 高多空比 + 资金费率温和(<0.01%) + OI稳定 → 动量延续，偏多
+- 高多空比 + 资金费率>0.1% + OI激增 → 多头过热，偏空
+- 低多空比 + 资金费率温和 + OI稳定 → 动量延续，偏空
+- 低多空比 + 资金费率<-0.05% + OI激增 → 空头过热，偏多
+日线趋势是仓位规模调节器（影响杠杆），不是方向否决器：短期(1h/4h)出现明确突破时允许逆日线方向交易，但应降低杠杆（1-2x）。
 输出上涨、下跌、震荡概率，三个概率之和必须接近1；给出判断失效条件。
 必须JSON：{{"action":"long"|"short"|"hold","confidence":0.0-1.0,"p_up":0.0-1.0,"p_down":0.0-1.0,"p_flat":0.0-1.0,"hold_reason":null|"insufficient_data"|"balanced_expected_value"|"cost_exceeds_alpha"|"risk_budget_exceeded","invalidation_conditions":["条件"],"entry_range":{{"low":价格,"high":价格}},"stop_loss":价格,"take_profit":[价格],"leverage":1-5,"reasoning":"理由"}}。只输出JSON。"#,
             current_price,
@@ -2405,6 +2498,24 @@ async fn start_debate_stream(
                 } else {
                     decision_score.status
                 };
+                // LLM 否决权：当 LLM 明确 hold 但评分器给 long/short 时，按 llm_veto_strength 降 confidence
+                // 这不会改变 action，但会降低置信度，从而影响后续自动交易的执行门槛
+                let mut final_confidence = decision_score.confidence;
+                let mut llm_veto_applied = false;
+                if parsed.valid
+                    && parsed.action == "hold"
+                    && decision_score.action != "hold"
+                    && tuning_config.llm_veto_strength > 0.0
+                {
+                    let penalty = tuning_config.llm_veto_strength * 0.15;
+                    final_confidence = (final_confidence - penalty).max(0.20);
+                    llm_veto_applied = true;
+                    tracing::info!(
+                        "[LLMVeto] 评分器={} 但 LLM=hold，按 llm_veto_strength={:.2} 降 confidence: {:.3}→{:.3}",
+                        decision_score.action, tuning_config.llm_veto_strength,
+                        decision_score.confidence, final_confidence
+                    );
+                }
                 let plan = build_consistent_trade_plan(
                     final_action,
                     current_price,
@@ -2412,7 +2523,7 @@ async fn start_debate_stream(
                 );
                 json!({
                     "action": final_action,
-                    "confidence": decision_score.confidence,
+                    "confidence": final_confidence,
                     "entry_range": plan.entry_range,
                     "stop_loss": plan.stop_loss,
                     "take_profit": plan.take_profit,
@@ -2426,6 +2537,7 @@ async fn start_debate_stream(
                     "model_action": parsed.action,
                     "llm_status": llm_status,
                     "decision_status": decision_status,
+                    "llm_veto_applied": llm_veto_applied,
                     "evidence_score": decision_evidence,
                     "trade_plan_status": if final_action == "hold" { "not_applicable" } else { "validated" },
                 })
@@ -2755,8 +2867,20 @@ fn score_debate_opinions_with_reliability_and_config(
         let learned_multiplier = reliability.get(agent_name).copied().unwrap_or(1.0);
         let reliability_multiplier =
             1.0 + (learned_multiplier - 1.0) * config.reliability_strength;
+        // 缺陷3: 对反驳后翻转方向的意见施加折扣，避免反驳机制过度收敛信号
+        // 原始意见代表 agent 的独立判断，翻转后的意见受到对手影响，可信度应降低
+        // 折扣力度由 `DecisionTuningConfig.sentiment_flip_penalty` 控制（默认 0.7）
+        let sentiment_changed = opinion
+            .get("sentiment_changed")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let flip_penalty = if sentiment_changed {
+            config.sentiment_flip_penalty
+        } else {
+            1.0
+        };
         let contribution =
-            department_weight / department_count * confidence * reliability_multiplier;
+            department_weight / department_count * confidence * reliability_multiplier * flip_penalty;
         match opinion
             .get("sentiment")
             .and_then(Value::as_str)
@@ -2820,6 +2944,189 @@ fn score_debate_opinions_with_reliability_and_config(
         status,
         minimum_edge,
     }
+}
+
+/// 市场上下文调整参数（缺陷2+5：多周期背离 + 动量突破信号）
+#[derive(Debug, Clone, Default)]
+struct MarketEdgeAdjustment {
+    /// 多周期背离调整：短期向上+长期向下时，降低做多门槛（正值=利好做多）
+    divergence_bonus: f64,
+    /// 动量突破加成：价格/成交量突破时，同向 edge 加强
+    momentum_bonus: f64,
+    /// 过热减分：RSI极端+资金费率极端时，反向减分
+    overheat_penalty: f64,
+    /// 调整理由（用于日志/审计）
+    reason: String,
+}
+
+/// 根据市场上下文计算 edge 调整值
+/// 返回的 adjustment 会应用到 directional_edge 上
+/// 所有阈值和加成幅度由 `DecisionTuningConfig` 提供（支持手动调优）
+fn compute_market_edge_adjustment(
+    config: &DecisionTuningConfig,
+    trend: &str,
+    rsi_14: f64,
+    macd_signal: &str,
+    price_change_1h: f64,
+    price_change_4h: f64,
+    funding_rate: f64,
+    long_short_ratio: Option<f64>,
+    d1_trend: &str,
+    h1_trend: &str,
+    h4_trend: &str,
+    volatility: &str,
+    volume_profile: &str,
+) -> MarketEdgeAdjustment {
+    let mut adj = MarketEdgeAdjustment::default();
+    let mut reasons = Vec::new();
+
+    // === 缺陷2: 多周期背离处理 ===
+    // 短期(1h/4h)向上 + 日线向下 → 给做多加成
+    let short_bullish = h1_trend == "bull" || h4_trend == "bull"
+        || (price_change_4h > 1.0 && macd_signal == "bullish");
+    let d1_bearish = d1_trend == "bear";
+    if short_bullish && d1_bearish && config.divergence_bonus > 0.0 {
+        adj.divergence_bonus = config.divergence_bonus;
+        reasons.push(format!(
+            "多周期背离: 短期(h1={}/h4={})多头突破 vs 日线bear，给予做多+{:.4} edge加成",
+            h1_trend, h4_trend, config.divergence_bonus
+        ));
+    }
+    // 短期空头 + 日线多头 → 给做空加成
+    let short_bearish = h1_trend == "bear" || h4_trend == "bear"
+        || (price_change_4h < -1.0 && macd_signal == "bearish");
+    let d1_bullish = d1_trend == "bull";
+    if short_bearish && d1_bullish && config.divergence_bonus > 0.0 {
+        adj.divergence_bonus = -config.divergence_bonus;
+        reasons.push(format!(
+            "多周期背离: 短期(h1={}/h4={})空头突破 vs 日线bull，给予做空-{:.4} edge加成",
+            h1_trend, h4_trend, config.divergence_bonus
+        ));
+    }
+
+    // === 缺陷5: 动量突破专项信号 ===
+    // 4h 强动量 + MACD 同向
+    if price_change_4h > config.momentum_threshold_4h && macd_signal == "bullish" {
+        adj.momentum_bonus += config.momentum_bonus_4h;
+        reasons.push(format!(
+            "动量突破: 4h涨幅{:.2}%>+{:.1}%+MACD看多，+{:.4}做多加成",
+            price_change_4h, config.momentum_threshold_4h, config.momentum_bonus_4h
+        ));
+    }
+    if price_change_4h < -config.momentum_threshold_4h && macd_signal == "bearish" {
+        adj.momentum_bonus -= config.momentum_bonus_4h;
+        reasons.push(format!(
+            "动量突破: 4h跌幅{:.2}%<-{:.1}%+MACD看空，-{:.4}做空加成",
+            price_change_4h, config.momentum_threshold_4h, config.momentum_bonus_4h
+        ));
+    }
+    // 1h 短期动量
+    if price_change_1h > config.momentum_threshold_1h {
+        adj.momentum_bonus += config.momentum_bonus_1h;
+        reasons.push(format!(
+            "短期动量: 1h涨幅{:.2}%>+{:.1}%，+{:.4}做多加成",
+            price_change_1h, config.momentum_threshold_1h, config.momentum_bonus_1h
+        ));
+    }
+    if price_change_1h < -config.momentum_threshold_1h {
+        adj.momentum_bonus -= config.momentum_bonus_1h;
+        reasons.push(format!(
+            "短期动量: 1h跌幅{:.2}%<-{:.1}%，-{:.4}做空加成",
+            price_change_1h, config.momentum_threshold_1h, config.momentum_bonus_1h
+        ));
+    }
+
+    // === 过热减分 ===
+    // 多头过热：RSI 超过阈值 即单独触发（不再要求资金费率同时极端）
+    // 若资金费率也极端，则进一步加重减分
+    if rsi_14 > config.overheat_rsi_threshold {
+        let penalty = if funding_rate > config.overheat_funding_threshold {
+            // RSI + 资金费率双重过热，加倍减分
+            config.overheat_penalty * 2.0
+        } else {
+            config.overheat_penalty
+        };
+        adj.overheat_penalty = -penalty;
+        reasons.push(format!(
+            "多头过热: RSI={:.1}>{}{}，做多-{:.4}减分",
+            rsi_14, config.overheat_rsi_threshold as i32,
+            if funding_rate > config.overheat_funding_threshold {
+                format!("+费率{:.6}>{}(双重过热加倍)", funding_rate, config.overheat_funding_threshold)
+            } else {
+                String::new()
+            },
+            penalty
+        ));
+    }
+    // 空头过热：RSI 低于 (100-阈值) 即单独触发
+    let rsi_lower_threshold = 100.0 - config.overheat_rsi_threshold;
+    if rsi_14 < rsi_lower_threshold {
+        let penalty = if funding_rate < -config.overheat_funding_threshold {
+            config.overheat_penalty * 2.0
+        } else {
+            config.overheat_penalty
+        };
+        adj.overheat_penalty = penalty;
+        reasons.push(format!(
+            "空头过热: RSI={:.1}<{}{}，做空-{:.4}减分（做多加成）",
+            rsi_14, rsi_lower_threshold as i32,
+            if funding_rate < -config.overheat_funding_threshold {
+                format!("+费率{:.6}(双重过热加倍)", funding_rate)
+            } else {
+                String::new()
+            },
+            penalty
+        ));
+    }
+
+    adj.reason = reasons.join("; ");
+    adj
+}
+
+/// 对 decision_score 应用市场上下文调整
+fn apply_market_adjustment(
+    mut score: DebateDecisionScore,
+    adj: &MarketEdgeAdjustment,
+) -> DebateDecisionScore {
+    if adj.divergence_bonus == 0.0 && adj.momentum_bonus == 0.0 && adj.overheat_penalty == 0.0 {
+        return score;
+    }
+
+    let total_adjustment = adj.divergence_bonus + adj.momentum_bonus + adj.overheat_penalty;
+    let original_edge = score.directional_edge;
+    let adjusted_edge = (score.directional_edge + total_adjustment).clamp(-1.0, 1.0);
+    score.directional_edge = adjusted_edge;
+
+    // 重新判定 action（使用原 minimum_edge）
+    let (action, status) = if score.data_quality < 0.35 {
+        ("hold", "insufficient_data")
+    } else if adjusted_edge >= score.minimum_edge {
+        ("long", "directional_edge_adjusted")
+    } else if adjusted_edge <= -score.minimum_edge {
+        ("short", "directional_edge_adjusted")
+    } else {
+        ("hold", "balanced_expected_value")
+    };
+    score.action = action;
+    score.status = status;
+
+    // 重新计算 confidence
+    let confidence = if action == "hold" {
+        ((1.0 - adjusted_edge.abs()) * score.data_quality).clamp(0.20, 0.80)
+    } else {
+        ((0.50 + adjusted_edge.abs() * 0.50) * score.data_quality).clamp(0.35, 0.90)
+    };
+    score.confidence = confidence;
+
+    tracing::info!(
+        "[MarketAdj] edge: {:.4}→{:.4} (adj={:+.4}), action: {}→{}, confidence: {:.3}→{:.3}, reason: {}",
+        original_edge, adjusted_edge, total_adjustment,
+        "original", action,
+        "orig_conf", confidence,
+        adj.reason
+    );
+
+    score
 }
 async fn load_agent_reliability(pool: &PgPool) -> std::collections::HashMap<String, f64> {
     let rows = sqlx::query(
@@ -4129,10 +4436,12 @@ ATR(14): {:.6}
                 1. 对手的论据中哪些是合理的？你是否忽略了这些信号？\n\
                 2. 你的原始论据中哪些可能存在偏差或过度解读？\n\
                 3. 综合双方论据后，你是否需要调整你的判断或置信度？\n\n\
-                重要：\n\
-                - 如果对手论据更有说服力，降低置信度或翻转方向\n\
+                重要（防止反转过度）：\n\
+                - 翻转方向需要对手有'压倒性'的证据优势，而非'略强'的证据\n\
+                - 如果双方证据势均力敌，应保持原方向但降低置信度（而非翻转）\n\
+                - 风险提示类论据（如'可能回调'、'存在风险'）不足以构成翻转理由，必须有明确的数据证据\n\
+                - 多空比极端值的解读必须结合资金费率：高多空比+费率温和=动量延续而非反转\n\
                 - 但不要因为对手存在就自动让步——如果你有更强的数据支撑，坚持你的判断\n\
-                - 多空比极端值不一定意味着反转，需要结合其他信号综合判断\n\
                 - 避免对同一数据做过度解读（如'多头拥挤=必跌'是过度简化）\n\
                 - 使用精确价格数字，不要四舍五入\n\n\
                 必须JSON回复：{{\"sentiment\": \"bullish\"|\"bearish\", \"confidence\": 0.5-1.0, \"analysis\": \"反驳后的重新分析\", \"key_factors\": [\"因素\"], \"revised\": true}}\n\
@@ -4220,7 +4529,24 @@ ATR(14): {:.6}
 
     // 8. Use the same evidence scorer as the live debate. The LLM explains the
     // assessment and proposes levels; it cannot silently override the risk gate.
-    let decision_score = score_debate_opinions_with_reliability_and_config(&agent_opinions, &credibility_map, &tuning_config);
+    let raw_score = score_debate_opinions_with_reliability_and_config(&agent_opinions, &credibility_map, &tuning_config);
+    // 应用市场上下文调整（缺陷2+5：多周期背离 + 动量突破）
+    let market_adj = compute_market_edge_adjustment(
+        &tuning_config,
+        ctx.trend.as_str(),
+        ctx.rsi_14,
+        ctx.macd_signal.as_str(),
+        ctx.price_change_1h,
+        ctx.price_change_4h,
+        funding_rate,
+        long_short_ratio,
+        multi_timeframe_data.d1_trend.as_str(),
+        multi_timeframe_data.h1_trend.as_str(),
+        multi_timeframe_data.h4_trend.as_str(),
+        ctx.volatility.as_str(),
+        ctx.volume_profile.as_str(),
+    );
+    let decision_score = apply_market_adjustment(raw_score, &market_adj);
     let decision_evidence = json!({
         "bullish_score": decision_score.bullish_score,
         "bearish_score": decision_score.bearish_score,
@@ -4233,11 +4559,23 @@ ATR(14): {:.6}
         "score_status": decision_score.status,
         "reliability_agents": credibility_map.len(),
         "tuning": &tuning_config,
+        "market_adjustment": {
+            "divergence_bonus": market_adj.divergence_bonus,
+            "momentum_bonus": market_adj.momentum_bonus,
+            "overheat_penalty": market_adj.overheat_penalty,
+            "reason": market_adj.reason,
+        },
     });
     let fund_manager_system_prompt = format!(
         r#"你是基金经理。综合各部门交叉辩论后的报告做独立评估。当前价: {:.6}。{}{}
 做多和做空使用相同门槛。hold只能用于数据不足、净证据均衡、成本可能覆盖优势或风险预算不足，必须明确原因。
 不要为了避免hold而强行交易，也不要把谨慎等同于看空。
+多空比极端值的解读必须结合资金费率和OI变化：
+- 高多空比 + 资金费率温和(<0.01%) + OI稳定 → 动量延续，偏多
+- 高多空比 + 资金费率>0.1% + OI激增 → 多头过热，偏空
+- 低多空比 + 资金费率温和 + OI稳定 → 动量延续，偏空
+- 低多空比 + 资金费率<-0.05% + OI激增 → 空头过热，偏多
+日线趋势是仓位规模调节器（影响杠杆），不是方向否决器：短期(1h/4h)出现明确突破时允许逆日线方向交易，但应降低杠杆（1-2x）。
 输出上涨、下跌、震荡概率，三个概率之和必须接近1；给出判断失效条件。
 必须JSON：{{"action":"long"|"short"|"hold","confidence":0.0-1.0,"p_up":0.0-1.0,"p_down":0.0-1.0,"p_flat":0.0-1.0,"hold_reason":null|"insufficient_data"|"balanced_expected_value"|"cost_exceeds_alpha"|"risk_budget_exceeded","invalidation_conditions":["条件"],"entry_range":{{"low":价格,"high":价格}},"stop_loss":价格,"take_profit":[价格],"leverage":1-5,"reasoning":"理由"}}。只输出JSON。"#,
         current_price,
@@ -4300,11 +4638,28 @@ ATR(14): {:.6}
             } else {
                 decision_score.status
             };
+            // LLM 否决权：当 LLM 明确 hold 但评分器给 long/short 时，按 llm_veto_strength 降 confidence
+            let mut final_confidence = decision_score.confidence;
+            let mut llm_veto_applied = false;
+            if parsed.valid
+                && parsed.action == "hold"
+                && decision_score.action != "hold"
+                && tuning_config.llm_veto_strength > 0.0
+            {
+                let penalty = tuning_config.llm_veto_strength * 0.15;
+                final_confidence = (final_confidence - penalty).max(0.20);
+                llm_veto_applied = true;
+                tracing::info!(
+                    "[LLMVeto] 评分器={} 但 LLM=hold，按 llm_veto_strength={:.2} 降 confidence: {:.3}→{:.3}",
+                    decision_score.action, tuning_config.llm_veto_strength,
+                    decision_score.confidence, final_confidence
+                );
+            }
             let plan =
                 build_consistent_trade_plan(final_action, current_price, Some(&parsed));
             json!({
                 "action": final_action,
-                "confidence": decision_score.confidence,
+                "confidence": final_confidence,
                 "entry_range": plan.entry_range,
                 "stop_loss": plan.stop_loss,
                 "take_profit": plan.take_profit,
@@ -4318,6 +4673,7 @@ ATR(14): {:.6}
                 "model_action": parsed.action,
                 "llm_status": llm_status,
                 "decision_status": decision_status,
+                "llm_veto_applied": llm_veto_applied,
                 "evidence_score": decision_evidence,
                 "trade_plan_status": if final_action == "hold" { "not_applicable" } else { "validated" },
             })

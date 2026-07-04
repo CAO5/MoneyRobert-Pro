@@ -307,17 +307,31 @@ impl FeatureStore {
         start_time: DateTime<Utc>,
         end_time: DateTime<Utc>,
     ) -> Result<Vec<RegimeSnapshot>, sqlx::Error> {
-        let rows = sqlx::query(
-            r#"SELECT regime, confidence, adx, volatility_percentile, return_percentile, timestamp
-               FROM market_regimes
-               WHERE symbol = $1 AND timestamp >= $2 AND timestamp <= $3
-               ORDER BY timestamp ASC"#,
-        )
-        .bind(symbol)
-        .bind(start_time)
-        .bind(end_time)
-        .fetch_all(pool)
-        .await?;
+        // symbol 为空字符串时返回全部标的的市场状态
+        let rows = if symbol.is_empty() {
+            sqlx::query(
+                r#"SELECT regime, confidence, adx, volatility_percentile, return_percentile, timestamp
+                   FROM market_regimes
+                   WHERE timestamp >= $1 AND timestamp <= $2
+                   ORDER BY timestamp DESC LIMIT 200"#,
+            )
+            .bind(start_time)
+            .bind(end_time)
+            .fetch_all(pool)
+            .await?
+        } else {
+            sqlx::query(
+                r#"SELECT regime, confidence, adx, volatility_percentile, return_percentile, timestamp
+                   FROM market_regimes
+                   WHERE symbol = $1 AND timestamp >= $2 AND timestamp <= $3
+                   ORDER BY timestamp ASC"#,
+            )
+            .bind(symbol)
+            .bind(start_time)
+            .bind(end_time)
+            .fetch_all(pool)
+            .await?
+        };
 
         let snapshots = rows
             .into_iter()

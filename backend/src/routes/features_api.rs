@@ -122,7 +122,8 @@ async fn query_values(
 
 #[derive(Debug, Deserialize)]
 struct QueryRegimesParams {
-    symbol: String,
+    /// 可选 symbol 过滤；未传或为空字符串时返回全部标的
+    symbol: Option<String>,
     start_time: String,
     end_time: String,
 }
@@ -151,7 +152,9 @@ async fn query_regimes(
         .parse()
         .map_err(|e| AppError::Validation(format!("invalid end_time: {}", e)))?;
 
-    let snapshots = FeatureStore::query_regimes(&state.db_pool, &params.symbol, start, end)
+    // symbol 为 None 或空字符串时返回全部标的
+    let symbol_str = params.symbol.as_deref().unwrap_or("").trim();
+    let snapshots = FeatureStore::query_regimes(&state.db_pool, symbol_str, start, end)
         .await
         .map_err(|e| AppError::Internal(format!("query regimes failed: {}", e)))?;
 

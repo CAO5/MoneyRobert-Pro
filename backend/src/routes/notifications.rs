@@ -44,9 +44,9 @@ async fn list_notifications(
     let offset = (page - 1) * page_size;
 
     let total = sqlx::query_scalar::<_, i64>(
-        r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND ($2::text IS NULL OR type::text = $2) AND ($3::bool IS NULL OR is_read = $3)"#,
+        r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND ($2::text IS NULL OR notification_type = $2) AND ($3::bool IS NULL OR is_read = $3)"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .bind(query.notification_type.clone())
     .bind(query.is_read)
     .fetch_one(&state.db_pool)
@@ -56,19 +56,19 @@ async fn list_notifications(
     let unread_count = sqlx::query_scalar::<_, i64>(
         r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     let notifications = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, user_id, LOWER(type::text) as type, title, content, LOWER(channel::text) as channel, is_read, sent_at, created_at FROM notifications
-            WHERE user_id = $1 AND ($2::text IS NULL OR type::text = $2) AND ($3::bool IS NULL OR is_read = $3)
+            SELECT id, user_id, notification_type as type, title, content, channel, is_read, created_at, created_at as sent_at FROM notifications
+            WHERE user_id = $1 AND ($2::text IS NULL OR notification_type = $2) AND ($3::bool IS NULL OR is_read = $3)
             ORDER BY created_at DESC LIMIT $4 OFFSET $5
         ) AS sq"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .bind(query.notification_type)
     .bind(query.is_read)
     .bind(page_size as i64)
@@ -87,7 +87,7 @@ async fn get_notification_stats(
     let unread = sqlx::query_scalar::<_, i64>(
         r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -95,24 +95,24 @@ async fn get_notification_stats(
     let total = sqlx::query_scalar::<_, i64>(
         r#"SELECT COUNT(*) FROM notifications WHERE user_id = $1"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_one(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     let by_type: serde_json::Value = sqlx::query_scalar::<_, serde_json::Value>(
-        r#"SELECT json_object_agg(LOWER(type::text), cnt) FROM (SELECT type::text, COUNT(*) as cnt FROM notifications WHERE user_id = $1 GROUP BY type::text) t"#,
+        r#"SELECT json_object_agg(LOWER(notification_type), cnt) FROM (SELECT notification_type, COUNT(*) as cnt FROM notifications WHERE user_id = $1 GROUP BY notification_type) t"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
     .unwrap_or(serde_json::json!({}));
 
     let by_channel: serde_json::Value = sqlx::query_scalar::<_, serde_json::Value>(
-        r#"SELECT json_object_agg(LOWER(channel::text), cnt) FROM (SELECT channel::text, COUNT(*) as cnt FROM notifications WHERE user_id = $1 GROUP BY channel::text) t"#,
+        r#"SELECT json_object_agg(LOWER(channel), cnt) FROM (SELECT channel, COUNT(*) as cnt FROM notifications WHERE user_id = $1 GROUP BY channel) t"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
@@ -129,15 +129,15 @@ async fn get_notification_stats(
 async fn get_notification(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(notification_id): Path<i32>,
+    Path(notification_id): Path<uuid::Uuid>,
 ) -> Result<Json<serde_json::Value>> {
     let notification = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, user_id, LOWER(type::text) as type, title, content, LOWER(channel::text) as channel, is_read, sent_at, created_at FROM notifications WHERE id = $1 AND user_id = $2
+            SELECT id, user_id, notification_type as type, title, content, channel, is_read, created_at, created_at as sent_at FROM notifications WHERE id = $1 AND user_id = $2
         ) AS sq"#,
     )
     .bind(notification_id)
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
@@ -149,24 +149,24 @@ async fn get_notification(
 async fn mark_as_read(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(notification_id): Path<i32>,
+    Path(notification_id): Path<uuid::Uuid>,
 ) -> Result<Json<serde_json::Value>> {
     sqlx::query(
         r#"UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2"#,
     )
     .bind(notification_id)
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .execute(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
 
     let notification = sqlx::query_scalar::<_, serde_json::Value>(
         r#"SELECT row_to_json(sq) FROM (
-            SELECT id, user_id, LOWER(type::text) as type, title, content, LOWER(channel::text) as channel, is_read, sent_at, created_at FROM notifications WHERE id = $1 AND user_id = $2
+            SELECT id, user_id, notification_type as type, title, content, channel, is_read, created_at, created_at as sent_at FROM notifications WHERE id = $1 AND user_id = $2
         ) AS sq"#,
     )
     .bind(notification_id)
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .fetch_optional(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?
@@ -182,7 +182,7 @@ async fn mark_all_read(
     let result = sqlx::query(
         r#"UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false"#,
     )
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .execute(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -195,13 +195,13 @@ async fn mark_all_read(
 async fn delete_notification(
     user: CurrentUser,
     State(state): State<AppState>,
-    Path(notification_id): Path<i32>,
+    Path(notification_id): Path<uuid::Uuid>,
 ) -> Result<StatusCode> {
     sqlx::query(
         r#"DELETE FROM notifications WHERE id = $1 AND user_id = $2"#,
     )
     .bind(notification_id)
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .execute(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -266,7 +266,7 @@ async fn update_notification_settings(
         r#"UPDATE users SET notification_settings = $1 WHERE id = $2"#,
     )
     .bind(req.settings.clone())
-    .bind(user.user_id as i32)
+    .bind(user.user_id as i64)
     .execute(&state.db_pool)
     .await
     .map_err(|e| AppError::Database(e))?;
@@ -301,7 +301,7 @@ async fn test_notification(
     let channel = req.channel.unwrap_or_else(|| "in_app".to_string());
 
     sqlx::query(
-        r#"INSERT INTO notifications (user_id, type, title, content, channel, is_read) VALUES ($1, 'system', 'Test Notification', $2, $3::notification_channel_enum, false)"#,
+        r#"INSERT INTO notifications (user_id, notification_type, title, content, channel, is_read) VALUES ($1, 'system', 'Test Notification', $2, $3, false)"#,
     )
     .bind(user.user_id as i32)
     .bind(req.message.unwrap_or_else(|| "This is a test notification".to_string()))
