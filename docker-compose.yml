@@ -66,6 +66,26 @@ services:
     networks:
       - moneyrobert-network
 
+  mobile:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mobile.h5
+    container_name: moneyrobert-pro-mobile
+    restart: unless-stopped
+    ports:
+      - "10086:10086"
+    environment:
+      - DOCKER_ENV=true
+      - NODE_ENV=development
+      - TARO_APP_API_URL=/api/v1
+      - TARO_APP_MOCK=false
+    depends_on:
+      - backend
+    volumes:
+      - ./mobile/src:/app/src
+    networks:
+      - moneyrobert-network
+
   db:
     image: pgvector/pgvector:pg15
     container_name: moneyrobert-pro-db

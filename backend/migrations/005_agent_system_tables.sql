@@ -52,10 +52,10 @@ CREATE TABLE IF NOT EXISTS ai_simulation_configs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_ai_simulation_configs_user_id ON ai_simulation_configs(user_id);
-CREATE INDEX idx_ai_simulation_configs_mode ON ai_simulation_configs(mode);
-CREATE INDEX idx_ai_simulation_configs_level ON ai_simulation_configs(level);
-CREATE INDEX idx_ai_simulation_configs_status ON ai_simulation_configs(status);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_configs_user_id ON ai_simulation_configs(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_configs_mode ON ai_simulation_configs(mode);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_configs_level ON ai_simulation_configs(level);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_configs_status ON ai_simulation_configs(status);
 
 -- AI模拟交易记录表
 CREATE TABLE IF NOT EXISTS ai_simulation_trades (
@@ -89,10 +89,10 @@ CREATE TABLE IF NOT EXISTS ai_simulation_trades (
     closed_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_ai_simulation_trades_config_id ON ai_simulation_trades(config_id);
-CREATE INDEX idx_ai_simulation_trades_status ON ai_simulation_trades(status);
-CREATE INDEX idx_ai_simulation_trades_mode ON ai_simulation_trades(mode);
-CREATE INDEX idx_ai_simulation_trades_opened_at ON ai_simulation_trades(opened_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_trades_config_id ON ai_simulation_trades(config_id);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_trades_status ON ai_simulation_trades(status);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_trades_mode ON ai_simulation_trades(mode);
+CREATE INDEX IF NOT EXISTS idx_ai_simulation_trades_opened_at ON ai_simulation_trades(opened_at DESC);
 
 -- Agent辩论会话表
 CREATE TABLE IF NOT EXISTS agent_debate_sessions (
@@ -109,9 +109,9 @@ CREATE TABLE IF NOT EXISTS agent_debate_sessions (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_agent_debate_sessions_config ON agent_debate_sessions(config_id);
-CREATE INDEX idx_agent_debate_sessions_user ON agent_debate_sessions(user_id);
-CREATE INDEX idx_agent_debate_sessions_status ON agent_debate_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_sessions_config ON agent_debate_sessions(config_id);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_sessions_user ON agent_debate_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_sessions_status ON agent_debate_sessions(status);
 
 -- Agent辩论消息表
 CREATE TABLE IF NOT EXISTS agent_debate_messages (
@@ -130,9 +130,9 @@ CREATE TABLE IF NOT EXISTS agent_debate_messages (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_agent_debate_messages_session ON agent_debate_messages(session_id);
-CREATE INDEX idx_agent_debate_messages_agent ON agent_debate_messages(agent_name);
-CREATE INDEX idx_agent_debate_messages_order ON agent_debate_messages(session_id, message_order);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_messages_session ON agent_debate_messages(session_id);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_messages_agent ON agent_debate_messages(agent_name);
+CREATE INDEX IF NOT EXISTS idx_agent_debate_messages_order ON agent_debate_messages(session_id, message_order);
 
 -- 晋级审核记录表
 CREATE TABLE IF NOT EXISTS promotion_audits (
@@ -159,8 +159,8 @@ CREATE TABLE IF NOT EXISTS promotion_audits (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_promotion_audits_config ON promotion_audits(config_id);
-CREATE INDEX idx_promotion_audits_status ON promotion_audits(status);
+CREATE INDEX IF NOT EXISTS idx_promotion_audits_config ON promotion_audits(config_id);
+CREATE INDEX IF NOT EXISTS idx_promotion_audits_status ON promotion_audits(status);
 
 -- 降级记录表
 CREATE TABLE IF NOT EXISTS demotion_records (
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS demotion_records (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_demotion_records_config ON demotion_records(config_id);
+CREATE INDEX IF NOT EXISTS idx_demotion_records_config ON demotion_records(config_id);
 
 -- 每日统计快照表
 CREATE TABLE IF NOT EXISTS daily_simulation_stats (
@@ -203,8 +203,8 @@ CREATE TABLE IF NOT EXISTS daily_simulation_stats (
     UNIQUE(config_id, date, mode)
 );
 
-CREATE INDEX idx_daily_simulation_stats_config ON daily_simulation_stats(config_id);
-CREATE INDEX idx_daily_simulation_stats_date ON daily_simulation_stats(date DESC);
+CREATE INDEX IF NOT EXISTS idx_daily_simulation_stats_config ON daily_simulation_stats(config_id);
+CREATE INDEX IF NOT EXISTS idx_daily_simulation_stats_date ON daily_simulation_stats(date DESC);
 
 -- Agent性能表
 CREATE TABLE IF NOT EXISTS agent_performance (
@@ -242,8 +242,8 @@ CREATE TABLE IF NOT EXISTS knowledge_nodes (
     last_updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_knowledge_nodes_tags ON knowledge_nodes USING GIN(tags);
-CREATE INDEX idx_knowledge_nodes_validated ON knowledge_nodes(is_validated);
+CREATE INDEX IF NOT EXISTS idx_knowledge_nodes_tags ON knowledge_nodes USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_knowledge_nodes_validated ON knowledge_nodes(is_validated);
 
 -- 知识关联表
 CREATE TABLE IF NOT EXISTS knowledge_links (
@@ -259,8 +259,8 @@ CREATE TABLE IF NOT EXISTS knowledge_links (
     UNIQUE(from_node_id, to_node_id, link_type)
 );
 
-CREATE INDEX idx_knowledge_links_from ON knowledge_links(from_node_id);
-CREATE INDEX idx_knowledge_links_to ON knowledge_links(to_node_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_from ON knowledge_links(from_node_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_to ON knowledge_links(to_node_id);
 
 -- 自主交易决策日志
 CREATE TABLE IF NOT EXISTS autonomous_decision_logs (
@@ -279,8 +279,8 @@ CREATE TABLE IF NOT EXISTS autonomous_decision_logs (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_autonomous_decision_logs_config ON autonomous_decision_logs(config_id);
-CREATE INDEX idx_autonomous_decision_logs_time ON autonomous_decision_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_autonomous_decision_logs_config ON autonomous_decision_logs(config_id);
+CREATE INDEX IF NOT EXISTS idx_autonomous_decision_logs_time ON autonomous_decision_logs(created_at DESC);
 
 -- 熔断记录
 CREATE TABLE IF NOT EXISTS circuit_break_records (
@@ -299,8 +299,8 @@ CREATE TABLE IF NOT EXISTS circuit_break_records (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_circuit_break_records_config ON circuit_break_records(config_id);
-CREATE INDEX idx_circuit_break_records_resolved ON circuit_break_records(resolved_at IS NULL);
+CREATE INDEX IF NOT EXISTS idx_circuit_break_records_config ON circuit_break_records(config_id);
+CREATE INDEX IF NOT EXISTS idx_circuit_break_records_resolved ON circuit_break_records(resolved_at) WHERE resolved_at IS NULL;
 
 -- 风险确认书
 CREATE TABLE IF NOT EXISTS risk_confirmations (
@@ -320,8 +320,8 @@ CREATE TABLE IF NOT EXISTS risk_confirmations (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_risk_confirmations_user ON risk_confirmations(user_id);
-CREATE INDEX idx_risk_confirmations_config ON risk_confirmations(config_id);
+CREATE INDEX IF NOT EXISTS idx_risk_confirmations_user ON risk_confirmations(user_id);
+CREATE INDEX IF NOT EXISTS idx_risk_confirmations_config ON risk_confirmations(config_id);
 
 -- 紧急停止记录
 CREATE TABLE IF NOT EXISTS emergency_stop_records (
@@ -337,8 +337,8 @@ CREATE TABLE IF NOT EXISTS emergency_stop_records (
     resumed_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_emergency_stop_config ON emergency_stop_records(config_id);
-CREATE INDEX idx_emergency_stop_resumed ON emergency_stop_records(resumed_at IS NULL);
+CREATE INDEX IF NOT EXISTS idx_emergency_stop_config ON emergency_stop_records(config_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_stop_resumed ON emergency_stop_records(resumed_at) WHERE resumed_at IS NULL;
 
 -- 回测结果表
 CREATE TABLE IF NOT EXISTS backtest_results (
@@ -368,8 +368,8 @@ CREATE TABLE IF NOT EXISTS backtest_results (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_backtest_config ON backtest_results(config_id);
-CREATE INDEX idx_backtest_user ON backtest_results(user_id);
+CREATE INDEX IF NOT EXISTS idx_backtest_config ON backtest_results(config_id);
+CREATE INDEX IF NOT EXISTS idx_backtest_user ON backtest_results(user_id);
 
 -- LLM使用日志表
 CREATE TABLE IF NOT EXISTS llm_usage_logs (
@@ -385,9 +385,9 @@ CREATE TABLE IF NOT EXISTS llm_usage_logs (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_llm_usage_logs_time ON llm_usage_logs(created_at DESC);
-CREATE INDEX idx_llm_usage_logs_agent ON llm_usage_logs(agent_name);
-CREATE INDEX idx_llm_usage_logs_user ON llm_usage_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_llm_usage_logs_time ON llm_usage_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_usage_logs_agent ON llm_usage_logs(agent_name);
+CREATE INDEX IF NOT EXISTS idx_llm_usage_logs_user ON llm_usage_logs(user_id);
 
 -- AI配置表（统一管理AI供应商和API Key）
 CREATE TABLE IF NOT EXISTS ai_provider_configs (
@@ -410,5 +410,5 @@ CREATE TABLE IF NOT EXISTS ai_provider_configs (
     UNIQUE(user_id, provider, name)
 );
 
-CREATE INDEX idx_ai_provider_configs_user ON ai_provider_configs(user_id);
-CREATE INDEX idx_ai_provider_configs_provider ON ai_provider_configs(provider);
+CREATE INDEX IF NOT EXISTS idx_ai_provider_configs_user ON ai_provider_configs(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_provider_configs_provider ON ai_provider_configs(provider);

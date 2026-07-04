@@ -8,6 +8,6 @@ ALTER TABLE ai_simulation_trades
 ALTER TABLE ai_simulation_trades
     ALTER COLUMN fee_percent SET DEFAULT 0.08;
 
-UPDATE ai_simulation_configs
+UPDATE ai_simulation_trades
 SET fee_percent = 0.08
 WHERE fee_percent < 0.08;

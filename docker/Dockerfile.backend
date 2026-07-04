@@ -1,9 +1,6 @@
 FROM rust:1.96-slim-bookworm AS builder
 
-RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null; \
-    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
-    true
-
+# 使用官方 Debian 源（USTC 镜像在 Docker 内部网络环境下可能不可达）
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,10 +26,6 @@ RUN touch src/bin/main.rs src/lib.rs && \
     mv target/release/moneyrobert /app/moneyrobert
 
 FROM debian:bookworm-slim
-
-RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null; \
-    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list 2>/dev/null; \
-    true
 
 WORKDIR /app
 
