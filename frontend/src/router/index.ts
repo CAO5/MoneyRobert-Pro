@@ -6,6 +6,7 @@ const router = createRouter({
   routes: [
     { path: '/login', name: 'login', component: () => import('@/pages/LoginPage.vue'), meta: { guest: true } },
     { path: '/register', name: 'register', component: () => import('@/pages/RegisterPage.vue'), meta: { guest: true } },
+    { path: '/forgot-password', name: 'forgot-password', component: () => import('@/pages/ForgotPasswordPage.vue'), meta: { guest: true } },
     { path: '/', component: () => import('@/layouts/DashboardLayout.vue'), meta: { auth: true }, children: [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', name: 'dashboard', component: () => import('@/pages/DashboardPage.vue') },

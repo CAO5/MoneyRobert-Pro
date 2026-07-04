@@ -26,6 +26,11 @@ api.interceptors.response.use(
         response.data = data.data
         return response
       }
+      // 后端部分接口仅返回 { data: ... } 而无 success/code 字段（如 /ai/comprehensive）
+      if ('data' in data && data.data !== undefined) {
+        response.data = data.data
+        return response
+      }
       if ('error' in data && typeof data.error === 'string') {
         return Promise.reject(new Error(data.message || '请求失败'))
       }

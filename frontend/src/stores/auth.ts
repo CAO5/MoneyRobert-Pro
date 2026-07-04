@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/api'
+import { encryptPassword } from '@/utils/passwordCrypto'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('access_token') || '')
@@ -11,7 +12,9 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.role === 'admin')
 
   async function login(username: string, password: string) {
-    const { data } = await api.post('/auth/login', { username, password })
+    // 强制 sha256：客户端绝不发送明文密码
+    const encryptedPassword = encryptPassword(password)
+    const { data } = await api.post('/auth/login', { username, password: encryptedPassword })
     token.value = data.access_token
     refreshToken.value = data.refresh_token
     localStorage.setItem('access_token', data.access_token)
@@ -20,7 +23,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function register(username: string, email: string, password: string) {
-    await api.post('/auth/register', { username, email, password })
+    const encryptedPassword = encryptPassword(password)
+    await api.post('/auth/register', { username, email, password: encryptedPassword })
   }
 
   async function fetchUser() {

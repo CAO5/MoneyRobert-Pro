@@ -108,6 +108,11 @@ async function handleLogin() {
             登录中...
           </span>
         </button>
+
+        <!-- 忘记密码链接 -->
+        <div class="forgot-link">
+          <router-link to="/forgot-password" class="link-forgot">忘记密码？</router-link>
+        </div>
       </form>
 
       <!-- 注册链接 -->
@@ -292,6 +297,23 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+
+/* 忘记密码链接 */
+.forgot-link {
+  text-align: right;
+  margin-top: 12px;
+}
+
+.link-forgot {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color var(--transition-fast) ease;
+}
+
+.link-forgot:hover {
+  color: var(--primary);
 }
 
 /* 注册链接 */
