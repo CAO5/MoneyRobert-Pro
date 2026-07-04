@@ -28,6 +28,15 @@ fn default_refresh_token_expire() -> i64 {
     7
 }
 
+fn default_password_encryption_method() -> String {
+    // 兼容旧版：默认 none 保持明文传输
+    // 可选值：none | sha256
+    //   - none  : 客户端发送明文密码（仅 HTTPS 环境下使用）
+    //   - sha256: 客户端先做 SHA-256 哈希后发送 hex 字符串，后端将 hex 作为 bcrypt 输入
+    //             注意：开启后旧用户（bcrypt(明文) 存储）将无法登录，需要重置密码
+    "none".to_string()
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SecurityConfig {
     pub secret_key: String,
@@ -37,6 +46,9 @@ pub struct SecurityConfig {
     pub access_token_expire_minutes: i64,
     #[serde(default = "default_refresh_token_expire")]
     pub refresh_token_expire_days: i64,
+    /// 密码加密方式，由后端配置决定，客户端通过 /auth/password-policy 拉取
+    #[serde(default = "default_password_encryption_method")]
+    pub password_encryption_method: String,
 }
 
 fn default_origins() -> Vec<String> {

@@ -45,6 +45,14 @@ pub async fn rate_limit(
         return next.run(req).await;
     }
 
+    // 已认证请求（带有效 Bearer Token）跳过限流：
+    // 限流主要用于防止匿名流量爆破（登录/注册接口等），已登录用户走 JWT 鉴权另有保护，
+    // 工作台首屏并发 9 个接口不应被全局 IP 限流误伤。
+    // 同时保留对未认证请求的限流，防止恶意爬虫/暴力探测。
+    if has_valid_bearer_token(req.headers()) {
+        return next.run(req).await;
+    }
+
     let ip = get_client_ip(req.headers());
     let rate_limit_map: &Arc<DashMap<String, RateLimitEntry>> = &state.rate_limit_map;
     let requests_per_minute = state.config.rate_limit.requests_per_minute;
@@ -70,6 +78,17 @@ pub async fn rate_limit(
     }
 
     next.run(req).await
+}
+
+/// 检查请求头是否带有 Bearer Token（仅做格式校验，签名验证由 auth_middleware 完成）
+/// 用于让已认证请求跳过 IP 限流，避免工作台首屏并发接口被误伤
+fn has_valid_bearer_token(headers: &axum::http::HeaderMap) -> bool {
+    if let Some(auth) = headers.get(axum::http::header::AUTHORIZATION) {
+        if let Ok(s) = auth.to_str() {
+            return s.starts_with("Bearer ") && s.len() > "Bearer ".len();
+        }
+    }
+    false
 }
 
 pub async fn request_logging(
