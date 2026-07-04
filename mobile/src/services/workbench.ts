@@ -16,12 +16,18 @@ import { mockWorkbench, mockRecentTodos, mockRecentMessages } from '@/data/workb
 export const workbenchService = {
   /** 获取工作台聚合数据 */
   async getWorkbench(): Promise<WorkbenchData> {
+    // 始终用 mock 作为兜底，保证字段完整
+    const base = await mockWorkbench();
     if (MOCK_ENABLED) {
-      return mockWorkbench();
+      return base;
     }
-    // 新首页字段由 Mobile BFF 渐进上线；在后端升级窗口内保留默认值，避免旧响应导致首屏崩溃。
-    const remote = await http.get<Partial<WorkbenchData>>('/dashboard/workbench');
-    return { ...mockWorkbench(), ...remote };
+    // 后端接口可能尚未实现，异常时回退 mock
+    try {
+      const remote = await http.get<Partial<WorkbenchData>>('/dashboard/workbench');
+      return { ...base, ...remote };
+    } catch {
+      return base;
+    }
   },
 
   /** 获取最近待办（工作台卡片用） */

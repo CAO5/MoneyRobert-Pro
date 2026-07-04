@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
+import { Empty, Skeleton } from '@nutui/nutui-react-taro';
 import { backtestService } from '@/services/backtest';
 import type { BacktestJobDetail, BacktestReport, TrustLevelResponse } from '@/types/backtest';
 import { BACKTEST_STATUS_LABELS, TRUST_LEVEL_LABELS } from '@/types/backtest';
-import EmptyState from '@/components/EmptyState';
 import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
@@ -65,7 +65,7 @@ const BacktestDetailPage: React.FC = () => {
   if (loading) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('加载中...')} />
+        <Skeleton rows={5} animated />
       </View>
     );
   }
@@ -73,7 +73,10 @@ const BacktestDetailPage: React.FC = () => {
   if (!job) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('任务不存在')} actionText={t('返回')} onAction={handleBack} />
+        <Empty
+          title={t('任务不存在')}
+          actions={[{ text: t('返回'), type: 'primary', onClick: handleBack }]}
+        />
       </View>
     );
   }
@@ -143,7 +146,7 @@ const BacktestDetailPage: React.FC = () => {
               <View className={styles.metricItem}>
                 <Text className={styles.metricLabel}>{t('初始资金')}</Text>
                 <Text className={styles.metricValue}>
-                  {job.initial_equity.toLocaleString()}
+                  {(job.initial_equity ?? 0).toLocaleString()}
                 </Text>
               </View>
               <View className={styles.metricItem}>
@@ -219,7 +222,7 @@ const BacktestDetailPage: React.FC = () => {
               </View>
               <View className={styles.checkContent}>
                 <Text className={styles.checkLabel}>{t('测试覆盖')}</Text>
-                <Text className={styles.checkValue}>{t('通过率 {value}%', { value: (trust.test_pass_rate * 100).toFixed(1) })}</Text>
+                <Text className={styles.checkValue}>{t('通过率 {value}%', { value: ((trust.test_pass_rate ?? 0) * 100).toFixed(1) })}</Text>
               </View>
             </View>
             <View className={styles.checkItem}>

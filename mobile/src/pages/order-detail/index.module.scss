@@ -1,0 +1,145 @@
+@use '@/styles/variables.scss' as *;
+
+.detailPage {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: calc($spacing-xl + env(safe-area-inset-bottom));
+}
+
+.header {
+  background: $gradient-primary;
+  padding: $spacing-lg $page-padding $spacing-md;
+  padding-top: calc(#{$spacing-lg} + env(safe-area-inset-top));
+  color: $color-text-white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 $spacing-lg $spacing-lg;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -80rpx;
+    width: 260rpx;
+    height: 260rpx;
+    border-radius: $radius-round;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  position: relative;
+  z-index: 1;
+}
+
+.backButton {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -$spacing-xs;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $radius-md;
+  transition: all $transition-base;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.backIcon {
+  font-size: 56rpx;
+  color: $color-text-white;
+  line-height: 1;
+}
+
+.title {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+  position: relative;
+  z-index: 1;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  position: relative;
+  z-index: 1;
+}
+
+.content {
+  padding: $spacing-lg $page-padding 0;
+  margin-top: -$spacing-md;
+  position: relative;
+  z-index: 2;
+}
+
+.contentCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  letter-spacing: 1rpx;
+}
+
+.contextItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md 0;
+  font-size: $font-size-md;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+}
+
+.contextLabel {
+  color: $color-text-secondary;
+  flex-shrink: 0;
+  margin-right: $spacing-md;
+}
+
+.contextValue {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+  @include text-ellipsis;
+}
+
+.hint {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.actionButton {
+  width: 100%;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+}

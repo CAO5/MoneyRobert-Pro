@@ -1,0 +1,69 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc($spacing-xl + env(safe-area-inset-bottom));
+}
+
+.skeletonWrap {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  box-shadow: $shadow-card;
+}
+
+.list {
+  height: calc(100vh - #{$spacing-lg * 2});
+}
+
+.tradeItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+  position: relative;
+  padding-bottom: $spacing-md;
+
+  @include hairline-bottom;
+}
+
+.symbol {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.itemBody {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.bodyItem {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-sm 0;
+}
+
+.bodyLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.bodyValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+}

@@ -58,38 +58,90 @@ function purgeLegacyCredentialStorage() {
 }
 
 /**
- * 敏感会话仅保存在当前 JS 内存，不写入 localStorage/小程序 Storage。
- * 应用进程结束后会话失效，换取凭证不落盘的安全边界。
+ * 会话凭证存储策略：
+ * - H5 端：使用 sessionStorage（刷新页面保留登录态，关闭标签页即失效，兼顾体验与安全）
+ * - 小程序/原生端：使用 Taro.setStorageSync（持久化，由小程序生命周期管理）
+ *
+ * 同时保留内存副本，避免读存储的同步开销和 JSON 解析开销。
  */
+const SESSION_KEY_ACCESS = 'mr_access_token';
+const SESSION_KEY_REFRESH = 'mr_refresh_token';
+const SESSION_KEY_USER = 'mr_user';
+
+// H5 端可用的 sessionStorage 引用（小程序端为 null）
+const sessionStore: Storage | null =
+  TARO_ENV === 'h5' && typeof window !== 'undefined' && window.sessionStorage
+    ? window.sessionStorage
+    : null;
+
 export const tokenStorage = {
   getAccessToken(): string | null {
     purgeLegacyCredentialStorage();
+    if (memoryAccessToken) return memoryAccessToken;
+    if (sessionStore) {
+      const v = sessionStore.getItem(SESSION_KEY_ACCESS);
+      if (v) memoryAccessToken = v;
+    }
     return memoryAccessToken;
   },
   getRefreshToken(): string | null {
     purgeLegacyCredentialStorage();
+    if (memoryRefreshToken) return memoryRefreshToken;
+    if (sessionStore) {
+      const v = sessionStore.getItem(SESSION_KEY_REFRESH);
+      if (v) memoryRefreshToken = v;
+    }
     return memoryRefreshToken;
   },
   setTokens(access: string, refresh: string) {
     purgeLegacyCredentialStorage();
     memoryAccessToken = access;
     memoryRefreshToken = refresh;
+    if (sessionStore) {
+      sessionStore.setItem(SESSION_KEY_ACCESS, access);
+      sessionStore.setItem(SESSION_KEY_REFRESH, refresh);
+    }
   },
   clearTokens() {
     memoryAccessToken = null;
     memoryRefreshToken = null;
+    if (sessionStore) {
+      sessionStore.removeItem(SESSION_KEY_ACCESS);
+      sessionStore.removeItem(SESSION_KEY_REFRESH);
+    }
     purgeLegacyCredentialStorage();
   },
   getUser<T>(): T | null {
     purgeLegacyCredentialStorage();
+    if (memoryUser) return memoryUser as T;
+    if (sessionStore) {
+      const raw = sessionStore.getItem(SESSION_KEY_USER);
+      if (raw) {
+        try {
+          memoryUser = JSON.parse(raw);
+        } catch {
+          sessionStore.removeItem(SESSION_KEY_USER);
+        }
+      }
+    }
     return (memoryUser as T | null) || null;
   },
   setUser(user: unknown) {
     purgeLegacyCredentialStorage();
     memoryUser = user;
+    if (sessionStore) {
+      try {
+        sessionStore.setItem(SESSION_KEY_USER, JSON.stringify(user));
+      } catch {
+        // 忽略序列化失败
+      }
+    }
   },
   clearUser() {
     memoryUser = null;
+    if (sessionStore) {
+      sessionStore.removeItem(SESSION_KEY_USER);
+    }
     purgeLegacyCredentialStorage();
   },
 };
@@ -122,25 +174,30 @@ function buildQueryString(params: Record<string, unknown>): string {
   return `?${search}`;
 }
 
-/** 解析后端响应（兼容 success/code 两种格式） */
+/** 解析后端响应（兼容多种包装格式） */
 function unwrapResponse<T>(data: unknown): T {
   if (data && typeof data === 'object') {
     const obj = data as ApiResponse<T>;
-    // { success: true, data: ... }
-    if ('success' in obj && obj.success === true && 'data' in obj) {
-      return obj.data as T;
-    }
-    // { code: 200, data: ... }
-    if ('code' in obj && (obj.code === 200 || obj.code === 0) && 'data' in obj) {
-      return obj.data as T;
-    }
-    // { error: "..." } 或 { message: "..." }
-    if ('error' in obj || 'message' in obj) {
+    // { error: "..." } 业务错误（优先判断）
+    if ('error' in obj && obj.error) {
       const msg =
         (typeof obj.error === 'string' ? obj.error : obj.error?.message) ||
         obj.message ||
         '请求失败';
       throw new AppError(msg, undefined, 'BUSINESS_ERROR');
+    }
+    // 后端统一响应格式：{ success: true, data: ... }
+    if ('success' in obj && obj.success === true && 'data' in obj) {
+      return obj.data as T;
+    }
+    // 后端统一响应格式：{ code: 200, data: ... }
+    if ('code' in obj && (obj.code === 200 || obj.code === 0) && 'data' in obj) {
+      return obj.data as T;
+    }
+    // 后端部分接口仅返回 { data: ... } 而无 success/code 字段（如 dashboard/metrics）
+    // 此时只要对象有 data 字段就解包（业务字段用 items/positions 不会冲突）
+    if ('data' in obj && obj.data !== undefined) {
+      return obj.data as T;
     }
   }
   return data as T;

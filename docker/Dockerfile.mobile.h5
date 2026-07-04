@@ -1,0 +1,18 @@
+FROM docker.1ms.run/node:20-slim
+
+WORKDIR /app
+
+RUN npm config set registry https://registry.npmmirror.com
+
+COPY mobile/package*.json ./
+RUN npm install
+
+COPY mobile/ .
+
+ENV NODE_ENV=development
+ENV TARO_APP_API_URL=/api/v1
+ENV TARO_APP_MOCK=false
+
+EXPOSE 10086
+
+CMD ["npm", "run", "dev:h5"]

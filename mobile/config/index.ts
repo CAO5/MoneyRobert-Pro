@@ -82,7 +82,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
         pxtransform: {
           enable: true,
           config: {
-            selectorBlackList: ['body'],
+            // 'nut-' 前缀避免 NutUI 组件 px 被转换为 rpx/rem
+            selectorBlackList: ['body', 'nut-'],
             baseFontSize: 37.5,
             unitPrecision: 5,
           },

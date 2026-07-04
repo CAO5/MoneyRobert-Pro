@@ -1,57 +1,86 @@
 @use '@/styles/variables.scss' as *;
 
+// ============================================
+// 页面根
+// ============================================
 .page {
   min-height: 100vh;
-  background: #f4f6f8;
-  color: #111827;
+  background: $color-bg-page;
+  color: $color-text-primary;
 }
 
+// ============================================
+// 1. 顶部品牌栏
+// ============================================
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(24rpx + env(safe-area-inset-top)) 32rpx 22rpx;
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1rpx solid rgba(17, 24, 39, 0.06);
+  padding: calc(#{$spacing-md} + env(safe-area-inset-top)) $spacing-lg $spacing-sm;
+  background: $color-bg-card;
+  border-bottom: 1rpx solid $color-border;
+}
+
+.brandBlock {
+  flex: 1;
+  min-width: 0;
 }
 
 .brand {
   display: block;
-  font-size: 34rpx;
+  font-size: $font-size-lg;
   line-height: 1.2;
-  font-weight: 800;
+  font-weight: $font-weight-bold;
   letter-spacing: -1rpx;
+  color: $color-primary;
 }
 
 .hello {
   display: block;
-  margin-top: 5rpx;
-  color: #8a919f;
-  font-size: 22rpx;
+  margin-top: 6rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
 }
 
 .topActions {
   display: flex;
   align-items: center;
-  gap: 14rpx;
+  gap: $spacing-sm;
 }
 
 .searchButton,
 .bellButton {
   height: 64rpx;
-  border-radius: 32rpx;
-  background: #f2f4f7;
+  border-radius: $radius-round;
+  background: $color-bg-subtle;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3b4351;
-  font-size: 23rpx;
+  color: $color-text-secondary;
   position: relative;
+  border: none;
 }
 
-.searchButton { width: 64rpx; }
-.bellButton { padding: 0 24rpx; }
-.searchGlyph { font-size: 38rpx; transform: rotate(-15deg); }
+.searchButton {
+  width: 64rpx;
+  padding: 0;
+}
+
+.bellButton {
+  width: 64rpx;
+  padding: 0;
+}
+
+.searchGlyph {
+  font-size: 38rpx;
+  transform: rotate(-15deg);
+  color: $color-text-secondary;
+}
+
+.bellGlyph {
+  font-size: 30rpx;
+  line-height: 1;
+}
 
 .badge {
   position: absolute;
@@ -60,8 +89,8 @@
   min-width: 28rpx;
   height: 28rpx;
   padding: 0 6rpx;
-  border-radius: 20rpx;
-  background: #ff5a55;
+  border-radius: $radius-round;
+  background: $color-error;
   color: #fff;
   border: 3rpx solid #fff;
   font-size: 18rpx;
@@ -69,186 +98,548 @@
   text-align: center;
 }
 
+// ============================================
+// 滚动容器
+// ============================================
 .scroll {
   height: calc(100vh - 116rpx - env(safe-area-inset-top));
   box-sizing: border-box;
 }
 
-.marketPulse {
-  display: flex;
-  align-items: center;
-  margin: 24rpx 28rpx 18rpx;
-  padding: 18rpx 22rpx;
-  border: 1rpx solid #e6e9ee;
-  border-radius: 18rpx;
-  background: #fff;
-}
-
-.pulseDot {
-  width: 14rpx;
-  height: 14rpx;
-  margin-right: 18rpx;
-  border-radius: 50%;
-  box-shadow: 0 0 0 8rpx rgba(245, 158, 11, 0.12);
-  background: #f59e0b;
-  &.bullish { background: #ef4444; box-shadow: 0 0 0 8rpx rgba(239, 68, 68, 0.1); }
-  &.bearish { background: #10b981; box-shadow: 0 0 0 8rpx rgba(16, 185, 129, 0.1); }
-}
-
-.marketCopy { flex: 1; min-width: 0; }
-.marketSession { display: block; font-size: 24rpx; font-weight: 650; color: #323946; }
-.marketSummary { display: block; margin-top: 4rpx; font-size: 21rpx; color: #9298a4; }
-.chevron { color: #b4bac4; font-size: 38rpx; }
-
+// ============================================
+// 2. 资产总览卡片
+// ============================================
 .assetCard {
-  margin: 0 28rpx 34rpx;
-  padding: 30rpx 28rpx 20rpx;
-  border-radius: 28rpx;
+  margin: $spacing-md $spacing-lg $spacing-lg;
+  padding: $spacing-md $spacing-md $spacing-sm;
+  border-radius: $radius-xl;
   color: #fff;
-  background: linear-gradient(145deg, #171c27 0%, #252d3e 65%, #333d51 100%);
-  box-shadow: 0 18rpx 40rpx rgba(17, 24, 39, 0.17);
+  background: linear-gradient(145deg, $color-primary-dark 0%, $color-primary 60%, $color-primary-light 100%);
+  box-shadow: $shadow-glow;
   overflow: hidden;
 }
 
-.assetTop,
-.pnlRow,
-.confidenceMeta,
-.quoteTop,
-.valueHeader,
-.trialRow {
+.assetTop {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
-.eyebrow { color: #aeb6c5; font-size: 23rpx; }
-.assetValueRow { display: flex; align-items: baseline; margin-top: 10rpx; }
-.assetValue { font-size: 48rpx; line-height: 1.2; font-weight: 750; letter-spacing: -1rpx; font-variant-numeric: tabular-nums; }
-.eyeButton { margin-left: 18rpx; color: #919aac; font-size: 20rpx; }
-.syncPill { padding: 8rpx 15rpx; border-radius: 20rpx; background: rgba(74, 222, 128, 0.11); color: #75e69c; font-size: 20rpx; }
+.eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: $font-size-xs;
+}
 
-.pnlRow { margin-top: 30rpx; }
-.pnlLabel { display: block; color: #929bad; font-size: 21rpx; }
-.pnlValue { display: block; margin-top: 5rpx; color: #ff8e8a; font-size: 26rpx; font-weight: 650; font-variant-numeric: tabular-nums; }
-.miniChart { height: 72rpx; width: 210rpx; display: flex; align-items: flex-end; gap: 6rpx; }
-.chartBar { flex: 1; min-height: 7rpx; border-radius: 5rpx; background: linear-gradient(180deg, #82e2ca, #36b99b); opacity: 0.85; }
+.assetValueRow {
+  display: flex;
+  align-items: baseline;
+  margin-top: $spacing-xs;
+}
+
+.assetValue {
+  font-size: $font-size-xxl;
+  line-height: 1.2;
+  font-weight: $font-weight-bold;
+  letter-spacing: -1rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.eyeButton {
+  margin-left: $spacing-sm;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: $font-size-xs;
+  padding: 0;
+}
+
+.pnlBlock {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pnlLabel {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: $font-size-xs;
+}
+
+.pnlValue {
+  display: block;
+  margin-top: 6rpx;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+
+  &.up {
+    color: #ffe2e0;
+  }
+
+  &.down {
+    color: #d4ffe0;
+  }
+}
+
+.up {
+  color: $color-up;
+}
+
+.down {
+  color: $color-down;
+}
+
+.miniChart {
+  height: 80rpx;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 6rpx;
+  margin-top: $spacing-md;
+}
+
+.chartBar {
+  flex: 1;
+  min-height: 8rpx;
+  border-radius: 6rpx 6rpx 2rpx 2rpx;
+  transition: height $transition-base;
+
+  &.barUp {
+    background: linear-gradient(180deg, #ffd6d6, $color-up);
+    opacity: 0.9;
+  }
+
+  &.barDown {
+    background: linear-gradient(180deg, #b8f5cc, $color-down);
+    opacity: 0.9;
+  }
+}
 
 .rangeTabs {
   display: flex;
   align-items: center;
-  margin-top: 26rpx;
-  padding-top: 18rpx;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.08);
+  gap: $spacing-xs;
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.15);
 }
 
 .rangeTab {
-  padding: 8rpx 15rpx;
-  border-radius: 18rpx;
-  color: #858fa2;
-  font-size: 21rpx;
+  padding: 8rpx 20rpx;
+  border-radius: $radius-round;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: $font-size-xs;
+  transition: all $transition-fast;
 }
 
-.rangeActive { color: #fff; background: rgba(255, 255, 255, 0.12); }
-.assetDetail { margin-left: auto; color: #c5cad4; font-size: 21rpx; }
+.rangeActive {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: $font-weight-semibold;
+}
 
+// ============================================
+// 区块标题
+// ============================================
 .sectionHeader {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin: 0 30rpx 17rpx;
+  margin: 0 $spacing-lg $spacing-sm;
 }
 
-.sectionTitle { display: block; font-size: 32rpx; line-height: 1.3; font-weight: 750; letter-spacing: -0.5rpx; }
-.sectionHint { display: block; margin-top: 5rpx; color: #969ca8; font-size: 21rpx; }
-.sectionLink { color: #606978; font-size: 23rpx; padding: 10rpx 0; }
-.aiTag { padding: 8rpx 14rpx; border-radius: 10rpx; background: #e9f8f2; color: #178562; font-size: 19rpx; font-weight: 650; }
-
-.insightCard {
-  margin: 0 28rpx 20rpx;
-  padding: 27rpx;
-  border: 1rpx solid #e4e7ec;
-  border-radius: 24rpx;
-  background: #fff;
-  box-shadow: 0 6rpx 20rpx rgba(17, 24, 39, 0.045);
+.sectionTitle {
+  display: block;
+  font-size: $font-size-lg;
+  line-height: 1.3;
+  font-weight: $font-weight-bold;
+  letter-spacing: -0.5rpx;
+  color: $color-text-primary;
 }
 
-.insightHeader { display: flex; align-items: center; }
-.symbolAvatar { width: 64rpx; height: 64rpx; border-radius: 19rpx; display: flex; align-items: center; justify-content: center; background: #fff4df; color: #b8690e; font-size: 28rpx; font-weight: 750; }
-.symbolCopy { flex: 1; margin-left: 17rpx; }
-.symbolName { display: block; font-size: 27rpx; font-weight: 700; }
-.expire { display: block; margin-top: 3rpx; color: #9aa0ab; font-size: 20rpx; }
-.actionTag { padding: 9rpx 18rpx; border-radius: 20rpx; background: #fff6e6; color: #bd741c; font-size: 22rpx; font-weight: 650; }
-.insightTitle { display: block; margin-top: 24rpx; font-size: 34rpx; line-height: 1.35; font-weight: 760; }
-.insightReason { display: block; margin-top: 12rpx; color: #666e7c; font-size: 24rpx; line-height: 1.65; }
-.confidenceRow { margin-top: 21rpx; }
-.confidenceMeta { color: #858c99; font-size: 20rpx; }
-.confidenceTrack { height: 8rpx; margin-top: 10rpx; border-radius: 8rpx; background: #eef0f3; overflow: hidden; }
-.confidenceFill { height: 100%; border-radius: 8rpx; background: linear-gradient(90deg, #36b99b, #7ad5be); }
-.insightAction { display: flex; justify-content: space-between; margin-top: 22rpx; padding-top: 20rpx; border-top: 1rpx solid #eef0f3; color: #1c765e; font-size: 23rpx; font-weight: 650; }
+.sectionHint {
+  display: block;
+  margin-top: 6rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
 
-.riskStrip {
+.aiTag {
+  padding: 8rpx 14rpx;
+  border-radius: $radius-xs;
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-size: 19rpx;
+  font-weight: $font-weight-semibold;
+}
+
+// ============================================
+// 3. AI 当前观点卡片
+// ============================================
+.aiCard {
+  margin: 0 $spacing-lg $spacing-md;
+  padding: $spacing-md;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+  transition: box-shadow $transition-fast;
+
+  &:active {
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.aiHeader {
   display: flex;
   align-items: center;
-  margin: 0 28rpx 36rpx;
-  padding: 20rpx 22rpx;
-  border-radius: 18rpx;
-  border: 1rpx solid #f4ded9;
-  background: #fff8f6;
 }
 
-.riskIcon { width: 46rpx; height: 46rpx; border-radius: 14rpx; display: flex; align-items: center; justify-content: center; background: #ef695c; color: #fff; font-size: 24rpx; font-weight: 800; }
-.riskCopy { flex: 1; min-width: 0; margin-left: 16rpx; }
-.riskLabel { display: block; color: #c24f44; font-size: 19rpx; }
-.riskTitle { display: block; margin-top: 3rpx; color: #4b3432; font-size: 22rpx; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.riskAction { margin-left: 14rpx; color: #b8483e; font-size: 21rpx; font-weight: 650; }
+.symbolAvatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+}
 
-.watchScroll { width: 100%; margin-bottom: 36rpx; white-space: nowrap; }
-.watchRow { display: inline-flex; gap: 16rpx; padding: 0 28rpx; }
-.quoteCard,
-.addQuote {
-  width: 238rpx;
+.symbolCopy {
+  flex: 1;
+  min-width: 0;
+  margin-left: $spacing-sm;
+}
+
+.symbolName {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.expire {
+  display: block;
+  margin-top: 4rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.actionTag {
+  flex-shrink: 0;
+  padding: 8rpx 18rpx;
+  border-radius: $radius-round;
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.insightTitle {
+  display: block;
+  margin-top: $spacing-md;
+  font-size: $font-size-md;
+  line-height: 1.5;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.confidenceRow {
+  margin-top: $spacing-sm;
+}
+
+.confidenceMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.confidenceTrack {
+  height: 8rpx;
+  margin-top: 10rpx;
+  border-radius: $radius-round;
+  background: $color-bg-subtle;
+  overflow: hidden;
+}
+
+.confidenceFill {
+  height: 100%;
+  border-radius: $radius-round;
+  background: linear-gradient(90deg, $color-primary, $color-primary-light);
+  transition: width $transition-slow;
+}
+
+.insightAction {
+  display: flex;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-border;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+// ============================================
+// 空状态卡片
+// ============================================
+.emptyCard {
+  margin: 0 $spacing-lg $spacing-md;
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160rpx;
+}
+
+// ============================================
+// 4. 市场新闻板块（横向滚动）
+// ============================================
+.newsScroll {
+  width: 100%;
+  margin-bottom: $spacing-md;
+  white-space: nowrap;
+}
+
+.newsRow {
+  display: inline-flex;
+  gap: $spacing-sm;
+  padding: 0 $spacing-lg;
+}
+
+.newsCard {
+  display: inline-flex;
+  flex-direction: column;
+  width: 420rpx;
   box-sizing: border-box;
-  padding: 22rpx;
-  border: 1rpx solid #e5e8ed;
-  border-radius: 21rpx;
-  background: #fff;
+  padding: $spacing-sm;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+  white-space: normal;
+  vertical-align: top;
+  transition: box-shadow $transition-fast;
+
+  &:active {
+    box-shadow: $shadow-card-hover;
+  }
 }
 
-.quoteName { font-size: 24rpx; font-weight: 700; }
-.quoteUp { color: #e25750; font-size: 21rpx; }
-.quoteDown { color: #17a277; font-size: 21rpx; }
-.quotePrice { display: block; margin-top: 18rpx; font-size: 30rpx; font-weight: 720; font-variant-numeric: tabular-nums; }
-.quoteSignal { display: block; margin-top: 7rpx; color: #939aa6; font-size: 20rpx; }
-.addQuote { display: inline-flex; min-height: 160rpx; flex-direction: column; align-items: center; justify-content: center; color: #949ba7; font-size: 21rpx; border-style: dashed; }
-.addGlyph { display: block; margin-bottom: 8rpx; font-size: 36rpx; color: #626b79; }
-
-.valueCard {
-  margin: 0 28rpx 26rpx;
-  padding: 26rpx;
-  border-radius: 24rpx;
-  color: #ecf0f6;
-  background: linear-gradient(140deg, #273143, #1d2432);
+.newsTagRow {
+  margin-bottom: $spacing-xs;
 }
 
-.valueEyebrow { display: block; color: #9ea9bb; font-size: 20rpx; }
-.valueTitle { display: block; margin-top: 5rpx; font-size: 27rpx; font-weight: 700; }
-.proBadge { padding: 8rpx 13rpx; border: 1rpx solid #e7ca8d; border-radius: 10rpx; color: #f0d494; font-size: 18rpx; font-weight: 800; letter-spacing: 1rpx; }
-.valueStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10rpx; margin-top: 25rpx; }
-.valueStats > view { border-right: 1rpx solid rgba(255, 255, 255, 0.09); &:last-child { border-right: 0; } }
-.valueNumber { display: block; font-size: 29rpx; font-weight: 750; color: #fff; }
-.valueLabel { display: block; margin-top: 5rpx; color: #929daf; font-size: 19rpx; }
-.trialRow { margin-top: 23rpx; padding-top: 18rpx; border-top: 1rpx solid rgba(255, 255, 255, 0.09); color: #a7afbd; font-size: 20rpx; }
-.proLink { color: #efd28f; }
-.disclaimer { padding: 0 44rpx calc(42rpx + env(safe-area-inset-bottom)); text-align: center; color: #a5abb4; font-size: 19rpx; line-height: 1.6; }
+.newsSentiment {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: 19rpx;
+  display: inline-flex;
+}
 
+.newsTitle {
+  display: -webkit-box;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  max-height: 108rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.newsMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-xs;
+}
+
+.newsSource {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  max-width: 240rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newsTime {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  flex-shrink: 0;
+}
+
+// ============================================
+// 6. 持仓相关新闻
+// ============================================
+.positionNewsList {
+  margin: 0 $spacing-lg $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.positionNewsItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1rpx solid $color-border;
+  transition: background $transition-fast;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.positionSymbol {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  margin-top: 4rpx;
+}
+
+.positionNewsBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.positionNewsTitle {
+  display: -webkit-box;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.positionNewsMeta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: 8rpx;
+}
+
+// ============================================
+// 7. 系统运行状态
+// ============================================
+.healthCard {
+  margin: 0 $spacing-lg $spacing-md;
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1rpx solid $color-border;
+  box-shadow: $shadow-card;
+}
+
+.healthRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.healthItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.healthDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+
+  &.dotOk {
+    background: $color-success;
+    box-shadow: 0 0 0 6rpx rgba(0, 180, 42, 0.12);
+  }
+
+  &.dotFail {
+    background: $color-error;
+    box-shadow: 0 0 0 6rpx rgba(245, 63, 63, 0.12);
+  }
+}
+
+.healthLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.healthMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.healthVersion {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  font-variant-numeric: tabular-nums;
+}
+
+.healthEnv {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+// ============================================
+// 免责声明
+// ============================================
+.disclaimer {
+  padding: 0 44rpx calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+// ============================================
+// 加载态占位
+// ============================================
 .loadingHero,
 .loadingCard {
-  margin: 26rpx 28rpx;
-  border-radius: 26rpx;
-  background: linear-gradient(100deg, #eef0f3 20%, #f8f9fa 40%, #eef0f3 60%);
+  margin: $spacing-md $spacing-lg;
+  border-radius: $radius-xl;
+  background: linear-gradient(100deg, $color-bg-subtle 20%, $color-bg-hover 40%, $color-bg-subtle 60%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite linear;
 }
-.loadingHero { height: 310rpx; }
-.loadingCard { height: 260rpx; }
-@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+.loadingHero {
+  height: 310rpx;
+}
+
+.loadingCard {
+  height: 200rpx;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

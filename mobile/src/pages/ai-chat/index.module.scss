@@ -1,0 +1,96 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+.sessionBar {
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  @include hairline-bottom;
+}
+
+.sessionScroll {
+  white-space: nowrap;
+}
+
+.sessionTag {
+  display: inline-block;
+  padding: $spacing-xs $spacing-md;
+  margin-right: $spacing-sm;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &.active {
+    background: $color-primary-bg;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.messageList {
+  flex: 1;
+  padding: $spacing-md $page-padding;
+  height: 0;
+}
+
+.msgSkeleton {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-xl;
+  box-shadow: $shadow-card;
+}
+
+.messageItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &.user {
+    background: $color-primary-bg;
+  }
+}
+
+.messageContent {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+  margin: $spacing-sm 0;
+}
+
+.messageTime {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-variant-numeric: tabular-nums;
+}
+
+.inputBar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  background: $color-bg-card;
+  @include hairline-top;
+}
+
+.input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 $spacing-md;
+  background: $color-bg-subtle;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}

@@ -1,6 +1,10 @@
 @use '@/styles/compat.scss';
 @use '@/styles/variables.scss' as *;
 
+// NutUI-React Taro 全局样式（按需引入可在 babel 配置 babel-plugin-import；
+// 此处采用全量引入以避免路径转换复杂度，webpack 仍会对组件 JS 做 tree-shaking）
+@import '@nutui/nutui-react-taro/dist/style.css';
+
 // ============================================
 // 全局基础样式（浅色主流移动端金融 App 风格）
 // 设计理念：浅灰底 + 白色卡片 + 轻阴影 + 清晰层级
@@ -14,6 +18,8 @@ page {
   color: $color-text-primary;
   background-color: $color-bg-page;
   -webkit-overflow-scrolling: touch;
+  // 为自定义 tabBar 预留底部空间
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
 }
 
 // ============================================

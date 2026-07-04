@@ -1,0 +1,560 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// Agent 管理页（浅色主流移动端金融 App 风格）
+// 设计：白底 + 金融蓝主色 + 卡片式布局 + 状态标签
+// 参考：招商银行 / 蚂蚁财富 等主流金融 App
+// ============================================
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  color: $color-text-primary;
+}
+
+// 顶部标题栏（tabBar 自定义导航）
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(#{$spacing-lg} + env(safe-area-inset-top)) $page-padding $spacing-md;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1rpx solid rgba(17, 24, 39, 0.06);
+}
+
+.brand {
+  display: block;
+  font-size: 34rpx;
+  line-height: 1.2;
+  font-weight: $font-weight-bold;
+  letter-spacing: -1rpx;
+  color: $color-text-primary;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 6rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.scroll {
+  height: calc(100vh - 116rpx - env(safe-area-inset-top));
+  box-sizing: border-box;
+}
+
+// 未登录占位
+.notAuth {
+  padding: $spacing-2xl $page-padding;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 骨架占位
+.skeletonCard {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+}
+
+// ============================================
+// 1. 顶部汇总卡片
+// ============================================
+.summaryCard {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.summaryTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  letter-spacing: 1rpx;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-sm;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summaryValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+  color: $color-text-primary;
+  line-height: 1.2;
+}
+
+.summaryLabel {
+  display: block;
+  margin-top: 6rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.textSuccess { color: $color-success; }
+.textPrimary { color: $color-primary; }
+.textWarning { color: $color-warning; }
+.textError { color: $color-error; }
+
+// ============================================
+// 3. 操作按钮组
+// ============================================
+.actionGroup {
+  display: flex;
+  gap: $spacing-sm;
+  margin: 0 $page-padding $spacing-md;
+}
+
+.actionPrimary,
+.actionDanger,
+.actionSim {
+  flex: 1;
+}
+
+.actionDanger {
+  background: $color-error;
+  color: $color-text-white;
+}
+
+.actionSim {
+  background: $color-bg-subtle;
+  color: $color-text-primary;
+}
+
+// ============================================
+// 通用卡片 / 区块
+// ============================================
+.sectionCard {
+  margin: 0 $page-padding $spacing-md;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+// 模拟状态
+.simBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.simRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+}
+
+.simLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.simValue {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  max-width: 60%;
+  @include text-ellipsis;
+}
+
+// 区块标题
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: $spacing-lg $page-padding $spacing-sm;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sectionHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.emptyWrap {
+  padding: $spacing-xl 0;
+}
+
+// ============================================
+// 2. Agent 列表卡片
+// ============================================
+.agentCard {
+  margin: 0 $page-padding $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.agentHead {
+  position: relative;
+  padding: $spacing-lg;
+}
+
+.agentInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.agentNameRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex: 1;
+  min-width: 0;
+}
+
+.agentName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.versionTag {
+  flex-shrink: 0;
+}
+
+.statusTag {
+  flex-shrink: 0;
+  margin-left: $spacing-xs;
+}
+
+// 准确率进度条
+.accBlock {
+  margin-bottom: $spacing-md;
+}
+
+.accLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.accValue {
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// 交易统计
+.tradeStats {
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.tradeItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tradeLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tradeValue {
+  margin-top: 4rpx;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// 展开箭头
+.agentChevron {
+  position: absolute;
+  right: $spacing-lg;
+  bottom: $spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevron {
+  font-size: 44rpx;
+  color: $color-text-tertiary;
+  transform: rotate(90deg);
+  transition: transform $transition-base;
+  line-height: 1;
+}
+
+.chevronUp {
+  transform: rotate(-90deg);
+}
+
+// ============================================
+// Agent 详情展开区
+// ============================================
+.agentDetail {
+  padding: 0 $spacing-lg $spacing-lg;
+  position: relative;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 1rpx;
+    background: $color-divider;
+    margin-bottom: $spacing-md;
+    transform: scaleY(0.5);
+  }
+}
+
+// Tab 切换
+.tabBar {
+  display: flex;
+  background: $color-bg-subtle;
+  border-radius: $radius-md;
+  padding: 4rpx;
+  margin-bottom: $spacing-md;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-base;
+
+  &.tabActive {
+    background: $color-bg-card;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+    box-shadow: $shadow-card;
+  }
+}
+
+.tabPanel {
+  min-height: 200rpx;
+}
+
+// 详情网格（2 列）
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.detailValue {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+// 子区块（按品种 / 按周期分布）
+.subBlock {
+  margin-top: $spacing-lg;
+}
+
+.subTitle {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.distRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs 0;
+}
+
+.distLabel {
+  width: 140rpx;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.distTrack {
+  flex: 1;
+  margin: 0 $spacing-sm;
+}
+
+.distValue {
+  width: 100rpx;
+  text-align: right;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+// ============================================
+// 7. 权限 Tab
+// ============================================
+.permRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md 0;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+}
+
+.permLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.permValue {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.tagWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  justify-content: flex-end;
+  max-width: 70%;
+}
+
+.permTag {
+  margin: 0;
+}
+
+.permEmpty {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+// ============================================
+// 8. 日志 Tab
+// ============================================
+.logFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.logFilterItem {
+  padding: 6rpx $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-subtle;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+}
+
+.logFilterActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.logItem {
+  padding: $spacing-sm 0;
+  position: relative;
+
+  &:not(:last-child) {
+    @include hairline-bottom;
+  }
+}
+
+.logHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+}
+
+.logTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-variant-numeric: tabular-nums;
+}
+
+.logMsg {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+  word-break: break-all;
+}
+
+// ============================================
+// 底部声明
+// ============================================
+.disclaimer {
+  padding: $spacing-lg $page-padding calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  line-height: $line-height-loose;
+}

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Textarea, Button } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
+import { Empty, Skeleton, Tag } from '@nutui/nutui-react-taro';
 import { todoService } from '@/services/todo';
 import type { TodoDetail } from '@/types/todo';
 import { TODO_TYPE_LABELS, TODO_PRIORITY_LABELS, TODO_STATUS_LABELS } from '@/types/todo';
-import Tag from '@/components/Tag';
-import EmptyState from '@/components/EmptyState';
 import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
@@ -68,7 +67,7 @@ const TodoDetailPage: React.FC = () => {
   if (loading) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('加载中...')} />
+        <Skeleton rows={5} animated />
       </View>
     );
   }
@@ -76,13 +75,16 @@ const TodoDetailPage: React.FC = () => {
   if (!todo) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('待办不存在')} actionText={t('返回')} onAction={handleBack} />
+        <Empty
+          title={t('待办不存在')}
+          actions={[{ text: t('返回'), type: 'primary', onClick: handleBack }]}
+        />
       </View>
     );
   }
 
   const isProcessed = todo.status !== 'pending';
-  const priorityVariant = todo.priority === 'critical' ? 'error' : todo.priority === 'high' ? 'warning' : 'default';
+  const priorityType = todo.priority === 'critical' ? 'danger' : todo.priority === 'high' ? 'warning' : 'default';
 
   return (
     <View className={styles.detailPage}>
@@ -96,12 +98,12 @@ const TodoDetailPage: React.FC = () => {
         <Text className={styles.todoTitle}>{t(todo.title)}</Text>
         <Text className={styles.todoDesc}>{t(todo.description)}</Text>
         <View className={styles.metaRow}>
-          <Tag variant={priorityVariant}>{t(TODO_PRIORITY_LABELS[todo.priority])}</Tag>
-          <Tag variant={todo.status === 'pending' ? 'primary' : 'default'}>
+          <Tag type={priorityType}>{t(TODO_PRIORITY_LABELS[todo.priority])}</Tag>
+          <Tag type={todo.status === 'pending' ? 'primary' : 'default'}>
             {t(TODO_STATUS_LABELS[todo.status])}
           </Tag>
-          <Tag variant="default">{t(TODO_TYPE_LABELS[todo.type])}</Tag>
-          {todo.symbol && <Tag variant="primary">{todo.symbol}</Tag>}
+          <Tag type="default">{t(TODO_TYPE_LABELS[todo.type])}</Tag>
+          {todo.symbol && <Tag type="primary">{todo.symbol}</Tag>}
         </View>
       </View>
 
@@ -119,7 +121,7 @@ const TodoDetailPage: React.FC = () => {
             <View className={styles.contextItem}>
               <Text className={styles.contextLabel}>{t('最大可接受损失')}</Text>
               <Text className={`${styles.contextValue} ${styles.negative}`}>
-                {todo.context.max_acceptable_loss.toLocaleString()}
+                {(todo.context.max_acceptable_loss ?? 0).toLocaleString()}
               </Text>
             </View>
           )}
@@ -127,7 +129,7 @@ const TodoDetailPage: React.FC = () => {
             <View className={styles.contextItem}>
               <Text className={styles.contextLabel}>{t('当前损失')}</Text>
               <Text className={`${styles.contextValue} ${styles.negative}`}>
-                {todo.context.current_loss.toLocaleString()}
+                {(todo.context.current_loss ?? 0).toLocaleString()}
               </Text>
             </View>
           )}

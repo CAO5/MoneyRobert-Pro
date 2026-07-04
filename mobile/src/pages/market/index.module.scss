@@ -1,0 +1,462 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 行情 / 持仓页（浅色主流移动端金融 App 风格）
+// 设计：品牌蓝渐变头部（模式切换 + Tab 栏）+ 白色卡片列表 + 涨跌色清晰
+// 参考：雪球 App 行情页 / 蚂蚁财富 资讯页
+// ============================================
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+// ---------- 顶部头部（品牌蓝渐变） ----------
+.header {
+  background: $gradient-primary;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 0 $page-padding;
+  padding-top: calc(#{$spacing-sm} + env(safe-area-inset-top));
+  padding-bottom: $spacing-sm;
+  box-shadow: $shadow-card;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.modeLabel {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.modeToggle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.modeSwitch {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+// Tab 行
+.tabRow {
+  display: flex;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.7);
+  position: relative;
+  transition: color $transition-base;
+
+  &:active {
+    color: $color-text-white;
+  }
+
+  &.active {
+    color: $color-text-white;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: -#{$spacing-sm};
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: $color-text-white;
+  border-radius: $radius-round;
+}
+
+// ---------- 内容区 ----------
+.content {
+  flex: 1;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom) + 160rpx);
+}
+
+.loginEmpty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl $page-padding;
+}
+
+// ---------- 情绪计（恐惧贪婪指数） ----------
+.gaugeCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.gaugeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.gaugeTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.gaugeRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xs;
+}
+
+.gaugeValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  min-width: 80rpx;
+}
+
+// 渐变轨道：左端恐惧（蓝/冷），右端贪婪（橙/暖）
+.gaugeTrack {
+  flex: 1;
+  height: 16rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(90deg, #165dff 0%, #86909c 50%, #ff7d00 100%);
+  position: relative;
+}
+
+.gaugeMarker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: $color-text-white;
+  border: 4rpx solid $color-primary;
+  box-shadow: $shadow-card;
+  transition: left $transition-slow;
+}
+
+.gaugeLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// ---------- 行情列表 ----------
+.marketItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.symbolInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.symbolName {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.symbolMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+}
+
+.priceInfo {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: $spacing-md;
+}
+
+.price {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+// 涨跌百分比（红涨绿跌，A 股惯例）
+.changePercent {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-variant-numeric: tabular-nums;
+
+  &.up { color: $color-up; }
+  &.down { color: $color-down; }
+  &.flat { color: $color-flat; }
+}
+
+// ---------- 持仓汇总卡（总权益 + 未实现盈亏 + 收益曲线） ----------
+.summaryCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.summaryTop {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.summaryPnl {
+  text-align: right;
+}
+
+.summaryLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.summaryValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+
+  &.up { color: $color-up; }
+  &.down { color: $color-down; }
+  &.flat { color: $color-flat; }
+}
+
+.curveWrap {
+  margin-bottom: $spacing-md;
+}
+
+.miniChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6rpx;
+  height: 120rpx;
+  padding: $spacing-sm 0;
+  background: $color-bg-subtle;
+  border-radius: $radius-sm;
+}
+
+.chartBar {
+  flex: 1;
+  min-width: 6rpx;
+  background: $gradient-primary;
+  border-radius: $radius-xs $radius-xs 0 0;
+  transition: height $transition-base;
+}
+
+.curveEmpty {
+  flex: 1;
+  text-align: center;
+  align-self: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.rangeTabs {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.rangeTab {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  transition: all $transition-base;
+
+  &.rangeActive {
+    background: $color-primary;
+    color: $color-text-white;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// ---------- 持仓列表 ----------
+.positionItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.posHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.posSymbolWrap {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.posSymbol {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.posStats {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.posCell {
+  width: 50%;
+  margin-bottom: $spacing-sm;
+}
+
+.cellLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.cellValue {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+
+  &.up { color: $color-up; }
+  &.down { color: $color-down; }
+  &.flat { color: $color-flat; }
+}
+
+// ---------- 订单列表 ----------
+.orderItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.orderSymbol {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.orderFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+  @include hairline-top;
+  padding-top: $spacing-sm;
+}
+
+.orderTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-variant-numeric: tabular-nums;
+}
+
+.orderFilled {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+// ---------- 成交记录 ----------
+.tradeItem {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.tradeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}

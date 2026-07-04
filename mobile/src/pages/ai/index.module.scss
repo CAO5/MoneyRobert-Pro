@@ -1,0 +1,576 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// AI 分析页（浅色主流移动端金融 App 风格）
+// 设计：浅灰底 + 白色卡片 + 主色蓝强调 + 涨红跌绿（A股惯例）
+// 参考：招商银行 / 蚂蚁财富 / 雪球 等金融 App 的分析页
+// ============================================
+
+.aiPage {
+  min-height: 100vh;
+  background: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+// 未登录引导
+.loginWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl $page-padding;
+}
+
+// ============ 顶部 Tab 切换 ============
+.tabBar {
+  height: 88rpx;
+  background: $color-bg-card;
+  position: relative;
+  z-index: 10;
+  @include hairline-bottom;
+}
+
+.tabScroll {
+  height: 100%;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.tabList {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 $page-padding;
+}
+
+.tabItem {
+  display: inline-block;
+  padding: 0 $spacing-md;
+  height: 100%;
+  line-height: 88rpx;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  position: relative;
+  transition: color $transition-base;
+  white-space: nowrap;
+
+  &:active {
+    color: $color-text-primary;
+  }
+}
+
+.tabActive {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 12rpx;
+    transform: translateX(-50%);
+    width: 40rpx;
+    height: 6rpx;
+    border-radius: $radius-round;
+    background: $color-primary;
+  }
+}
+
+// ============ 内容滚动区 ============
+.content {
+  flex: 1;
+  height: calc(100vh - 88rpx);
+  box-sizing: border-box;
+}
+
+.tabPane {
+  padding: $spacing-md $page-padding 0;
+}
+
+.bottomSafe {
+  height: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+}
+
+// ============ 卡片 ============
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.clickable {
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+}
+
+// ============ 区块标题 ============
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: $spacing-sm 0 $spacing-sm;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.refreshLink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+// ============ 表单 ============
+.formGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.formLabel {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.nutInput {
+  // NutUI Input 覆盖：浅灰底 + 主色聚焦
+  background: $color-bg-subtle !important;
+  border-radius: $radius-sm !important;
+  padding: 16rpx 24rpx !important;
+  font-size: $font-size-md !important;
+}
+
+// 品种快选 chips
+.symbolScroll {
+  width: 100%;
+  margin-top: $spacing-sm;
+  white-space: nowrap;
+}
+
+.symbolChips {
+  display: inline-flex;
+  gap: $spacing-sm;
+  padding: 4rpx 0;
+}
+
+.symbolChip {
+  display: inline-flex;
+  align-items: center;
+  height: 52rpx;
+  padding: 0 $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-subtle;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+  transition: all $transition-base;
+}
+
+.symbolChipActive {
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+// chip 选择器（周期 / 类型）
+.chipRow {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.chip {
+  flex: 1;
+  min-width: 120rpx;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: $radius-sm;
+  background: $color-bg-subtle;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.chipActive {
+  background: $color-primary-bg;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+// 主操作按钮
+.actionButton {
+  margin-top: $spacing-sm;
+  height: $button-height-md !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-md !important;
+  font-weight: $font-weight-medium !important;
+}
+
+// ============ 分析结果 ============
+.result {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.resultSymbol {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.resultBlock {
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.blockTitle {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.blockText {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+}
+
+// 关键点 / 建议列表
+.bulletList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.bulletItem {
+  display: flex;
+  align-items: flex-start;
+}
+
+.bulletDot {
+  color: $color-primary;
+  font-size: $font-size-lg;
+  line-height: $line-height-normal;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.bulletText {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+}
+
+// ============ 置信度进度条 ============
+.confidence {
+  margin-bottom: $spacing-md;
+}
+
+.confidenceMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.confidenceLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.confidenceValue {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.confidenceTrack {
+  height: 12rpx;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.confidenceFill {
+  height: 100%;
+  background: $gradient-primary;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+}
+
+// ============ 立场标签（A股惯例：红涨绿跌） ============
+.stanceTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx $spacing-sm;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.stanceBullish {
+  background: $color-tag-bg-error;
+  color: $color-up;
+}
+
+.stanceBearish {
+  background: $color-tag-bg-success;
+  color: $color-down;
+}
+
+.stanceNeutral {
+  background: $color-tag-bg-neutral;
+  color: $color-text-tertiary;
+}
+
+// ============ 列表项 ============
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.symbolRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.listTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.listSummary {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-sm;
+  @include text-ellipsis-multi(2);
+}
+
+.listFooter {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.listFooter .confidence {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.listTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.listLink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+}
+
+// 持仓盈亏色（红涨绿跌）
+.pnlUp {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-up;
+  font-variant-numeric: tabular-nums;
+}
+
+.pnlDown {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-down;
+  font-variant-numeric: tabular-nums;
+}
+
+// ============ 市场情绪仪表 ============
+.gaugeCard {
+  background: $gradient-subtle;
+}
+
+.gaugeHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.gaugeEyebrow {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.gaugeValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  letter-spacing: 1rpx;
+}
+
+.gaugeScore {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.gaugeTrack {
+  height: 16rpx;
+  background: $color-bg-subtle;
+  border-radius: $radius-round;
+  overflow: hidden;
+  margin-bottom: $spacing-sm;
+}
+
+.gaugeFill {
+  height: 100%;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+
+  &.gaugeBullish {
+    background: $color-up;
+  }
+
+  &.gaugeBearish {
+    background: $color-down;
+  }
+
+  &.gaugeNeutral {
+    background: $color-text-tertiary;
+  }
+}
+
+.gaugeHint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// ============ 辩论 ============
+.debateEvents {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.debateEvent {
+  padding: $spacing-md;
+  background: $color-bg-subtle;
+  border-radius: $radius-sm;
+  position: relative;
+
+  &:nth-child(odd) {
+    border-left: 6rpx solid $color-up;
+  }
+
+  &:nth-child(even) {
+    border-left: 6rpx solid $color-down;
+  }
+}
+
+.debateEventHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.debateAgent {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.debateMessage {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+}
+
+.recommendCard {
+  margin-top: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $color-primary-bg;
+  border-radius: $radius-sm;
+  border-left: 6rpx solid $color-primary;
+}
+
+.recommendTitle {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-xs;
+}
+
+.recommendText {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-loose;
+}
+
+// ============ 错误 / 空态 ============
+.errorText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg 0;
+  font-size: $font-size-sm;
+  color: $color-error;
+}

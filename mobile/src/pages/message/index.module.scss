@@ -1,9 +1,13 @@
 @use '@/styles/variables.scss' as *;
 
+// Agent 消息紫色（主题未定义，补充业务语义色）
+$color-agent: #7c3aed;
+$color-agent-bg: rgba(124, 58, 237, 0.12);
+
 // ============================================
-// 消息页（浅色主流移动端金融 App 风格）
-// 设计：白色列表项 + 未读红点 + 已读灰字 + 类型彩色图标容器
-// 参考：招商银行 App 消息中心 / 雪球 App 通知
+// 消息中心页（浅色主流移动端金融 App 风格）
+// 结构：统计卡（总/未读 + 类型分布）→ 顶部操作栏（横向 Tab + 全部已读）
+//       → 消息列表（圆形彩色图标 + 标题/内容/时间 + 未读红点）
 // ============================================
 
 .messagePage {
@@ -14,13 +18,115 @@
   flex-direction: column;
 }
 
-// 顶部栏（白色背景 + 主色激活态 + 全部已读按钮）
+// 未登录引导容器（垂直居中）
+.loginWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl $page-padding;
+}
+
+// ============================================
+// 统计卡片：总消息数 + 未读数 + 各类型未读分布
+// ============================================
+.statsCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin: $spacing-md $page-padding 0;
+  box-shadow: $shadow-card;
+}
+
+.statsHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.statsUnread {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-xs;
+}
+
+.statsUnreadNum {
+  font-size: 60rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.statsUnreadLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.statsTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.statsTotalNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1;
+}
+
+.statsTotalLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// 类型未读分布（横向 Tag 行，可点击切换筛选）
+.typeDistribution {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding-top: $spacing-md;
+  @include hairline-top;
+}
+
+.distTagWrap {
+  // 包装层承载点击与置灰，Tag 仅做展示
+  transition: opacity $transition-fast;
+
+  &.dim {
+    opacity: 0.4;
+  }
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+// 覆盖 NutUI Tag 圆角与字号，统一为小号胶囊
+.distTag {
+  font-size: $font-size-xs !important;
+  padding: 4rpx 16rpx !important;
+
+  // 各类型配色（覆盖 NutUI 内置 type，保证 5 类颜色一致）
+  &.trade { background: $color-tag-bg-success !important; color: $color-success !important; border-color: transparent !important; }
+  &.risk { background: $color-tag-bg-error !important; color: $color-error !important; border-color: transparent !important; }
+  &.news { background: $color-tag-bg-primary !important; color: $color-primary !important; border-color: transparent !important; }
+  &.agent { background: $color-agent-bg !important; color: $color-agent !important; border-color: transparent !important; }
+  &.system { background: $color-tag-bg-neutral !important; color: $color-text-secondary !important; border-color: transparent !important; }
+}
+
+// ============================================
+// 顶部操作栏：左筛选 Tab（横向滚动） + 右全部已读按钮
+// ============================================
 .topBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: $spacing-sm;
   background: $color-bg-card;
-  padding: $spacing-md $page-padding;
+  padding: $spacing-sm $page-padding;
+  margin-top: $spacing-md;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -28,43 +134,65 @@
 }
 
 .filterTabs {
-  display: flex;
-  gap: $spacing-xl;
+  flex: 1;
+  white-space: nowrap;
+  overflow-x: auto;
+
+  // 隐藏滚动条（多端兼容）
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .filterTab {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  margin-right: $spacing-sm;
+  border-radius: $radius-round;
   font-size: $font-size-md;
   color: $color-text-secondary;
-  padding: $spacing-xs 0;
-  position: relative;
-  transition: color $transition-base;
+  background: transparent;
+  transition: all $transition-base;
+  flex-shrink: 0;
 
   &:active {
-    color: $color-text-primary;
+    opacity: 0.7;
   }
 
   &.active {
     color: $color-primary;
+    background: $color-primary-bg;
     font-weight: $font-weight-semibold;
   }
 }
 
-.markAll {
-  font-size: $font-size-sm;
-  color: $color-primary;
-
-  &:active {
-    opacity: 0.6;
-  }
+.tabBadge {
+  // NutUI Badge 微调，贴合 Tab 胶囊
+  transform: scale(0.85);
+  transform-origin: center;
 }
 
+.markAllBtn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+// ============================================
+// 消息列表
+// ============================================
 .messageList {
   flex: 1;
   padding: $spacing-lg $page-padding;
   padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom) + 160rpx);
 }
 
-// 消息列表项（白色卡片 + 轻阴影 + 未读状态高亮）
+.skeletonWrap {
+  padding: $spacing-md 0;
+}
+
+// 消息列表项（白色卡片 + 轻阴影 + 未读高亮）
 .messageItem {
   display: flex;
   align-items: flex-start;
@@ -86,7 +214,7 @@
     margin-bottom: 0;
   }
 
-  // 未读消息：左侧主色细条（浅色风格去掉发光）
+  // 未读消息：左侧主色细条
   &.unread {
     &::before {
       content: '';
@@ -101,11 +229,11 @@
   }
 }
 
-// 消息图标容器（类型彩色背景，首字标识类型）
+// 消息图标容器：圆形彩色背景 + 首字标识
 .messageIcon {
   width: 80rpx;
   height: 80rpx;
-  border-radius: $radius-md;
+  border-radius: $radius-round;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,11 +243,11 @@
   margin-top: 4rpx;
   flex-shrink: 0;
 
+  &.trade { background: $color-tag-bg-success; color: $color-success; }
+  &.risk { background: $color-tag-bg-error; color: $color-error; }
+  &.news { background: $color-tag-bg-primary; color: $color-primary; }
+  &.agent { background: $color-agent-bg; color: $color-agent; }
   &.system { background: $color-tag-bg-neutral; color: $color-text-secondary; }
-  &.business { background: $color-tag-bg-primary; color: $color-primary; }
-  &.risk { background: $color-tag-bg-warning; color: $color-risk; }
-  &.approval { background: $color-tag-bg-error; color: $color-error; }
-  &.promotion { background: rgba(247, 186, 30, 0.15); color: $color-premium; }
 }
 
 .messageContent {
@@ -144,7 +272,7 @@
   margin-right: $spacing-sm;
 }
 
-// 已读/时间：辅助灰字
+// 时间：辅助灰字
 .messageTime {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
@@ -158,7 +286,7 @@
   @include text-ellipsis-multi(2);
 }
 
-// 未读红点（小尺寸，浅色风格去掉发光）
+// 未读红点
 .unreadDot {
   width: 16rpx;
   height: 16rpx;

@@ -39,9 +39,14 @@ export const marketService = {
     if (MOCK_ENABLED) {
       return mockMarketRegimes();
     }
-    // 后端 /features/regimes/latest 需要 {symbol} 路径参数（无"全部最新"接口）
-    // 改用 /features/regimes/history（支持 symbol 可选），取最近一批作为各标的最新状态
-    return http.get<MarketRegime[]>('/features/regimes/history', { limit: 50 });
+    // 后端 /features/regimes/history 要求 start_time/end_time（RFC3339），symbol 可选
+    // 默认拉最近 30 天的数据作为"近期市场状态"
+    const end = new Date();
+    const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return http.get<MarketRegime[]>('/features/regimes/history', {
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+    });
   },
 
   /** 获取单标的最新市场状态 */

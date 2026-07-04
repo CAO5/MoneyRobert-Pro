@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
+import { Empty, Skeleton, Tag } from '@nutui/nutui-react-taro';
 import { marketService } from '@/services/market';
 import { signalService } from '@/services/signal';
 import { backtestService } from '@/services/backtest';
@@ -9,12 +10,19 @@ import type { DecisionCardListItem } from '@/types/signal';
 import type { BacktestJobSummary } from '@/types/backtest';
 import { DECISION_ACTION_LABELS } from '@/types/signal';
 import { BACKTEST_STATUS_LABELS } from '@/types/backtest';
-import Tag from '@/components/Tag';
-import EmptyState from '@/components/EmptyState';
 import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 type TabKey = 'market' | 'decision' | 'backtest' | 'report';
+
+/** 自定义 Tag variant → NutUI Tag type 映射 */
+const variantToType = (variant: string): 'default' | 'primary' | 'success' | 'warning' | 'danger' => {
+  if (variant === 'primary' || variant === 'premium') return 'primary';
+  if (variant === 'success') return 'success';
+  if (variant === 'warning') return 'warning';
+  if (variant === 'error' || variant === 'risk') return 'danger';
+  return 'default';
+};
 
 /**
  * 业务页（tabBar）
@@ -25,7 +33,6 @@ const BusinessPage: React.FC = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('market');
 
-  // 各 Tab 数据
   const [markets, setMarkets] = useState<MarketSnapshot[]>([]);
   const [decisions, setDecisions] = useState<DecisionCardListItem[]>([]);
   const [backtests, setBacktests] = useState<BacktestJobSummary[]>([]);
@@ -33,7 +40,6 @@ const BusinessPage: React.FC = () => {
   const { t } = useI18n();
   useLocalizedTitle('行情');
 
-  // 从 URL 参数恢复 Tab（工作台快捷入口跳转用）
   useEffect(() => {
     const tab = router.params.tab as TabKey;
     if (tab && ['market', 'decision', 'backtest', 'report'].includes(tab)) {
@@ -41,7 +47,6 @@ const BusinessPage: React.FC = () => {
     }
   }, [router.params.tab]);
 
-  // 按需加载数据
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -64,22 +69,18 @@ const BusinessPage: React.FC = () => {
     loadData();
   }, [activeTab]);
 
-  // 跳转标的详情
   const handleMarketClick = (symbol: string) => {
     Taro.navigateTo({ url: `/pages/symbol-detail/index?symbol=${encodeURIComponent(symbol)}` });
   };
 
-  // 跳转决策卡详情
   const handleDecisionClick = (cardId: string) => {
     Taro.navigateTo({ url: `/pages/decision-detail/index?id=${cardId}` });
   };
 
-  // 跳转回测详情
   const handleBacktestClick = (jobId: string) => {
     Taro.navigateTo({ url: `/pages/backtest-detail/index?id=${jobId}` });
   };
 
-  // 跳转报告详情
   const handleReportClick = (id: string) => {
     Taro.navigateTo({ url: `/pages/report-detail/index?id=${id}` });
   };
@@ -107,14 +108,16 @@ const BusinessPage: React.FC = () => {
       </View>
 
       <ScrollView scrollY className={styles.tabContent}>
-        {loading && <EmptyState title={t('加载中...')} />}
+        {loading && <Skeleton rows={5} animated />}
 
         {!loading && activeTab === 'market' && (
           markets.length === 0 ? (
-            <EmptyState title={t('暂无行情数据')} />
+            <Empty title={t('暂无行情数据')} />
           ) : (
             markets.map((m) => {
-              const change = m.price_change_percent_24h;
+              const change = m.price_change_percent_24h ?? 0;
+              const volume = m.volume_24h ?? 0;
+              const price = m.current_price ?? 0;
               const changeClass = change > 0 ? styles.up : change < 0 ? styles.down : styles.flat;
               return (
                 <View
@@ -124,10 +127,10 @@ const BusinessPage: React.FC = () => {
                 >
                   <View className={styles.symbolInfo}>
                     <Text className={styles.symbolName}>{m.symbol}</Text>
-                    <Text className={styles.symbolMeta}>{t('24h 量 {value}', { value: m.volume_24h.toLocaleString() })}</Text>
+                    <Text className={styles.symbolMeta}>{t('24h 量 {value}', { value: volume.toLocaleString() })}</Text>
                   </View>
                   <View className={styles.priceInfo}>
-                    <Text className={styles.price}>{m.current_price.toLocaleString()}</Text>
+                    <Text className={styles.price}>{price.toLocaleString()}</Text>
                     <Text className={`${styles.changePercent} ${changeClass}`}>
                       {change > 0 ? '+' : ''}{change.toFixed(2)}%
                     </Text>
@@ -140,7 +143,7 @@ const BusinessPage: React.FC = () => {
 
         {!loading && activeTab === 'decision' && (
           decisions.length === 0 ? (
-            <EmptyState title={t('暂无决策卡')} />
+            <Empty title={t('暂无决策卡')} />
           ) : (
             decisions.map((d) => {
               const actionLabel = DECISION_ACTION_LABELS[d.suggested_action];
@@ -150,7 +153,11 @@ const BusinessPage: React.FC = () => {
                   : d.suggested_action === 'reduce' || d.suggested_action === 'close'
                   ? 'warning'
                   : 'default';
-              const evClass = d.expected_value > 0 ? styles.positive : styles.negative;
+              const ev = d.expected_value ?? 0;
+              const pUp = d.p_up ?? 0;
+              const pFlat = d.p_flat ?? 0;
+              const pDown = d.p_down ?? 0;
+              const evClass = ev > 0 ? styles.positive : styles.negative;
               return (
                 <View
                   key={d.card_id}
@@ -159,20 +166,28 @@ const BusinessPage: React.FC = () => {
                 >
                   <View className={styles.decisionCardHeader}>
                     <Text className={styles.decisionCardSymbol}>{d.symbol}</Text>
-                    <Tag variant={variant}>{t(actionLabel)}</Tag>
+                    <Tag type={variantToType(variant)}>{t(actionLabel)}</Tag>
                   </View>
                   <View className={styles.decisionCardContent}>
                     <View className={styles.probBar}>
-                      <View className={styles.probUp} style={{ width: `${d.p_up * 100}%` }} />
-                      <View className={styles.probFlat} style={{ width: `${d.p_flat * 100}%` }} />
-                      <View className={styles.probDown} style={{ width: `${d.p_down * 100}%` }} />
+                      <View className={styles.probUp} style={{ width: `${pUp * 100}%` }} />
+                      <View className={styles.probFlat} style={{ width: `${pFlat * 100}%` }} />
+                      <View className={styles.probDown} style={{ width: `${pDown * 100}%` }} />
                     </View>
-                    {d.trust_level && <Tag variant={d.trust_level === 'A' ? 'success' : d.trust_level === 'B' ? 'primary' : 'warning'}>{d.trust_level}</Tag>}
+                    {d.trust_level && (
+                      <Tag
+                        type={variantToType(
+                          d.trust_level === 'A' ? 'success' : d.trust_level === 'B' ? 'primary' : 'warning',
+                        )}
+                      >
+                        {d.trust_level}
+                      </Tag>
+                    )}
                   </View>
                   <View className={styles.decisionCardFooter}>
-                    <Text>EV {d.expected_value > 0 ? '+' : ''}{d.expected_value.toFixed(2)}</Text>
+                    <Text>EV {ev > 0 ? '+' : ''}{ev.toFixed(2)}</Text>
                     <Text className={`${styles.decisionCardEv} ${evClass}`}>
-                      ↑ {(d.p_up * 100).toFixed(0)}% ↓ {(d.p_down * 100).toFixed(0)}%
+                      ↑ {(pUp * 100).toFixed(0)}% ↓ {(pDown * 100).toFixed(0)}%
                     </Text>
                   </View>
                 </View>
@@ -183,11 +198,17 @@ const BusinessPage: React.FC = () => {
 
         {!loading && activeTab === 'backtest' && (
           backtests.length === 0 ? (
-            <EmptyState title={t('暂无回测任务')} />
+            <Empty title={t('暂无回测任务')} />
           ) : (
             backtests.map((b) => {
               const statusLabel = BACKTEST_STATUS_LABELS[b.status] || b.status;
-              const returnClass = (b.total_return_pct || 0) > 0 ? styles.up : styles.down;
+              const returnPct = b.total_return_pct ?? 0;
+              const sharpe = b.sharpe_ratio ?? 0;
+              const drawdown = b.max_drawdown_pct ?? 0;
+              const returnClass = returnPct > 0 ? styles.up : styles.down;
+              const showReturn = b.total_return_pct !== undefined;
+              const showSharpe = b.sharpe_ratio !== undefined;
+              const showDrawdown = b.max_drawdown_pct !== undefined;
               return (
                 <View
                   key={b.job_id}
@@ -196,7 +217,11 @@ const BusinessPage: React.FC = () => {
                 >
                   <View className={styles.backtestHeader}>
                     <Text className={styles.backtestName}>{b.job_name}</Text>
-                    <Tag variant={b.status === 'completed' ? 'success' : b.status === 'running' ? 'primary' : 'default'}>
+                    <Tag
+                      type={variantToType(
+                        b.status === 'completed' ? 'success' : b.status === 'running' ? 'primary' : 'default',
+                      )}
+                    >
                       {t(statusLabel)}
                     </Tag>
                   </View>
@@ -212,21 +237,21 @@ const BusinessPage: React.FC = () => {
                     </View>
                   )}
                   <View className={styles.backtestStats}>
-                    {b.total_return_pct !== undefined && (
+                    {showReturn && (
                       <Text>
                         {t('收益')} <Text className={`${styles.backtestStatValue} ${returnClass}`}>
-                          {b.total_return_pct > 0 ? '+' : ''}{b.total_return_pct.toFixed(2)}%
+                          {returnPct > 0 ? '+' : ''}{returnPct.toFixed(2)}%
                         </Text>
                       </Text>
                     )}
-                    {b.sharpe_ratio !== undefined && (
+                    {showSharpe && (
                       <Text>
-                        {t('夏普')} <Text className={styles.backtestStatValue}>{b.sharpe_ratio.toFixed(2)}</Text>
+                        {t('夏普')} <Text className={styles.backtestStatValue}>{sharpe.toFixed(2)}</Text>
                       </Text>
                     )}
-                    {b.max_drawdown_pct !== undefined && (
+                    {showDrawdown && (
                       <Text>
-                        {t('回撤')} <Text className={`${styles.backtestStatValue} ${styles.down}`}>-{b.max_drawdown_pct.toFixed(2)}%</Text>
+                        {t('回撤')} <Text className={`${styles.backtestStatValue} ${styles.down}`}>-{drawdown.toFixed(2)}%</Text>
                       </Text>
                     )}
                   </View>
@@ -237,11 +262,16 @@ const BusinessPage: React.FC = () => {
         )}
 
         {!loading && activeTab === 'report' && (
-          <EmptyState
+          <Empty
             title={t('报告中心')}
             description={t('完整报告请前往桌面端查看')}
-            actionText={t('查看示例报告')}
-            onAction={() => handleReportClick('report-2026q2')}
+            actions={[
+              {
+                text: t('查看示例报告'),
+                type: 'primary',
+                onClick: () => handleReportClick('report-2026q2'),
+              },
+            ]}
           />
         )}
       </ScrollView>

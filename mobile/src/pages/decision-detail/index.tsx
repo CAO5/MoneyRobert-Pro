@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
+import { Empty, Skeleton } from '@nutui/nutui-react-taro';
 import { signalService } from '@/services/signal';
 import type { DecisionCard } from '@/types/signal';
 import { DECISION_ACTION_LABELS } from '@/types/signal';
-import EmptyState from '@/components/EmptyState';
 import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
@@ -56,7 +56,7 @@ const DecisionDetailPage: React.FC = () => {
   if (loading) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('加载中...')} />
+        <Skeleton rows={5} animated />
       </View>
     );
   }
@@ -64,14 +64,19 @@ const DecisionDetailPage: React.FC = () => {
   if (!card) {
     return (
       <View className={styles.detailPage}>
-        <EmptyState title={t('决策卡不存在')} description={t('可能已被删除或链接错误')} actionText={t('返回')} onAction={handleBack} />
+        <Empty
+          title={t('决策卡不存在')}
+          description={t('可能已被删除或链接错误')}
+          actions={[{ text: t('返回'), type: 'primary', onClick: handleBack }]}
+        />
       </View>
     );
   }
 
   const actionLabel = DECISION_ACTION_LABELS[card.suggested_action] || card.suggested_action;
-  const evClass = card.expected_value > 0 ? styles.positive : styles.negative;
-  const horizonMin = Math.round(card.target_horizon_sec / 60);
+  const expectedValue = card.expected_value ?? 0;
+  const evClass = expectedValue > 0 ? styles.positive : styles.negative;
+  const horizonMin = Math.round((card.target_horizon_sec ?? 0) / 60);
 
   return (
     <View className={styles.detailPage}>
@@ -104,55 +109,55 @@ const DecisionDetailPage: React.FC = () => {
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillUp}`}
-                  style={{ width: `${card.p_up * 100}%` }}
+                  style={{ width: `${(card.p_up ?? 0) * 100}%` }}
                 />
               </View>
-              <Text className={styles.probValue}>{(card.p_up * 100).toFixed(1)}%</Text>
+              <Text className={styles.probValue}>{((card.p_up ?? 0) * 100).toFixed(1)}%</Text>
             </View>
             <View className={styles.probRow}>
               <Text className={styles.probLabel}>{t('持平')}</Text>
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillFlat}`}
-                  style={{ width: `${card.p_flat * 100}%` }}
+                  style={{ width: `${(card.p_flat ?? 0) * 100}%` }}
                 />
               </View>
-              <Text className={styles.probValue}>{(card.p_flat * 100).toFixed(1)}%</Text>
+              <Text className={styles.probValue}>{((card.p_flat ?? 0) * 100).toFixed(1)}%</Text>
             </View>
             <View className={styles.probRow}>
               <Text className={styles.probLabel}>{t('下跌')}</Text>
               <View className={styles.probBarWrap}>
                 <View
                   className={`${styles.probFill} ${styles.probFillDown}`}
-                  style={{ width: `${card.p_down * 100}%` }}
+                  style={{ width: `${(card.p_down ?? 0) * 100}%` }}
                 />
               </View>
-              <Text className={styles.probValue}>{(card.p_down * 100).toFixed(1)}%</Text>
+              <Text className={styles.probValue}>{((card.p_down ?? 0) * 100).toFixed(1)}%</Text>
             </View>
           </View>
           <View className={styles.metricsGrid}>
             <View className={styles.metricItem}>
               <Text className={styles.metricLabel}>{t('净期望 EV')}</Text>
               <Text className={`${styles.metricValue} ${evClass}`}>
-                {card.expected_value > 0 ? '+' : ''}{(card.expected_value * 100).toFixed(2)}bps
+                {expectedValue > 0 ? '+' : ''}{(expectedValue * 100).toFixed(2)}bps
               </Text>
             </View>
             {card.worst_case !== undefined && (
               <View className={styles.metricItem}>
                 <Text className={styles.metricLabel}>{t('最坏情形 CVaR')}</Text>
                 <Text className={`${styles.metricValue} ${styles.negative}`}>
-                  {(card.worst_case * 100).toFixed(2)}bps
+                  {((card.worst_case ?? 0) * 100).toFixed(2)}bps
                 </Text>
               </View>
             )}
             <View className={styles.metricItem}>
               <Text className={styles.metricLabel}>{t('建议仓位')}</Text>
-              <Text className={styles.metricValue}>{(card.position_suggestion * 100).toFixed(1)}%</Text>
+              <Text className={styles.metricValue}>{((card.position_suggestion ?? 0) * 100).toFixed(1)}%</Text>
             </View>
             {card.risk_budget_used !== undefined && (
               <View className={styles.metricItem}>
                 <Text className={styles.metricLabel}>{t('已用风险预算')}</Text>
-                <Text className={styles.metricValue}>{(card.risk_budget_used * 100).toFixed(1)}%</Text>
+                <Text className={styles.metricValue}>{((card.risk_budget_used ?? 0) * 100).toFixed(1)}%</Text>
               </View>
             )}
           </View>

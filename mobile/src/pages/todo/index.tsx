@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro, { usePullDownRefresh } from '@tarojs/taro';
+import { Empty, Skeleton, Tag } from '@nutui/nutui-react-taro';
 import { todoService } from '@/services/todo';
 import type { TodoItem } from '@/types/todo';
 import { TODO_TYPE_LABELS, TODO_PRIORITY_LABELS } from '@/types/todo';
-import Tag from '@/components/Tag';
-import EmptyState from '@/components/EmptyState';
 import { useI18n, useLocalizedTitle } from '@/store/language';
 import styles from './index.module.scss';
 
 type FilterKey = 'all' | 'risk_confirmation' | 'exception_review' | 'promotion_approval' | 'alert_acknowledgement';
+
+/** 优先级 → NutUI Tag type 映射 */
+const priorityToType = (priority: string): 'default' | 'warning' | 'danger' => {
+  if (priority === 'critical') return 'danger';
+  if (priority === 'high') return 'warning';
+  return 'default';
+};
 
 /**
  * 待办中心页（tabBar）
@@ -42,10 +48,8 @@ const TodoPage: React.FC = () => {
     Taro.stopPullDownRefresh();
   });
 
-  // 应用筛选
   const filteredTodos = filter === 'all' ? todos : todos.filter((t) => t.type === filter);
 
-  // 跳转待办详情
   const handleTodoClick = (id: string) => {
     Taro.navigateTo({ url: `/pages/todo-detail/index?id=${id}` });
   };
@@ -57,14 +61,6 @@ const TodoPage: React.FC = () => {
     { key: 'promotion_approval', label: t('升级审批') },
     { key: 'alert_acknowledgement', label: t('告警确认') },
   ];
-
-  // 优先级颜色
-  const getPriorityVariant = (priority: string) => {
-    if (priority === 'critical') return 'error';
-    if (priority === 'high') return 'warning';
-    if (priority === 'medium') return 'default';
-    return 'default';
-  };
 
   return (
     <View className={styles.todoPage}>
@@ -81,9 +77,10 @@ const TodoPage: React.FC = () => {
       </View>
 
       <ScrollView scrollY className={styles.todoList}>
-        {loading && <EmptyState title={t('加载中...')} />}
+        {loading && <Skeleton rows={5} animated />}
+
         {!loading && filteredTodos.length === 0 ? (
-          <EmptyState title={t('暂无待办')} description={t('所有任务已处理完成')} />
+          <Empty title={t('暂无待办')} description={t('所有任务已处理完成')} />
         ) : (
           filteredTodos.map((todo) => (
             <View
@@ -94,7 +91,7 @@ const TodoPage: React.FC = () => {
               <View className={styles.todoHeader}>
                 <View className={`${styles.todoPriorityDot} ${styles[todo.priority]}`} />
                 <Text className={styles.todoTitle}>{t(todo.title)}</Text>
-                <Tag variant={getPriorityVariant(todo.priority)}>
+                <Tag type={priorityToType(todo.priority)}>
                   {TODO_PRIORITY_LABELS[todo.priority]}
                 </Tag>
               </View>

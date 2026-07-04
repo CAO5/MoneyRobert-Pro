@@ -1,0 +1,277 @@
+@use '@/styles/variables.scss' as *;
+
+// ============================================
+// 重置密码页（视觉风格与登录页保持一致）
+// 浅色背景 + 浮动光晕 + 白色表单卡片 + 步骤指示
+// 使用默认导航栏（配置仅设置 navigationBarTitleText）
+// ============================================
+
+.forgotPage {
+  position: relative;
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: 0 $page-padding;
+  padding-top: calc(#{$spacing-xl} + env(safe-area-inset-top));
+  padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+// 背景装饰光晕
+.bgEffects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decoCircle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+}
+
+.decoCircle1 {
+  width: 600rpx;
+  height: 600rpx;
+  background: $color-primary;
+  top: -200rpx;
+  left: -200rpx;
+  filter: blur(100rpx);
+  animation: floatCircle 20s ease-in-out infinite;
+}
+
+.decoCircle2 {
+  width: 500rpx;
+  height: 500rpx;
+  background: $color-primary-light;
+  bottom: -150rpx;
+  right: -150rpx;
+  filter: blur(100rpx);
+  animation: floatCircle 25s ease-in-out infinite reverse;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30rpx, 30rpx); }
+}
+
+// ============================================
+// 表单卡片
+// ============================================
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-2xl $spacing-xl;
+  box-shadow: $shadow-popup;
+  position: relative;
+  z-index: 1;
+}
+
+.formTitle {
+  display: block;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  text-align: center;
+  letter-spacing: 1rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  text-align: center;
+  margin-bottom: $spacing-xl;
+}
+
+// 步骤指示徽章
+.stepBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: $color-primary-bg;
+  border-radius: $radius-round;
+  padding: $spacing-xs $spacing-md;
+  margin: 0 auto $spacing-xl;
+}
+
+.stepBadgeWrap {
+  display: flex;
+  justify-content: center;
+}
+
+// ============================================
+// 表单行：NutUI Cell + Input 组合
+// Cell.title 作为标签，Input 嵌入内容区，extra 放置密码可见切换
+// ============================================
+.cellField {
+  margin-bottom: $spacing-sm;
+
+  :global(.nut-cell) {
+    background: $color-bg-subtle;
+    border-radius: $radius-md;
+    padding: 0 $spacing-md;
+    min-height: $button-height-md;
+    align-items: center;
+    border: 2rpx solid transparent;
+    transition: all $transition-base;
+
+    &:focus-within {
+      background: $color-bg-card;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 4rpx rgba(22, 93, 255, 0.1);
+    }
+  }
+
+  // 标签（左侧）
+  :global(.nut-cell__title) {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    width: auto !important;
+    min-width: 150rpx;
+    margin-right: $spacing-md;
+    flex-shrink: 0;
+  }
+
+  // 内容区让 Input 撑满
+  :global(.nut-cell__value) {
+    flex: 1;
+  }
+
+  // Input 去边框，融入 Cell
+  :global(.nut-input) {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 100%;
+  }
+
+  :global(.nut-input input) {
+    font-size: $font-size-md;
+    color: $color-text-primary;
+    text-align: left;
+  }
+
+  :global(.nut-input .nut-input-placeholder) {
+    color: $color-text-tertiary;
+    font-size: $font-size-md;
+  }
+
+  :global(.nut-input .nut-input-clear) {
+    color: $color-text-tertiary;
+  }
+}
+
+// 密码可见切换
+.eyeBtn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  margin-left: $spacing-xs;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+// ============================================
+// 提交按钮（与登录页一致）
+// ============================================
+.submitButton {
+  width: 100% !important;
+  height: $button-height-lg !important;
+  background: $gradient-primary !important;
+  color: $color-text-white !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  margin-top: $spacing-lg;
+  box-shadow: $shadow-glow;
+  border: none !important;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.985);
+  }
+
+  &:disabled {
+    background: $color-text-disabled !important;
+    box-shadow: none;
+  }
+}
+
+// 次级操作（返回登录）
+.secondaryButton {
+  width: 100% !important;
+  height: $button-height-lg !important;
+  background: $color-bg-subtle !important;
+  color: $color-text-secondary !important;
+  border-radius: $radius-button !important;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  margin-top: $spacing-sm;
+  border: none !important;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.hint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-top: $spacing-lg;
+  line-height: $line-height-normal;
+  padding: 0 $spacing-md;
+}
+
+// 返回登录链接
+.backLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 25%;
+    right: 25%;
+    height: 1rpx;
+    background: $color-divider;
+  }
+}
+
+.backText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.backAction {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+  margin-left: $spacing-xs;
+}
+
+.copyright {
+  text-align: center;
+  margin-top: $spacing-lg;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  position: relative;
+  z-index: 1;
+}

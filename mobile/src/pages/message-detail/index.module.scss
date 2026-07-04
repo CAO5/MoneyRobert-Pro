@@ -1,0 +1,62 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-md;
+  padding-top: calc(#{$spacing-md} + env(safe-area-inset-top));
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: $spacing-2xl;
+}
+
+.placeholderCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-2xl $spacing-xl;
+  box-shadow: $shadow-card;
+  width: 100%;
+  max-width: 600rpx;
+}
+
+.placeholderIcon {
+  font-size: 96rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.placeholderTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.placeholderDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  text-align: center;
+  margin-bottom: $spacing-sm;
+}
+
+.placeholderHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+}

@@ -2,8 +2,7 @@
 
 // ============================================
 // 我的页（浅色主流移动端金融 App 风格）
-// 设计：品牌蓝渐变头部（头像+昵称）+ 白色统计卡 + 白色菜单分组列表
-// 参考：招商银行 App 我的 / 蚂蚁财富 我的
+// 结构：品牌蓝渐变用户卡片 + 深色会员卡 + 白色统计卡 + 分组菜单 + 危险退出按钮
 // ============================================
 
 .minePage {
@@ -13,49 +12,10 @@
   padding-bottom: calc(#{$spacing-2xl} + env(safe-area-inset-bottom));
 }
 
-.memberCard {
+// 用户信息卡片（品牌蓝渐变 + 装饰光晕，整卡可点击）
+.userHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin: $spacing-lg $page-padding 0;
-  padding: 28rpx;
-  border-radius: 22rpx;
-  color: #f7f2e7;
-  background: linear-gradient(135deg, #222b3b, #151a24);
-  box-shadow: 0 12rpx 30rpx rgba(24, 30, 41, 0.14);
-}
-
-.memberEyebrow {
-  display: block;
-  color: #d9bd82;
-  font-size: 18rpx;
-  font-weight: 700;
-  letter-spacing: 1rpx;
-}
-
-.memberTitle {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 27rpx;
-  font-weight: 700;
-}
-
-.memberDesc {
-  display: block;
-  margin-top: 7rpx;
-  color: #9ba5b5;
-  font-size: 20rpx;
-}
-
-.memberAction {
-  flex-shrink: 0;
-  margin-left: 18rpx;
-  color: #ead19d;
-  font-size: 21rpx;
-}
-
-// 用户信息头部（品牌蓝渐变，白字 + 装饰光晕）
-.userHeader {
   background: $gradient-primary;
   padding: $spacing-xl $page-padding $spacing-2xl;
   padding-top: calc(#{$spacing-xl} + env(safe-area-inset-top));
@@ -63,6 +23,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 0 0 $spacing-lg $spacing-lg;
+  transition: opacity $transition-base;
 
   // 背景装饰光晕
   &::before {
@@ -86,9 +47,15 @@
     border-radius: $radius-round;
     background: rgba(255, 255, 255, 0.06);
   }
+
+  &:active {
+    opacity: 0.94;
+  }
 }
 
 .userInfo {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   position: relative;
@@ -134,27 +101,87 @@
   @include text-ellipsis;
 }
 
+// 角色 Tag：admin→danger 红，user→primary 蓝
 .roleTag {
   display: inline-block;
   margin-top: $spacing-xs;
-  padding: 4rpx $spacing-sm;
-  background: rgba(255, 255, 255, 0.2);
-  color: $color-text-white;
+  padding: 2rpx $spacing-sm;
   border-radius: $radius-xs;
   font-size: $font-size-xs;
   font-weight: $font-weight-medium;
 }
 
-// 统计卡（白色卡片，负 margin 上提与头部重叠，营造卡片浮起感）
+// 用户卡片右侧箭头（提示可点击）
+.headerArrow {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: $font-size-xl;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+// 会员赞助卡（深色质感，金棕色点缀）
+.memberCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: $spacing-md $page-padding 0;
+  padding: 28rpx;
+  border-radius: 22rpx;
+  color: #f7f2e7;
+  background: linear-gradient(135deg, #222b3b, #151a24);
+  box-shadow: 0 12rpx 30rpx rgba(24, 30, 41, 0.14);
+  transition: transform $transition-base;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.memberText {
+  flex: 1;
+  min-width: 0;
+}
+
+.memberEyebrow {
+  display: block;
+  color: #d9bd82;
+  font-size: 18rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.memberTitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.memberDesc {
+  display: block;
+  margin-top: 7rpx;
+  color: #9ba5b5;
+  font-size: 20rpx;
+}
+
+.memberAction {
+  flex-shrink: 0;
+  margin-left: 18rpx;
+  color: #ead19d;
+  font-size: 21rpx;
+}
+
+// 统计卡（白色卡片，三栏 + 分割线）
 .statsRow {
   display: flex;
+  align-items: center;
   background: $color-bg-card;
-  margin: -#{$spacing-xl} $page-padding 0;
+  margin: $spacing-md $page-padding 0;
   border-radius: $radius-md;
   padding: $spacing-lg 0;
   box-shadow: $shadow-card;
-  position: relative;
-  z-index: 2;
 }
 
 .statItem {
@@ -180,9 +207,28 @@
   color: $color-text-tertiary;
 }
 
-// 菜单分组（白色卡片 + 轻阴影 + 分割线，去掉边框）
+.statDivider {
+  width: 1px;
+  align-self: stretch;
+  background: $color-divider;
+  margin: $spacing-sm 0;
+}
+
+// 菜单分组（标题 + 白色卡片列表）
 .menuGroup {
-  margin: $spacing-md $page-padding 0;
+  margin-top: $spacing-lg;
+}
+
+.groupTitle {
+  display: block;
+  margin: 0 $page-padding $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-tertiary;
+}
+
+.menuList {
+  margin: 0 $page-padding;
   background: $color-bg-card;
   border-radius: $radius-md;
   box-shadow: $shadow-card;
@@ -205,20 +251,46 @@
   }
 }
 
-// 菜单图标容器（主色浅蓝底，与品牌色呼应）
+// 菜单图标（圆形彩色背景 + 白色字母）
 .menuIcon {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: $radius-md;
-  background: $color-primary-bg;
-  color: $color-primary;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-round;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-md;
-  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
   margin-right: $spacing-md;
   flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+// 图标配色（与设计稿一致：按菜单项语义分配）
+.iconBlue {
+  background: $color-primary;
+}
+.iconPurple {
+  background: #722ed1;
+}
+.iconGreen {
+  background: $color-success;
+}
+.iconRed {
+  background: $color-error;
+}
+.iconYellow {
+  background: $color-warning;
+}
+.iconCyan {
+  background: $color-neutral-accent;
+}
+.iconGray {
+  background: $color-text-tertiary;
+}
+.iconDarkBlue {
+  background: $color-primary-dark;
 }
 
 .menuLabel {
@@ -226,6 +298,15 @@
   min-width: 0;
   font-size: $font-size-md;
   color: $color-text-primary;
+}
+
+// 菜单项右侧附加文本（版本号 / 配置状态，iOS 风格）
+.menuValue {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-right: $spacing-xs;
+  max-width: 240rpx;
+  @include text-ellipsis;
 }
 
 .menuArrow {
