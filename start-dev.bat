@@ -1,5 +1,4 @@
 @echo off
-chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ================================================================
@@ -7,13 +6,13 @@ echo   MoneyRobert Pro - 本地开发环境一键启动脚本
 echo ================================================================
 echo.
 
-:: 设置项目根目录
+REM Set project root directory
 set "PROJECT_ROOT=%~dp0"
 cd /d "%PROJECT_ROOT%"
 
-:: ---- 环境检查 ----
+REM ---- Environment checks ----
 
-:: 检查 Rust/Cargo
+REM Check Rust/Cargo
 echo [CHECK] 检查 Rust 环境...
 cargo --version >nul 2>&1
 if errorlevel 1 (
@@ -24,7 +23,7 @@ if errorlevel 1 (
 )
 echo [OK] Rust 环境正常
 
-:: 检查 Node.js
+REM Check Node.js
 echo [CHECK] 检查 Node.js 环境...
 node --version >nul 2>&1
 if errorlevel 1 (
@@ -35,7 +34,7 @@ if errorlevel 1 (
 )
 echo [OK] Node.js 环境正常
 
-:: 检查 PostgreSQL 服务
+REM Check PostgreSQL service
 echo [CHECK] 检查 PostgreSQL 服务...
 set "PG_RUNNING=0"
 for %%V in (17 16 15 14) do (
@@ -49,7 +48,7 @@ if "!PG_RUNNING!"=="1" (
     echo        可尝试: net start postgresql-x64-15
 )
 
-:: 检查 Redis 服务
+REM Check Redis service
 echo [CHECK] 检查 Redis 服务...
 redis-cli ping 2>nul | find "PONG" >nul
 if errorlevel 1 (
@@ -58,7 +57,7 @@ if errorlevel 1 (
     echo [OK] Redis 服务正在运行
 )
 
-:: 检查环境变量文件
+REM Check env file
 if not exist "backend\.env" (
     echo [INFO] 未找到 backend\.env，从 .env.example 复制...
     if exist "backend\.env.example" (
@@ -69,7 +68,7 @@ if not exist "backend\.env" (
     )
 )
 
-:: 检查前端依赖
+REM Check frontend dependencies
 echo [CHECK] 检查前端依赖...
 if not exist "frontend\node_modules" (
     echo [INFO] 安装前端依赖（可能需要几分钟）...
@@ -98,19 +97,19 @@ echo   关闭窗口或运行 stop-dev.bat 可停止服务
 echo ================================================================
 echo.
 
-:: 启动后端服务（在新窗口）
+REM Start backend service in new window
 echo [START] 启动后端服务...
 start "MoneyRobert-Backend" cmd /k "pushd "%PROJECT_ROOT%backend" && cargo run"
 
-:: 等待后端编译/启动
+REM Wait for backend to compile/start
 echo [WAIT] 等待后端启动中（首次编译可能需要几分钟）...
 timeout /t 10 /nobreak >nul
 
-:: 启动前端服务（在新窗口）
+REM Start frontend service in new window
 echo [START] 启动前端服务...
 start "MoneyRobert-Frontend" cmd /k "pushd "%PROJECT_ROOT%frontend" && npm run dev"
 
-:: 等待前端启动
+REM Wait for frontend to start
 timeout /t 3 /nobreak >nul
 
 echo.
