@@ -1,0 +1,4586 @@
+{
+  "start_utc_second": 1792454400,
+  "calibration_end_utc_second": 1792540800,
+  "end_utc_second": 1792972800,
+  "primary_seconds": 300,
+  "all_horizons_seconds": [
+    30,
+    60,
+    300,
+    900
+  ],
+  "delay_seconds": 1,
+  "costs": {
+    "base": [
+      0.001,
+      0.0005
+    ],
+    "stress": [
+      0.002,
+      0.001
+    ]
+  },
+  "control_style": "calibration_bottom_quartile",
+  "spot_ask_absorption": "Downward price response and hypothetical symmetric cost benchmark. Not a tradable spot short.",
+  "symbols": {
+    "BTCUSDT": {
+      "book_audit": {
+        "snapshots": 5,
+        "trades": 14849542,
+        "snapshot_reanchors": 4,
+        "trade_sequence_gaps": 3
+      },
+      "invalid_seconds": 7,
+      "valid_update_seconds": 518001,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/BTCUSDT_orderbook.parquet",
+          "b2c90c3fd3285ae516e93670d78f7b603f8938f053cd5c2d5933ff1be2d5c659"
+        ],
+        [
+          "binance_spot/2026-10-20/00/BTCUSDT_trades.parquet",
+          "859f8818d5d5adf1a4d5e8abf901d3d29f3b64b1c7dd7eec24ef1111a4889188"
+        ],
+        [
+          "binance_spot/2026-10-20/01/BTCUSDT_orderbook.parquet",
+          "b6e1b253791655e6746cffceeebc72f9fb71f83413c6858d831fab043e536f8c"
+        ],
+        [
+          "binance_spot/2026-10-20/01/BTCUSDT_trades.parquet",
+          "b97d899598e02ed2f68471fba68a3961421093180231f128de08bd179f4d033d"
+        ],
+        [
+          "binance_spot/2026-10-20/02/BTCUSDT_orderbook.parquet",
+          "741e304a32ab88c1d08bb2c4a96f750ca82eff34bd6f0781b8d02f31dc09405e"
+        ],
+        [
+          "binance_spot/2026-10-20/02/BTCUSDT_trades.parquet",
+          "ea3f41c45d9692eda5c85673181cfe1e264e6134d98870de5def7c1b367c3647"
+        ],
+        [
+          "binance_spot/2026-10-20/03/BTCUSDT_orderbook.parquet",
+          "728969bb85bc3f138828968ae147fab42b2fe6fb4fd154f63488c299878a2c07"
+        ],
+        [
+          "binance_spot/2026-10-20/03/BTCUSDT_trades.parquet",
+          "dafc96abc28a493718a208b651fd59f5f22807c7d66b976fde8ce2504753ea91"
+        ],
+        [
+          "binance_spot/2026-10-20/04/BTCUSDT_orderbook.parquet",
+          "610228de6a164d7726aa942f86f8820b5703e6a759bcc0a99ae0d34d3cd9ccce"
+        ],
+        [
+          "binance_spot/2026-10-20/04/BTCUSDT_trades.parquet",
+          "f24cf05b813d8fbd7a8ea3093e9982fc93196875ffd9f567ca3960adda373250"
+        ],
+        [
+          "binance_spot/2026-10-20/05/BTCUSDT_orderbook.parquet",
+          "fe678b73bbd2c6cf88942994a876af8c66495de140a629329fd093e534d67e57"
+        ],
+        [
+          "binance_spot/2026-10-20/05/BTCUSDT_trades.parquet",
+          "54f9daf2af0e7b780ce480cfd18e1a5e9638f059c8375659b6c17e50691f4cc9"
+        ],
+        [
+          "binance_spot/2026-10-20/06/BTCUSDT_orderbook.parquet",
+          "87897d4c7a16594ccc025d1ffe8f69b69ea9d205a5834d451cd6d74ca150ddb7"
+        ],
+        [
+          "binance_spot/2026-10-20/06/BTCUSDT_trades.parquet",
+          "ac6f9932b1ff44de27231a9373c2c088211b28e13e2b8a1c70eba3643a383ab1"
+        ],
+        [
+          "binance_spot/2026-10-20/07/BTCUSDT_orderbook.parquet",
+          "c8c33701de560a6f824d31df2d70401ee8da43d3e79197e40ea716a840f3a5bd"
+        ],
+        [
+          "binance_spot/2026-10-20/07/BTCUSDT_trades.parquet",
+          "ad78d5f930a5df16908220b9afb17d3a567b2c078bc58c1aba80a0f0315613e7"
+        ],
+        [
+          "binance_spot/2026-10-20/08/BTCUSDT_orderbook.parquet",
+          "218d509ce7046dbce0dacf1d3db7aa085704a7b4c974a82e6ba8fb96ba15d499"
+        ],
+        [
+          "binance_spot/2026-10-20/08/BTCUSDT_trades.parquet",
+          "a2f7dbf755497b53fe66a9e399f2716e128bb3a929d4c47f1efa281c2b982acc"
+        ],
+        [
+          "binance_spot/2026-10-20/09/BTCUSDT_orderbook.parquet",
+          "6a52b081c3a50fb303ee0e86235c6040da3e65b9004e8157b8ba76f4e81e0140"
+        ],
+        [
+          "binance_spot/2026-10-20/09/BTCUSDT_trades.parquet",
+          "8765d5c6189fce7f400e3c008f9ab38ea25f22d6d393f352c45f3f1e8b2e2142"
+        ],
+        [
+          "binance_spot/2026-10-20/10/BTCUSDT_orderbook.parquet",
+          "aacffe83d7163461cfad24b410a3f5f8852c027c39022975926996579e1af0f5"
+        ],
+        [
+          "binance_spot/2026-10-20/10/BTCUSDT_trades.parquet",
+          "4a63f2cbf1d12293b57086b41b041e502b90f9129c2cd60f094c0b31d0a2d1d1"
+        ],
+        [
+          "binance_spot/2026-10-20/11/BTCUSDT_orderbook.parquet",
+          "1805092d6daefe7a5b07da3a655e2be567649125c19ecf1ac7ed3a1497f9c808"
+        ],
+        [
+          "binance_spot/2026-10-20/11/BTCUSDT_trades.parquet",
+          "192d8f33b75207607f2f6a4fecbc84152030d9af815f665802c754b715fdac9d"
+        ],
+        [
+          "binance_spot/2026-10-20/12/BTCUSDT_orderbook.parquet",
+          "42ceda659f69e01d907bfbb31ee51d0985b9920f745db262307ea0aab6c50e7b"
+        ],
+        [
+          "binance_spot/2026-10-20/12/BTCUSDT_trades.parquet",
+          "14a4b2e9ce98a3b2f08ce0c48cc995dcdff83f51c41df64841de3d834852c0ea"
+        ],
+        [
+          "binance_spot/2026-10-20/13/BTCUSDT_orderbook.parquet",
+          "cb836f08569f4a7e358200bf74a06d0329b60446e6b0ab3d14183fff52d03120"
+        ],
+        [
+          "binance_spot/2026-10-20/13/BTCUSDT_trades.parquet",
+          "3b05b6f567f9a41e9b6186a865d43ac9f4f95010f7c72e1b563c92a61293f487"
+        ],
+        [
+          "binance_spot/2026-10-20/14/BTCUSDT_orderbook.parquet",
+          "dd494ebcdb8c7785914392dbf813cefe7d581614cf99a0e0367d7ac268c11aca"
+        ],
+        [
+          "binance_spot/2026-10-20/14/BTCUSDT_trades.parquet",
+          "8619e7df0e0a9b8f61c03f29c1fff82860b14ed19da26ffeb0b228cee7989885"
+        ],
+        [
+          "binance_spot/2026-10-20/15/BTCUSDT_orderbook.parquet",
+          "533b643515a3e55b27093ab5eed135c81b879762af27ea3aeef327f5020697b6"
+        ],
+        [
+          "binance_spot/2026-10-20/15/BTCUSDT_trades.parquet",
+          "4c1aa861f9f9b8058802f6232b9243bc6a09856b4f8f1db05c0b5a75988c229a"
+        ],
+        [
+          "binance_spot/2026-10-20/16/BTCUSDT_orderbook.parquet",
+          "fb507b57a495775c4cfa9f4a67a312f94ca718618ffff74e0e123bc38526dd19"
+        ],
+        [
+          "binance_spot/2026-10-20/16/BTCUSDT_trades.parquet",
+          "6446cceb2d8a4d19ab641450448e28c1e0041cbc634867156658e3ddb87fae4d"
+        ],
+        [
+          "binance_spot/2026-10-20/17/BTCUSDT_orderbook.parquet",
+          "74fa76952ff216cfa01885a6b36e1dafe042309e7e57f0233fb71eb7e538ea04"
+        ],
+        [
+          "binance_spot/2026-10-20/17/BTCUSDT_trades.parquet",
+          "d67be5cef7553f66e53cfbd655027b169799e98f2b045c996a94769f9ab6791e"
+        ],
+        [
+          "binance_spot/2026-10-20/18/BTCUSDT_orderbook.parquet",
+          "5327940ad0857dc51e90f894799a0e3b993d5ed01968c342de8f4a09535dccd5"
+        ],
+        [
+          "binance_spot/2026-10-20/18/BTCUSDT_trades.parquet",
+          "bf9af7dfa6fa99799aedaba63910b7d5688bce757d7650deff4fc6b68e53322a"
+        ],
+        [
+          "binance_spot/2026-10-20/19/BTCUSDT_orderbook.parquet",
+          "dc08f57a623deaf46deaa70f5a66a3071973eb2fa255ce1535c6558ba9f09631"
+        ],
+        [
+          "binance_spot/2026-10-20/19/BTCUSDT_trades.parquet",
+          "8a63096514d1b2f55357e66e8c7fddc31d3c42633d1af0d9988d12ee32c637c0"
+        ],
+        [
+          "binance_spot/2026-10-20/20/BTCUSDT_orderbook.parquet",
+          "99201bdb8f8f679e2ac97d44c818f7aa2a5206f24b1255b6b1fa5118b87b6fd3"
+        ],
+        [
+          "binance_spot/2026-10-20/20/BTCUSDT_trades.parquet",
+          "26a8f65750c2bdde68e19641412d9cb3b519447dc09878dd8c88cc371f0a5379"
+        ],
+        [
+          "binance_spot/2026-10-20/21/BTCUSDT_orderbook.parquet",
+          "8348289ca05b2ed8b037f97fe5555cbdd43a744a5673fc3cb4b3437c39732556"
+        ],
+        [
+          "binance_spot/2026-10-20/21/BTCUSDT_trades.parquet",
+          "6a24da4c5e70a671e286a0f4c10779fae0e65337f083153c58e5b1d220cc14a5"
+        ],
+        [
+          "binance_spot/2026-10-20/22/BTCUSDT_orderbook.parquet",
+          "a80100459a00e286ab0d0780507d8d7b2043f1bda2df72f8472041272b4ec64d"
+        ],
+        [
+          "binance_spot/2026-10-20/22/BTCUSDT_trades.parquet",
+          "0773eec52030d0562c5b3373f67ec797061efe3ec7284db49bf58dce8ac15d16"
+        ],
+        [
+          "binance_spot/2026-10-20/23/BTCUSDT_orderbook.parquet",
+          "39fd36c8bbf584a72550e159da95a24414c49d47125de66670a348faae572a4d"
+        ],
+        [
+          "binance_spot/2026-10-20/23/BTCUSDT_trades.parquet",
+          "c9dff34a72f48e4e13a7ac21c37100a3b2c31080042a004336c098b39bfd0339"
+        ],
+        [
+          "binance_spot/2026-10-21/00/BTCUSDT_orderbook.parquet",
+          "8f588fdc4dca4b278425e2d6b0e5b3f092a285c0f58255a3897210d51d9baa52"
+        ],
+        [
+          "binance_spot/2026-10-21/00/BTCUSDT_trades.parquet",
+          "59db2a4b27fd3a1c8f80be07745f7e06abab047e72c8fd170f5a1bc9af78357c"
+        ],
+        [
+          "binance_spot/2026-10-21/01/BTCUSDT_orderbook.parquet",
+          "53bb16820a28320a553bc2462bf505ab95108f7915faca76eccfbd895f0f391c"
+        ],
+        [
+          "binance_spot/2026-10-21/01/BTCUSDT_trades.parquet",
+          "40459ea1a92be04456661292829c8b8f7fd7c46a10898ca5cc24e2f52d741bf7"
+        ],
+        [
+          "binance_spot/2026-10-21/02/BTCUSDT_orderbook.parquet",
+          "cfa2c003b083e5a71df8d72d2d2b9830548080027ddbdac8b33bedfe52814ea2"
+        ],
+        [
+          "binance_spot/2026-10-21/02/BTCUSDT_trades.parquet",
+          "949b7858ca09892f68ee519ff631420710be9c96d2fc7ba6a8c469a738dce80a"
+        ],
+        [
+          "binance_spot/2026-10-21/03/BTCUSDT_orderbook.parquet",
+          "30feff7182b505545f6db5d7e5e07e9d6354ff55ec827ffdcb5c2c8f4ba23fbd"
+        ],
+        [
+          "binance_spot/2026-10-21/03/BTCUSDT_trades.parquet",
+          "7704502e92a51e5e4a9d9fd0a3dbc6010a373275324f4e9cdec59556a89e5dad"
+        ],
+        [
+          "binance_spot/2026-10-21/04/BTCUSDT_orderbook.parquet",
+          "713a85e183d4dcc333a571af272ff434218510a776091d446188fe962129f7ed"
+        ],
+        [
+          "binance_spot/2026-10-21/04/BTCUSDT_trades.parquet",
+          "80097c3967c4caa60021e1d96818c90f9fdd404d8d0d03cb79c515054b472b8d"
+        ],
+        [
+          "binance_spot/2026-10-21/05/BTCUSDT_orderbook.parquet",
+          "f3523bdb34328e8bf92b3a84801900f32d498abb0553fccd794118aa32304324"
+        ],
+        [
+          "binance_spot/2026-10-21/05/BTCUSDT_trades.parquet",
+          "fb30b35cf8087c64532e0baf29a062b8b0679ec1bd0bac5d1a5d79364fec2796"
+        ],
+        [
+          "binance_spot/2026-10-21/06/BTCUSDT_orderbook.parquet",
+          "a5836cd9d7641f665346b08aa2e50203458813222a39414b58a5304edf0a7042"
+        ],
+        [
+          "binance_spot/2026-10-21/06/BTCUSDT_trades.parquet",
+          "21b31e509565f6de8c4b2130562da03834df735e123bd078a0c551cbe51decd4"
+        ],
+        [
+          "binance_spot/2026-10-21/07/BTCUSDT_orderbook.parquet",
+          "cbe9f43135be7129828eefc922a8e7be975122ffd2ee89741c1bb2e5c6ead3e9"
+        ],
+        [
+          "binance_spot/2026-10-21/07/BTCUSDT_trades.parquet",
+          "ee09a8715be25b310f37dd8851a9b591008b8ce34bb71f09e60a99c2f3f4065e"
+        ],
+        [
+          "binance_spot/2026-10-21/08/BTCUSDT_orderbook.parquet",
+          "b336e3d570e57b473f878371663dda657dd4144cd7de728cffb9c800dc46a869"
+        ],
+        [
+          "binance_spot/2026-10-21/08/BTCUSDT_trades.parquet",
+          "4c88417b0fc95c53e8cdd2b6915035389345381febeffc109231d3a694c01347"
+        ],
+        [
+          "binance_spot/2026-10-21/09/BTCUSDT_orderbook.parquet",
+          "0b4feb6ddc3229682751355afb3deae277047a6e84606d9791de67681bb53ff5"
+        ],
+        [
+          "binance_spot/2026-10-21/09/BTCUSDT_trades.parquet",
+          "2d1117664df38cefe33fb059310f400ea754f709de5731b6c825beb0e462057a"
+        ],
+        [
+          "binance_spot/2026-10-21/10/BTCUSDT_orderbook.parquet",
+          "a0484dd3305239fa4c1618b3248255353712fb0a74e03c02123208db2c29c1c1"
+        ],
+        [
+          "binance_spot/2026-10-21/10/BTCUSDT_trades.parquet",
+          "8a868f460641588dded711a8f6dffd2075a74b64b4562c418ae51fd26ed2452f"
+        ],
+        [
+          "binance_spot/2026-10-21/11/BTCUSDT_orderbook.parquet",
+          "71367c9ceacc6882d878b97f91e6e814c131a5f86570c916bcc2a43e34a1c629"
+        ],
+        [
+          "binance_spot/2026-10-21/11/BTCUSDT_trades.parquet",
+          "fe8cd6271ac0e564995bec7872b09d79c969078e31411bbf944b4f1289dd7037"
+        ],
+        [
+          "binance_spot/2026-10-21/12/BTCUSDT_orderbook.parquet",
+          "cbb478d102a2ebd599d66490e7bd24e6f4005f051c74d14598c079d86f0f38b3"
+        ],
+        [
+          "binance_spot/2026-10-21/12/BTCUSDT_trades.parquet",
+          "b5e2599cac603608fca27dbcee1fdb0d0ed0ae6e63c6626223014d2bf9f8b0ab"
+        ],
+        [
+          "binance_spot/2026-10-21/13/BTCUSDT_orderbook.parquet",
+          "efe82513d567a1738dedad56ef2b2711842f8ecb9574b190f1679aa54ae6d58f"
+        ],
+        [
+          "binance_spot/2026-10-21/13/BTCUSDT_trades.parquet",
+          "5ec49d23fc61fa2a53e1064410f1cd2283ffc4b66a4aa9a849ebe0a6198bac1d"
+        ],
+        [
+          "binance_spot/2026-10-21/14/BTCUSDT_orderbook.parquet",
+          "0f32db1b207a481d917b740987f2757039cb839bde227fc6f48f4863a572854c"
+        ],
+        [
+          "binance_spot/2026-10-21/14/BTCUSDT_trades.parquet",
+          "1ee34842e680e1eac8876ff41ca1bec937467163afe56dc637f1e0713022aa70"
+        ],
+        [
+          "binance_spot/2026-10-21/15/BTCUSDT_orderbook.parquet",
+          "f2498cca68a0f6204c5d5a6b55ff5afc6d92b58a9ee9b57aa08ecb72439a73da"
+        ],
+        [
+          "binance_spot/2026-10-21/15/BTCUSDT_trades.parquet",
+          "2fc908af83d1df00dfa2501c2c3fc084e65d2089c3a9f36a028969fa66b210a8"
+        ],
+        [
+          "binance_spot/2026-10-21/16/BTCUSDT_orderbook.parquet",
+          "2559687e02578239e3d34d3e97cedbe3cbca445a849436200bf51e341c2127ca"
+        ],
+        [
+          "binance_spot/2026-10-21/16/BTCUSDT_trades.parquet",
+          "cb3129a8b45eb70e699f6ba47e75ae9cd85b4698a80e8dfd4d6039a595d9a92e"
+        ],
+        [
+          "binance_spot/2026-10-21/17/BTCUSDT_orderbook.parquet",
+          "b8a981213df4b5c7ad8d14fa53090d4f11b8d7d46c2bb0298fe6214ca687905b"
+        ],
+        [
+          "binance_spot/2026-10-21/17/BTCUSDT_trades.parquet",
+          "912bf9e94bf3b85fcb89770312ee7a7dc3831ed13390cb15d24511dfbb00b9d7"
+        ],
+        [
+          "binance_spot/2026-10-21/18/BTCUSDT_orderbook.parquet",
+          "a507f8d51a9e2f1b9cca2816690c34f7edcf70500339e721a9d7d0539a647903"
+        ],
+        [
+          "binance_spot/2026-10-21/18/BTCUSDT_trades.parquet",
+          "4edbbc3415f6bf6dd5b632562175ed5b2ad3334f3a20668484436cdddac91fc1"
+        ],
+        [
+          "binance_spot/2026-10-21/19/BTCUSDT_orderbook.parquet",
+          "b19cf9af037bf761fa34da87e8ccab3d83967396e4e085f6dc2d2577f36d47bf"
+        ],
+        [
+          "binance_spot/2026-10-21/19/BTCUSDT_trades.parquet",
+          "b689c07ef8fdfc8fae92d4ede440cda31377ebe5aec4db30165bde5951cb357b"
+        ],
+        [
+          "binance_spot/2026-10-21/20/BTCUSDT_orderbook.parquet",
+          "a2fbe99f842745483ec598f31440938c2889bad50c2b35517cf7a75909b86fe7"
+        ],
+        [
+          "binance_spot/2026-10-21/20/BTCUSDT_trades.parquet",
+          "426c05ba85fea76492bcadf8787a281596cb69d19cdfc8de74a467f6075ed906"
+        ],
+        [
+          "binance_spot/2026-10-21/21/BTCUSDT_orderbook.parquet",
+          "8b27c51200cb8911169655d655b80d8552897fbade832bcc006c345ce9f73759"
+        ],
+        [
+          "binance_spot/2026-10-21/21/BTCUSDT_trades.parquet",
+          "ec01f4d171c164afa2d72d6a7c8f7f90a6ad37ee170e5444afd8ddba2bfe0a47"
+        ],
+        [
+          "binance_spot/2026-10-21/22/BTCUSDT_orderbook.parquet",
+          "39d64cdfca55e5301155bc6e71eb5e9e7d7932e00bc3830a53b0fb0a3bd1e8d2"
+        ],
+        [
+          "binance_spot/2026-10-21/22/BTCUSDT_trades.parquet",
+          "27a872f6f4aba048a221ffc6dd94ed00d4f3aeacb0f0c42d7a173a752aaf20cb"
+        ],
+        [
+          "binance_spot/2026-10-21/23/BTCUSDT_orderbook.parquet",
+          "b99d4f42dcaf9f2672f410f3245f0308583c39b4b88775f852def4abb18e3825"
+        ],
+        [
+          "binance_spot/2026-10-21/23/BTCUSDT_trades.parquet",
+          "7efe8880d524a5dc0dd062b1ca4cca60b5e3d6ae5b56a2d05d43ff06004f9571"
+        ],
+        [
+          "binance_spot/2026-10-22/00/BTCUSDT_orderbook.parquet",
+          "3c8d1e878ffb737200d589212b1dd8bfff650f71f6d113492df0dbd35e6314ee"
+        ],
+        [
+          "binance_spot/2026-10-22/00/BTCUSDT_trades.parquet",
+          "a50b3fb2f1479cd9df3a57ea64887eae4599b639b0b9c74310e55dd92bf2e2ae"
+        ],
+        [
+          "binance_spot/2026-10-22/01/BTCUSDT_orderbook.parquet",
+          "6783b44e4214c3236b9ad9b5c07f195ec09fc55cac3f838c3ddf0dfe76235d2b"
+        ],
+        [
+          "binance_spot/2026-10-22/01/BTCUSDT_trades.parquet",
+          "0a53137c172927d4f085d9aeef96e952f90d5d9b28d5a4b4c579f644e98ae0a6"
+        ],
+        [
+          "binance_spot/2026-10-22/02/BTCUSDT_orderbook.parquet",
+          "3211c1c0560df2a2c5289aedd349125656655c9012ad877dcbcdf39aca354044"
+        ],
+        [
+          "binance_spot/2026-10-22/02/BTCUSDT_trades.parquet",
+          "8ea100f29b37f4c7c0295d697ebe9bf9a3234dd9f1a389cbc6549e2928100065"
+        ],
+        [
+          "binance_spot/2026-10-22/03/BTCUSDT_orderbook.parquet",
+          "bf5660ed211be0119e359b330bac154c0e543a197b533881956943b89f789175"
+        ],
+        [
+          "binance_spot/2026-10-22/03/BTCUSDT_trades.parquet",
+          "70e3ad9ebe637d3d4dfad6f807595a10903477b2801a18159b0990128475fed8"
+        ],
+        [
+          "binance_spot/2026-10-22/04/BTCUSDT_orderbook.parquet",
+          "249fdb6a50585ec913003c5f0ba2e351835ebc531f39e099b62d7fbbf1c89872"
+        ],
+        [
+          "binance_spot/2026-10-22/04/BTCUSDT_trades.parquet",
+          "f51be6ad948789e7ee2c03e1bde0502d7ddccd4603e5f0aecd67e96d5acda99e"
+        ],
+        [
+          "binance_spot/2026-10-22/05/BTCUSDT_orderbook.parquet",
+          "8a40369de57bf96ee312a31356442053b2cce03518da23805fe6acb1c7ce4543"
+        ],
+        [
+          "binance_spot/2026-10-22/05/BTCUSDT_trades.parquet",
+          "3dc392b4b944c82ecdf33a66d8c1efc01d779863c13864c3c554b1cc36197e92"
+        ],
+        [
+          "binance_spot/2026-10-22/06/BTCUSDT_orderbook.parquet",
+          "8f2cb94d747679b45d055759c03c8be10b0b95b79c6d36e40a0f8156ac9f8c61"
+        ],
+        [
+          "binance_spot/2026-10-22/06/BTCUSDT_trades.parquet",
+          "5c3c270c8474e0ee02aba8cdff862da0ad787b607c76a9caa6c92e3ba891c480"
+        ],
+        [
+          "binance_spot/2026-10-22/07/BTCUSDT_orderbook.parquet",
+          "ab8552827b3e9ee07ff14453f23b433bc19251c40dfe99bbca3fd2e4ef4fb411"
+        ],
+        [
+          "binance_spot/2026-10-22/07/BTCUSDT_trades.parquet",
+          "8b2510399241a787ef0e77e16159764691fd45a006cf34bf629ae10a4105fc0c"
+        ],
+        [
+          "binance_spot/2026-10-22/08/BTCUSDT_orderbook.parquet",
+          "945e10cec22e8b458fd99fbc9ec7c79fc5a20197ec09ac589cc9b228dedefed4"
+        ],
+        [
+          "binance_spot/2026-10-22/08/BTCUSDT_trades.parquet",
+          "c19981d87140b4af2d55f36df17bb8e2924ff41fea74c692925ff8b774adf774"
+        ],
+        [
+          "binance_spot/2026-10-22/09/BTCUSDT_orderbook.parquet",
+          "5b913ee0a88cd35fdec4bfd4ed3ccbf6ec340d2bb9bead34e0d283f37548bb06"
+        ],
+        [
+          "binance_spot/2026-10-22/09/BTCUSDT_trades.parquet",
+          "06ed87fea314db7fb688d1362f04d9b2603dafc6f6477947f9ebdf2ad1b147f1"
+        ],
+        [
+          "binance_spot/2026-10-22/10/BTCUSDT_orderbook.parquet",
+          "d6e3c57a0aa64ca121065b4cc6aee4665e10e04c9c041785a06e6c340a857bd5"
+        ],
+        [
+          "binance_spot/2026-10-22/10/BTCUSDT_trades.parquet",
+          "83acbe667def9a22a9f5507d18d4daa0723385ace0fc89651275cb9e9d55052e"
+        ],
+        [
+          "binance_spot/2026-10-22/11/BTCUSDT_orderbook.parquet",
+          "04792ae0f9024da7e7717382d246bddd5adc29ca9863ed7eba7613c082d4f601"
+        ],
+        [
+          "binance_spot/2026-10-22/11/BTCUSDT_trades.parquet",
+          "0fecc5d1345a0b79468646a27e65675dea6fd5efaba0782e8999d1a868b3c208"
+        ],
+        [
+          "binance_spot/2026-10-22/12/BTCUSDT_orderbook.parquet",
+          "59a31439f24c4c1cf076f0bb024712ec5c81f251b039a0d472d0e6f2a8b2c2a3"
+        ],
+        [
+          "binance_spot/2026-10-22/12/BTCUSDT_trades.parquet",
+          "9883387a989b2dacde176bd03fd12dd1088f1a8da8153949b7f2af5e43222b91"
+        ],
+        [
+          "binance_spot/2026-10-22/13/BTCUSDT_orderbook.parquet",
+          "9557f23ca568d87051111609d1c87a2f4902762805505f924cb148e07ca902e4"
+        ],
+        [
+          "binance_spot/2026-10-22/13/BTCUSDT_trades.parquet",
+          "ad298b773fdc01a0b0678e84b2b368e78671b39af2f44d788dff29aaffaf88fa"
+        ],
+        [
+          "binance_spot/2026-10-22/14/BTCUSDT_orderbook.parquet",
+          "738194c8db2babefe8c631f66752961cf096d2d306318c671ff8f4b7364a0010"
+        ],
+        [
+          "binance_spot/2026-10-22/14/BTCUSDT_trades.parquet",
+          "908cf6592acbbacc0eec34e44bb79a4d72f35a6649559c66cc4869a12139a5a7"
+        ],
+        [
+          "binance_spot/2026-10-22/15/BTCUSDT_orderbook.parquet",
+          "c8fdaeeabaf02f3c8530de025534faea0f079473b269f5e7fe61324829a63f96"
+        ],
+        [
+          "binance_spot/2026-10-22/15/BTCUSDT_trades.parquet",
+          "eeb72f1aacd7f8b122af27ea6695c42dd2b1a50b82f8329dd372cf25d4f86d2f"
+        ],
+        [
+          "binance_spot/2026-10-22/16/BTCUSDT_orderbook.parquet",
+          "759decb43ff160376f81ee174dfcf9740e95f7f1771fb4283eed444defc0cf72"
+        ],
+        [
+          "binance_spot/2026-10-22/16/BTCUSDT_trades.parquet",
+          "a0b71957cb6b27e76444ac296c98aaaf50394cb6c7aa75bfc49d6e06eeb5ab19"
+        ],
+        [
+          "binance_spot/2026-10-22/17/BTCUSDT_orderbook.parquet",
+          "71ae1b8a09fc9038f7b46179c4284377236f4f898d0c430ca9920e8d50f37406"
+        ],
+        [
+          "binance_spot/2026-10-22/17/BTCUSDT_trades.parquet",
+          "12688c6940d3035687e88637aa6a3e19fd7b5f32b9d9ef52f08af77c322ef31c"
+        ],
+        [
+          "binance_spot/2026-10-22/18/BTCUSDT_orderbook.parquet",
+          "2f97d3497bbec7faa169af4f8444073cc64ea0488f48a328558931618ea0e71f"
+        ],
+        [
+          "binance_spot/2026-10-22/18/BTCUSDT_trades.parquet",
+          "3bbd638f94dcf0df5609c5f8b202cdacc21096fe35f3710a95d4df44458047f7"
+        ],
+        [
+          "binance_spot/2026-10-22/19/BTCUSDT_orderbook.parquet",
+          "99c2bff1f74e03d9bcfd1075996f138689386a3e0c5d2149337ceee1e854b884"
+        ],
+        [
+          "binance_spot/2026-10-22/19/BTCUSDT_trades.parquet",
+          "0c38fd973ae0397305f035e2437f7bbf5c68a1454cf12489d9f3b13a6227ad5e"
+        ],
+        [
+          "binance_spot/2026-10-22/20/BTCUSDT_orderbook.parquet",
+          "b62f05521ca15480a400b56098fa00df3be2ddd163f4f83d8baf24cb4ed51d0b"
+        ],
+        [
+          "binance_spot/2026-10-22/20/BTCUSDT_trades.parquet",
+          "045c255c0b56445ff8114d4575029d0268f41578283f4874694e61dbe12adb5f"
+        ],
+        [
+          "binance_spot/2026-10-22/21/BTCUSDT_orderbook.parquet",
+          "8a33bc8f3e1a8a3859b4b405398d09266f00ba58a8fbce1bc59c7b8c73d7b0b8"
+        ],
+        [
+          "binance_spot/2026-10-22/21/BTCUSDT_trades.parquet",
+          "55e88f5050afc40f902e80504dee08e4dee6045da10723e292853675e463aa92"
+        ],
+        [
+          "binance_spot/2026-10-22/22/BTCUSDT_orderbook.parquet",
+          "1afdc22b07abe4f8050156dc22d4400c2e2636053960f3508cc3bde37d14eaaf"
+        ],
+        [
+          "binance_spot/2026-10-22/22/BTCUSDT_trades.parquet",
+          "5a993e4bc3d8c1a3d8f7a2bae8b244172da1df17bd9a6126d084f1c11b0fc0cf"
+        ],
+        [
+          "binance_spot/2026-10-22/23/BTCUSDT_orderbook.parquet",
+          "49a9b0e70dc51b2e1a7bad6c64942ee1b9b088f7026a65ed738462731520d320"
+        ],
+        [
+          "binance_spot/2026-10-22/23/BTCUSDT_trades.parquet",
+          "d7aadccefece19f4c04c9d5e6b7c7247461dd584992fbbdcb1ea67d998dd0a2e"
+        ],
+        [
+          "binance_spot/2026-10-23/00/BTCUSDT_orderbook.parquet",
+          "0d1a46b386cd01e7853b65b057844ed12e47bf33b851300f47320c34b810825c"
+        ],
+        [
+          "binance_spot/2026-10-23/00/BTCUSDT_trades.parquet",
+          "9deddbde9cf889bc0b69e3554ef574d7e7e67b96dd34583928cd1c58b4d901ba"
+        ],
+        [
+          "binance_spot/2026-10-23/01/BTCUSDT_orderbook.parquet",
+          "d705dc2fd614b3f295960c69d710c5874cc0dbbd5a71b84a429dbcd19490a411"
+        ],
+        [
+          "binance_spot/2026-10-23/01/BTCUSDT_trades.parquet",
+          "d24a306261948a6076f3b1276bdd7d37297dcfea159242739e2ba2c7af8aacbf"
+        ],
+        [
+          "binance_spot/2026-10-23/02/BTCUSDT_orderbook.parquet",
+          "36519b2fb8ad1b21ec19284cf25f8daa2a82e7bc028e0f969cc6094f8d67d5a0"
+        ],
+        [
+          "binance_spot/2026-10-23/02/BTCUSDT_trades.parquet",
+          "ab61567e3bbce80e522999309218a22f62bd97a9d148854fb81144f7ab36a44e"
+        ],
+        [
+          "binance_spot/2026-10-23/03/BTCUSDT_orderbook.parquet",
+          "0aa605704309d60bb93faa5d5b8d333d9c4850e069181b6d785da5dd7ecfbffc"
+        ],
+        [
+          "binance_spot/2026-10-23/03/BTCUSDT_trades.parquet",
+          "7de9d5ab700776153f7072d9ac539e842d3f5914285cc2bee248a50d6a5e053f"
+        ],
+        [
+          "binance_spot/2026-10-23/04/BTCUSDT_orderbook.parquet",
+          "3d8c645fae76924e19307805e5cfb2e14cf79f0373799b999198d17c29cd234d"
+        ],
+        [
+          "binance_spot/2026-10-23/04/BTCUSDT_trades.parquet",
+          "47938e611537e8b6b35b415dd8a372641ed3b8de35988e61b5876600b8ec2aa1"
+        ],
+        [
+          "binance_spot/2026-10-23/05/BTCUSDT_orderbook.parquet",
+          "ca4f50264b7bacdb3f6eab7c55cf63edce1b7ef5131e3f8fab295da606257f9f"
+        ],
+        [
+          "binance_spot/2026-10-23/05/BTCUSDT_trades.parquet",
+          "d2fb3a6003b49a5ed3871e0362870f73db1e104a4dd42ec54e9701addd66d861"
+        ],
+        [
+          "binance_spot/2026-10-23/06/BTCUSDT_orderbook.parquet",
+          "a56f6162391a801b657e4706ff5a596375390e0e64f4a0ca59fc16966eb5b286"
+        ],
+        [
+          "binance_spot/2026-10-23/06/BTCUSDT_trades.parquet",
+          "85557a9516a9fab30e978c77cbb50ff58a065d2b40bfa792b6ad29defb817fd1"
+        ],
+        [
+          "binance_spot/2026-10-23/07/BTCUSDT_orderbook.parquet",
+          "3f5889b7acd6bf30696ea150fecbbd2f19746373dedd9b791ed4e79b1ac39f21"
+        ],
+        [
+          "binance_spot/2026-10-23/07/BTCUSDT_trades.parquet",
+          "893a4f6d87ad42242cefc079b5eef6c702d4aca2229ae114e2a1b4a7ff6bd259"
+        ],
+        [
+          "binance_spot/2026-10-23/08/BTCUSDT_orderbook.parquet",
+          "bc3e0a5d8f718e68671b9f21ee915378e8d13ee250c4117cdc9e864a5a303a44"
+        ],
+        [
+          "binance_spot/2026-10-23/08/BTCUSDT_trades.parquet",
+          "30769c805253e7930dedda33371089f0bdebe048aa589541e7240e4284086305"
+        ],
+        [
+          "binance_spot/2026-10-23/09/BTCUSDT_orderbook.parquet",
+          "6d89faea7d95b37319559e6c776c032f38c55f450f9d206dff8800979fee6673"
+        ],
+        [
+          "binance_spot/2026-10-23/09/BTCUSDT_trades.parquet",
+          "eafef935f9cef68643271a1e9da69275fad858ac7b51a99b02700bc5cca45603"
+        ],
+        [
+          "binance_spot/2026-10-23/10/BTCUSDT_orderbook.parquet",
+          "d5435c702d5fdbb01d8169584499645e3a6d80c96d6fd0d56a7026c0fbe3bdba"
+        ],
+        [
+          "binance_spot/2026-10-23/10/BTCUSDT_trades.parquet",
+          "b67fd77522c212fc016f00e00b2245f0eeef483065e26504eedfaaa62cb7fd2d"
+        ],
+        [
+          "binance_spot/2026-10-23/11/BTCUSDT_orderbook.parquet",
+          "92062d473510c21a9a1ec610309bfd1adc932aa3951b449806b140773ec4da34"
+        ],
+        [
+          "binance_spot/2026-10-23/11/BTCUSDT_trades.parquet",
+          "0d67f12b17aebae23551e25060c0e7f89eca722cf655338444430eb6114d3955"
+        ],
+        [
+          "binance_spot/2026-10-23/12/BTCUSDT_orderbook.parquet",
+          "604ac5ab7191af8a6126ddcb91778de6a612c3932fea95f33ca0c9497b69d21f"
+        ],
+        [
+          "binance_spot/2026-10-23/12/BTCUSDT_trades.parquet",
+          "382cc61141d4f0f735003410eb980db2497f2780a90781722961379e731a1915"
+        ],
+        [
+          "binance_spot/2026-10-23/13/BTCUSDT_orderbook.parquet",
+          "03b031d4bc37f5abce24be5975b6eb8cffea73569c2cdf6933b0c23f579e02bd"
+        ],
+        [
+          "binance_spot/2026-10-23/13/BTCUSDT_trades.parquet",
+          "62f2521ade2953585877c33b360eff93671095f76aa97f175d7b7452fb5db3d6"
+        ],
+        [
+          "binance_spot/2026-10-23/14/BTCUSDT_orderbook.parquet",
+          "a6f86dd596ee8551992e8b08d197fe440ba1a080e90ec6c9c9932e7c3f232ef4"
+        ],
+        [
+          "binance_spot/2026-10-23/14/BTCUSDT_trades.parquet",
+          "abbce4e2e75b749e3875e20689b3a5734e4e996755dfc91893b18b230a9c2ff9"
+        ],
+        [
+          "binance_spot/2026-10-23/15/BTCUSDT_orderbook.parquet",
+          "476e9e6565d4ab6fa8fcf1d3abecdb02c4b59604e2363c785012443eb377fa8d"
+        ],
+        [
+          "binance_spot/2026-10-23/15/BTCUSDT_trades.parquet",
+          "cf657925c5cf61fb8f1aa40962ed6e69dc0716ec1c8cf66d7400d7e2c9bcb1d5"
+        ],
+        [
+          "binance_spot/2026-10-23/16/BTCUSDT_orderbook.parquet",
+          "04f3cf442ac4cdaa0898ab83b6d48111aa587885ff07d0e69926ad11b6512d74"
+        ],
+        [
+          "binance_spot/2026-10-23/16/BTCUSDT_trades.parquet",
+          "fc6121cf67bd46ab2711e010b50d017af0d0c16253aae4d85c4b257c66c63dc8"
+        ],
+        [
+          "binance_spot/2026-10-23/17/BTCUSDT_orderbook.parquet",
+          "3283696b16613fef015731e7d8f33223436edd06690bce0b3a2b9834807c7103"
+        ],
+        [
+          "binance_spot/2026-10-23/17/BTCUSDT_trades.parquet",
+          "253476a17424baaf683e58799863b02e8b0c677f6c7460ff3962c2be46201f17"
+        ],
+        [
+          "binance_spot/2026-10-23/18/BTCUSDT_orderbook.parquet",
+          "56cb0bb3b0e6dbb2772dc0af559b1a02cf1169dde9b653e3692eac9ecf318760"
+        ],
+        [
+          "binance_spot/2026-10-23/18/BTCUSDT_trades.parquet",
+          "7860d2c0c9d771bf82f23b822587aefcff96899214b39019db7ddfd478df7386"
+        ],
+        [
+          "binance_spot/2026-10-23/19/BTCUSDT_orderbook.parquet",
+          "a7f6b002060c732177538159d1c1b5fea0674104c31c3122d0fc50a3ee65f4bf"
+        ],
+        [
+          "binance_spot/2026-10-23/19/BTCUSDT_trades.parquet",
+          "1b2a03959489f8313627dd40ddddc7121d9839d21965226101855a722b4da9a6"
+        ],
+        [
+          "binance_spot/2026-10-23/20/BTCUSDT_orderbook.parquet",
+          "0531f1d17e610a5c6c8179f5e931155e841ae176c3805d2b217fd90c0c05111c"
+        ],
+        [
+          "binance_spot/2026-10-23/20/BTCUSDT_trades.parquet",
+          "5a29598eb1f42c71cc009362ebb7a95e2bc19f2819eacdfdb0aa73585ada0eb5"
+        ],
+        [
+          "binance_spot/2026-10-23/21/BTCUSDT_orderbook.parquet",
+          "961ca7d9620a50d0e71d91d1f72748ea642929ab6aadfc76780452c8340c5a6e"
+        ],
+        [
+          "binance_spot/2026-10-23/21/BTCUSDT_trades.parquet",
+          "f6e6adee56db7589c6b769905b9bec6d60f50a68951d2705ed0fc32408753b14"
+        ],
+        [
+          "binance_spot/2026-10-23/22/BTCUSDT_orderbook.parquet",
+          "d2dab74c8f1d3dc336b4611bcfd6c9e8c4a872d2d2c19b6e3f48202987458020"
+        ],
+        [
+          "binance_spot/2026-10-23/22/BTCUSDT_trades.parquet",
+          "c8a1d7da2933c76b15944845b5be807c704723256b373ee2069e12db7c00fe76"
+        ],
+        [
+          "binance_spot/2026-10-23/23/BTCUSDT_orderbook.parquet",
+          "6f0f026cf7c365e47236b5c097fa8c98b91626a7fae8f9ede18776afed2a2091"
+        ],
+        [
+          "binance_spot/2026-10-23/23/BTCUSDT_trades.parquet",
+          "687b67f245cd6a2a47555ddeee46e9ca3d13203c3b300c046bb31f9a0dfc27c7"
+        ],
+        [
+          "binance_spot/2026-10-24/00/BTCUSDT_orderbook.parquet",
+          "5f398f018f0dc32b8f81485b181f4bee91f26bcf2d1a54e45fa6a661a4e0040b"
+        ],
+        [
+          "binance_spot/2026-10-24/00/BTCUSDT_trades.parquet",
+          "c9ca8cbe78121e9d2e818d6474497aaba53e711158c9cd3446058f9d99a6bb85"
+        ],
+        [
+          "binance_spot/2026-10-24/01/BTCUSDT_orderbook.parquet",
+          "c1ea46dc3e39acf5491225251f5df5ebc07b6501408b3b87708b594a461d7078"
+        ],
+        [
+          "binance_spot/2026-10-24/01/BTCUSDT_trades.parquet",
+          "b681f3457090991265479d9d5a32dc1f069a96179a48e658bb52999241563843"
+        ],
+        [
+          "binance_spot/2026-10-24/02/BTCUSDT_orderbook.parquet",
+          "ebc8faf59bc8f6df43234ba5305cdd2a98833a6ef87ab76463dd88684658baa1"
+        ],
+        [
+          "binance_spot/2026-10-24/02/BTCUSDT_trades.parquet",
+          "ed0e4cb55dc30609ddf61097a000753d84208e0afa3094f3db34f2d276db0d16"
+        ],
+        [
+          "binance_spot/2026-10-24/03/BTCUSDT_orderbook.parquet",
+          "c386bda54f2ddfd834eb45f78e08d614f15ab45cba19cf8fdb02fdf8cd0bdcfb"
+        ],
+        [
+          "binance_spot/2026-10-24/03/BTCUSDT_trades.parquet",
+          "d87c899630c5bf43b4e8ed4cf871af0955ceaca9c88dcdf186b437d429dbb5d0"
+        ],
+        [
+          "binance_spot/2026-10-24/04/BTCUSDT_orderbook.parquet",
+          "e01c462f4d98a306b34c11d84e452ddc3298035ea05cd96a3c7943ca10d7c3ac"
+        ],
+        [
+          "binance_spot/2026-10-24/04/BTCUSDT_trades.parquet",
+          "941d997f76a24f11acc831f93f2c750536fa4d2cb5a4efb7e19465b36abb8b05"
+        ],
+        [
+          "binance_spot/2026-10-24/05/BTCUSDT_orderbook.parquet",
+          "0a4ea68fbd5cdb7b44ba6017b07a23b638e7d73a66670b4855a94c0d45a00087"
+        ],
+        [
+          "binance_spot/2026-10-24/05/BTCUSDT_trades.parquet",
+          "9c1589aea345568d1dbaf9d81ffe77a6f036e48764a14f669c4252d3a31da2ae"
+        ],
+        [
+          "binance_spot/2026-10-24/06/BTCUSDT_orderbook.parquet",
+          "172854c699e515e0a69f15d50908b40d08e7eb08b855bf7d7f9abf3d41ea6fc5"
+        ],
+        [
+          "binance_spot/2026-10-24/06/BTCUSDT_trades.parquet",
+          "7f2dc5134f3d8a883fbf7ded5f1d714e916a447695e7254528d9454f33e2d1f7"
+        ],
+        [
+          "binance_spot/2026-10-24/07/BTCUSDT_orderbook.parquet",
+          "44ef4e72262ff0fd3398f3f8fb489c425e21657a4b7d9d75a329adb565108266"
+        ],
+        [
+          "binance_spot/2026-10-24/07/BTCUSDT_trades.parquet",
+          "2506c1d483c6e690f0889186c3969bc2794b535bdbb8d2eb21292dda6fc40c73"
+        ],
+        [
+          "binance_spot/2026-10-24/08/BTCUSDT_orderbook.parquet",
+          "2d04cabf7230073581c45dae0d102efff6d22b50b40352034bbd347c6dba9b39"
+        ],
+        [
+          "binance_spot/2026-10-24/08/BTCUSDT_trades.parquet",
+          "9d444a0d8721dad43d72e638e350e64c2e7bfdc79a7cdc1e032993a11381e6dc"
+        ],
+        [
+          "binance_spot/2026-10-24/09/BTCUSDT_orderbook.parquet",
+          "99dde8725a8d304db312a1ea0b06a6ef01cc98281813346a9c9ff9eff24b37c2"
+        ],
+        [
+          "binance_spot/2026-10-24/09/BTCUSDT_trades.parquet",
+          "d535cd91db94094491891d0566fbbb52b259b6cf8a126c255e2cef72498f1cd0"
+        ],
+        [
+          "binance_spot/2026-10-24/10/BTCUSDT_orderbook.parquet",
+          "a99fe3f3002bfe3b969cfe38a906062bbe274d88481c7fe774e7cd4f55046921"
+        ],
+        [
+          "binance_spot/2026-10-24/10/BTCUSDT_trades.parquet",
+          "106ee5289e9dba07a58f2ceca91a30205ea69c95429d129872c5cc348bb067bb"
+        ],
+        [
+          "binance_spot/2026-10-24/11/BTCUSDT_orderbook.parquet",
+          "09322753de2752cc04e02943f08d7da03a4db4b468550d7e07b87915b2fd5e0f"
+        ],
+        [
+          "binance_spot/2026-10-24/11/BTCUSDT_trades.parquet",
+          "62519439d94ac3fe03e48c8530ef6e8e8a9e6cbb2747b40f867db8b79e58baaf"
+        ],
+        [
+          "binance_spot/2026-10-24/12/BTCUSDT_orderbook.parquet",
+          "6d1fa60e42fc1c57cc1729f353ef4c7185061b3bebdf43aba032a7b49213da63"
+        ],
+        [
+          "binance_spot/2026-10-24/12/BTCUSDT_trades.parquet",
+          "3a43e23e48c43268050867ec7545b326f28f6a9793376a6f5c87e817e2ff30f8"
+        ],
+        [
+          "binance_spot/2026-10-24/13/BTCUSDT_orderbook.parquet",
+          "8a41e079df727417ea880ff167905267f7a7a5155820060875c6e9c6b94a1417"
+        ],
+        [
+          "binance_spot/2026-10-24/13/BTCUSDT_trades.parquet",
+          "a3c170c3c2dd6ddda401fc87a596d52ab9ef6cdddece22b5ae4607b16df0c843"
+        ],
+        [
+          "binance_spot/2026-10-24/14/BTCUSDT_orderbook.parquet",
+          "927959f53ff1567ef26006a348a3188dd28a15b57f39df44e70b6243dbd65781"
+        ],
+        [
+          "binance_spot/2026-10-24/14/BTCUSDT_trades.parquet",
+          "cf625216a155655d3341d80b0a47f6e4107ff22621381d1c8c9c38936482f465"
+        ],
+        [
+          "binance_spot/2026-10-24/15/BTCUSDT_orderbook.parquet",
+          "ead7c228013127a8094f9b0e188a2c2e570f3729925ee754285235f70a75f056"
+        ],
+        [
+          "binance_spot/2026-10-24/15/BTCUSDT_trades.parquet",
+          "0819bb49c867ffe134b7aa48955270af88bbb1161448ee3fce465fe703a18e40"
+        ],
+        [
+          "binance_spot/2026-10-24/16/BTCUSDT_orderbook.parquet",
+          "d3c2baedec73093b165ff89bdf014578bfb25b56c9b22613a6f6b8f1fce5b747"
+        ],
+        [
+          "binance_spot/2026-10-24/16/BTCUSDT_trades.parquet",
+          "2e627b4a65236b34c8769a594128ff0a477c35b90fd39a1761ed3ce7aab37f0e"
+        ],
+        [
+          "binance_spot/2026-10-24/17/BTCUSDT_orderbook.parquet",
+          "4e3ea215646d3cdc9794276988f6e31f7214f641242884dfc3634eda7f0e1764"
+        ],
+        [
+          "binance_spot/2026-10-24/17/BTCUSDT_trades.parquet",
+          "f89d256633b8dda3efa791003ab1a69c6d6d2f99788ceeff0e66ad3e75e4c65c"
+        ],
+        [
+          "binance_spot/2026-10-24/18/BTCUSDT_orderbook.parquet",
+          "7f62ffbce3f9e98ec25c361336c6cf9b93a5598044dfdc68c9c52afea7942f72"
+        ],
+        [
+          "binance_spot/2026-10-24/18/BTCUSDT_trades.parquet",
+          "147e38fb4659d8eb85fe7435dc85e9174811956c84048c50a882f4d0569ff2e0"
+        ],
+        [
+          "binance_spot/2026-10-24/19/BTCUSDT_orderbook.parquet",
+          "d706885504da93ef76565f92b126ca377a860da64043e3299af15b9dbe68df64"
+        ],
+        [
+          "binance_spot/2026-10-24/19/BTCUSDT_trades.parquet",
+          "92792c337ac1a38f33593079baf65b33aaa8db87cb22dc30b7801bde220e8aa5"
+        ],
+        [
+          "binance_spot/2026-10-24/20/BTCUSDT_orderbook.parquet",
+          "ca0c597fae56aeb90e95627d1931fe36ed49b3b12954b532dbb87660b8e3a366"
+        ],
+        [
+          "binance_spot/2026-10-24/20/BTCUSDT_trades.parquet",
+          "eb7168da53988b4a0d973668ad97becb62b7db95d9122f519498a9778969968f"
+        ],
+        [
+          "binance_spot/2026-10-24/21/BTCUSDT_orderbook.parquet",
+          "eded01c5ca516e24e34f87b4575a6efb7169e8749cf2646428a865439814ab02"
+        ],
+        [
+          "binance_spot/2026-10-24/21/BTCUSDT_trades.parquet",
+          "1e86389ec9818e24b1f5bffe3a4e5c5b2f717b093cf008096ac60e3f2e75bda8"
+        ],
+        [
+          "binance_spot/2026-10-24/22/BTCUSDT_orderbook.parquet",
+          "1c70156bbea0c2c415a739a651cc298199467ea0937bded8ac7dbf90bf54cda6"
+        ],
+        [
+          "binance_spot/2026-10-24/22/BTCUSDT_trades.parquet",
+          "aa4e1f35aa1fe75bb31b7e7b25c3d7cea6a8e37691f28afdeacf85b128cc1944"
+        ],
+        [
+          "binance_spot/2026-10-24/23/BTCUSDT_orderbook.parquet",
+          "11c4c5f69cac1041eb8dce2db8d5267a0c2e154381ded81e073ff7a5852eecc6"
+        ],
+        [
+          "binance_spot/2026-10-24/23/BTCUSDT_trades.parquet",
+          "6d4cc38b9c986f71ec57a02a28363ae651a69253a9d56678bb513bbcd07fa579"
+        ],
+        [
+          "binance_spot/2026-10-25/00/BTCUSDT_orderbook.parquet",
+          "8b42ece55f1aa749e4702055eb9ca8f8bae21dbdab7eeb61fc5ebb9013f3b35c"
+        ],
+        [
+          "binance_spot/2026-10-25/00/BTCUSDT_trades.parquet",
+          "4b3834c89ae2a3c7ce677a5641adcd8a6269c8ef6c0a4285fc4fe4f80091130b"
+        ],
+        [
+          "binance_spot/2026-10-25/01/BTCUSDT_orderbook.parquet",
+          "6ae575e4adc70576e9563b9f28a3604834dfaa33ea1375ce04b5146c0c141a40"
+        ],
+        [
+          "binance_spot/2026-10-25/01/BTCUSDT_trades.parquet",
+          "d08e749704f1828d4d1cf6f2de8e68907bebac7308c3a097da77ebd3d6794d79"
+        ],
+        [
+          "binance_spot/2026-10-25/02/BTCUSDT_orderbook.parquet",
+          "7a3b26a5e43ad346694dd91474e552e97306f80acc25fa763118c237aed73851"
+        ],
+        [
+          "binance_spot/2026-10-25/02/BTCUSDT_trades.parquet",
+          "705835cb64e20bc4d06d3855d8ad278675472e2f30b899bd4fc7804b811ad407"
+        ],
+        [
+          "binance_spot/2026-10-25/03/BTCUSDT_orderbook.parquet",
+          "826523bdf5d8d93049253e246fd81e78b679af8ba8d41650a042bf735f14571c"
+        ],
+        [
+          "binance_spot/2026-10-25/03/BTCUSDT_trades.parquet",
+          "3268104134cdb75d70edb14b5c4bf01e64bf44d20396057325f11d91c8179616"
+        ],
+        [
+          "binance_spot/2026-10-25/04/BTCUSDT_orderbook.parquet",
+          "4aadc69b12c4d6368a33352f5c6f0cda446a360811e500e94b91df206c0ab172"
+        ],
+        [
+          "binance_spot/2026-10-25/04/BTCUSDT_trades.parquet",
+          "2a0d0412cd93311c90bf9502edb426ef7d3355c19bb032091c9206b00dc23622"
+        ],
+        [
+          "binance_spot/2026-10-25/05/BTCUSDT_orderbook.parquet",
+          "b73287fd77cc39e750e9c05d57e48211582e7e43119668d03593f874c85a6203"
+        ],
+        [
+          "binance_spot/2026-10-25/05/BTCUSDT_trades.parquet",
+          "4d7aa5b9d22bd2afb8230c2118be66d0f21685c7d3cf30e7c1787dcbb3209227"
+        ],
+        [
+          "binance_spot/2026-10-25/06/BTCUSDT_orderbook.parquet",
+          "ec17efacf2b0329fb9783d0fd971b70e6bd70cbbc45ba221dd3cad0985e3ddfa"
+        ],
+        [
+          "binance_spot/2026-10-25/06/BTCUSDT_trades.parquet",
+          "a1086940b6baecbc6349b2ba1d0adf6d37fd1de5b9207123175dd9f3ee844c24"
+        ],
+        [
+          "binance_spot/2026-10-25/07/BTCUSDT_orderbook.parquet",
+          "711df77eb9543e8cfe1239f5fca1b24b379a896b645af7c911a1b822daae097d"
+        ],
+        [
+          "binance_spot/2026-10-25/07/BTCUSDT_trades.parquet",
+          "9df9a922fd7d7313afe75931ec4a0e7e898960300a04b3bd12f93d9f090dbe0c"
+        ],
+        [
+          "binance_spot/2026-10-25/08/BTCUSDT_orderbook.parquet",
+          "33b3f668e11bcca2ed801eb1bf5b1d4f5fdb90733581b23c3c3ee78d7e1a92f4"
+        ],
+        [
+          "binance_spot/2026-10-25/08/BTCUSDT_trades.parquet",
+          "7bb95a6323a23a3b6a690b34cea36481a40cd8db58846fba42b3bdbf47940c94"
+        ],
+        [
+          "binance_spot/2026-10-25/09/BTCUSDT_orderbook.parquet",
+          "241ec2cece9e777f06c964a596c2c993d26e3cb2825a84df0ee02ade8ac0344d"
+        ],
+        [
+          "binance_spot/2026-10-25/09/BTCUSDT_trades.parquet",
+          "9896709858efb4ad0f5c9f8ab978093489960a29826536b5ec9ecb7f0cba28f1"
+        ],
+        [
+          "binance_spot/2026-10-25/10/BTCUSDT_orderbook.parquet",
+          "0ee120978cc9c76ef02286c8d16fde6877c8996f14d0d04c4959ebd967aa90ef"
+        ],
+        [
+          "binance_spot/2026-10-25/10/BTCUSDT_trades.parquet",
+          "be104a17a6ccd631ed08620e8a30fa78f8b6be3db6e082301daeaa71f5b66abd"
+        ],
+        [
+          "binance_spot/2026-10-25/11/BTCUSDT_orderbook.parquet",
+          "7240b920c7e57a25c80e6b77f476acc407eeaf674b4a7c4b17f4d678b753f9f9"
+        ],
+        [
+          "binance_spot/2026-10-25/11/BTCUSDT_trades.parquet",
+          "b8b58aef9e3e64fcbb8d156556a030fab220c313a28eb86114e76e0a49ed6655"
+        ],
+        [
+          "binance_spot/2026-10-25/12/BTCUSDT_orderbook.parquet",
+          "562a29d950139c3dd44598dc1af34f1e4d4cd0999fcb375eb2618a53ec8f41dc"
+        ],
+        [
+          "binance_spot/2026-10-25/12/BTCUSDT_trades.parquet",
+          "89f7b85fa62990f08dbac22abf2616c7c251001dc6801fa581b1e2f35c9bda75"
+        ],
+        [
+          "binance_spot/2026-10-25/13/BTCUSDT_orderbook.parquet",
+          "854eb200d9bdbb3cb43511792995e8dcc126ae978dc3edc694a3d9451127cc1c"
+        ],
+        [
+          "binance_spot/2026-10-25/13/BTCUSDT_trades.parquet",
+          "24d3d8d9277137d21db658aa184190d1b4342d40a914d88206b3988eb4b94065"
+        ],
+        [
+          "binance_spot/2026-10-25/14/BTCUSDT_orderbook.parquet",
+          "e74ddd20d23851a987515e9a8be74bdc8a45372f0813ba3f7b6999647f82a06a"
+        ],
+        [
+          "binance_spot/2026-10-25/14/BTCUSDT_trades.parquet",
+          "6b6b449506263aca95a67bdc87405ee8f838878a87de15c4ed093b6ba84bf5a7"
+        ],
+        [
+          "binance_spot/2026-10-25/15/BTCUSDT_orderbook.parquet",
+          "7aff2e8c6cabeb5775a3fda8e22b2543894e423768661dd404ae87e883514f1c"
+        ],
+        [
+          "binance_spot/2026-10-25/15/BTCUSDT_trades.parquet",
+          "e3f06074bc83b0d013d4e065a03b5922739dff0c7d7d2e22fea7581e6bcea959"
+        ],
+        [
+          "binance_spot/2026-10-25/16/BTCUSDT_orderbook.parquet",
+          "974515ddd9baf02bd4da3905f1c74bd9418edf17dc90e5b69c4fd44a1706d15d"
+        ],
+        [
+          "binance_spot/2026-10-25/16/BTCUSDT_trades.parquet",
+          "ca1f7c5fe1c5442cec288038cbbffe2bedd9f08dd9ab07fbeb4a110d01fa726b"
+        ],
+        [
+          "binance_spot/2026-10-25/17/BTCUSDT_orderbook.parquet",
+          "6998053a53d62a38f17e245dd97481323b3f0263a6e81a994ed033aaa01b205b"
+        ],
+        [
+          "binance_spot/2026-10-25/17/BTCUSDT_trades.parquet",
+          "ad16cd911de0928294c6351aa6f1876d830fd65d7dcdca69718012adb81c8f15"
+        ],
+        [
+          "binance_spot/2026-10-25/18/BTCUSDT_orderbook.parquet",
+          "939b44985049fce3127f2a2b74239440ff5e067e82ab36aa4416b4a2c89c5672"
+        ],
+        [
+          "binance_spot/2026-10-25/18/BTCUSDT_trades.parquet",
+          "29e38a31dc769a279cea2a09f8f4231a6a133fb911912eebd74352b5e8be6470"
+        ],
+        [
+          "binance_spot/2026-10-25/19/BTCUSDT_orderbook.parquet",
+          "b5786f14477f4adcfc0e97763fe6aca916fe7c594abfe7249338ad5d30444a28"
+        ],
+        [
+          "binance_spot/2026-10-25/19/BTCUSDT_trades.parquet",
+          "4e8a6a5227c350458b54881046c50b8a2ca3906de4499ffb2b0a5f6cbeff3aec"
+        ],
+        [
+          "binance_spot/2026-10-25/20/BTCUSDT_orderbook.parquet",
+          "cf4bee9f5f456010b1d94fb4ce8a73ab3d96fb6b71cde12638e8f4e538c934ca"
+        ],
+        [
+          "binance_spot/2026-10-25/20/BTCUSDT_trades.parquet",
+          "13bbb1f5c8dd15a9b1a138c5a2e358440354c69059194e74b577e5143742aab6"
+        ],
+        [
+          "binance_spot/2026-10-25/21/BTCUSDT_orderbook.parquet",
+          "afff8c0d26c0fed38d18afe4c7a7dc4568dce4f82c64146c73c7c5c7984c27f4"
+        ],
+        [
+          "binance_spot/2026-10-25/21/BTCUSDT_trades.parquet",
+          "8b7f86150dda9de0609a92e80cc99f507adceb0d0312126f5edd4e60da19469a"
+        ],
+        [
+          "binance_spot/2026-10-25/22/BTCUSDT_orderbook.parquet",
+          "e030840349094c09e5a4cdb88949621b3f0c95cd8dba99ae5f35675fb2d109ec"
+        ],
+        [
+          "binance_spot/2026-10-25/22/BTCUSDT_trades.parquet",
+          "fc4bbbb0a29b6be5c67c6950be5939868c0a1b651b504c3c851de7ce0ddb0c1d"
+        ],
+        [
+          "binance_spot/2026-10-25/23/BTCUSDT_orderbook.parquet",
+          "0d174c678a63502291c345531c54086df756235c4d329283bdd7268bcc27e469"
+        ],
+        [
+          "binance_spot/2026-10-25/23/BTCUSDT_trades.parquet",
+          "56b11c1c3c1a2d4050f688f7b3c44859c8215d03d90a6563c8c01f5a4f5eb9ca"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 722,
+          "pressure_cut_usdt": 684086.4662886993,
+          "impact_cut_bps": 4.218004515104623,
+          "refill_cut": 0.17147610593117874,
+          "control_refill_ceiling": 0.020169845768062775,
+          "candidates": 5,
+          "controls": 13,
+          "exhaustion_without_refill_filter": {
+            "missing": 1,
+            "counts": {
+              "base": 27,
+              "stress": 27
+            },
+            "mean_bps": {
+              "base": -32.66122799065591,
+              "stress": -62.610929328243934
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 0,
+            "counts": {
+              "base": 5,
+              "stress": 5
+            },
+            "mean_bps": {
+              "base": -36.45079588845712,
+              "stress": -66.39291998030029
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -27.125189057768036,
+                "control_mean_bps": -27.0969085674599,
+                "paired_difference_bps": -0.02828049030813773
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -57.08595971211864,
+                "control_mean_bps": -57.057735768685404,
+                "paired_difference_bps": -0.028223943433228982
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -25.473344334196682,
+                "control_mean_bps": -28.180600446159293,
+                "paired_difference_bps": 2.7072561119626126
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -55.43741785413497,
+                "control_mean_bps": -58.13926080412041,
+                "paired_difference_bps": 2.701842949985437
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -40.87263956934727,
+                "control_mean_bps": -33.443183898157656,
+                "paired_difference_bps": -7.42945567118962
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -70.80592217922879,
+                "control_mean_bps": -63.39132171393228,
+                "paired_difference_bps": -7.414600465296509
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -36.78298324470225,
+                "control_mean_bps": -37.776167326254765,
+                "paired_difference_bps": 0.9931840815525064
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -66.72444312751219,
+                "control_mean_bps": -67.71564133625293,
+                "paired_difference_bps": 0.9911982087407338
+              }
+            }
+          },
+          "ledger": [
+            {
+              "candidate": {
+                "time": 1792731180,
+                "side": "bid",
+                "pressure": 800390.7326575018,
+                "impact_bps": 1.0162222753787902,
+                "spread_bps": 0.0012243546242711502,
+                "range_bps": 1.0162222753782275,
+                "depth": 780747.1544095133,
+                "refill": 0.2092296064093246,
+                "ofi": -2.7287720447370742,
+                "shock_time": 1792731150,
+                "pressure_ratio": 0.016370301532722516,
+                "recovery_bps": 0.12489071297756389
+              },
+              "control": {
+                "time": 1792732770,
+                "side": "bid",
+                "pressure": 787166.3253041008,
+                "impact_bps": 1.787812014923877,
+                "spread_bps": 0.001222087641991644,
+                "range_bps": 1.894137631380144,
+                "depth": 1142118.5733467967,
+                "refill": 0.017522419283334256,
+                "ofi": 3.4391992944680863,
+                "shock_time": 1792732740,
+                "pressure_ratio": 0.01992619787392509,
+                "recovery_bps": 2.4366244074446968
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -31.099438707510046,
+                  "stress": -61.0522628447226
+                },
+                "60": {
+                  "base": -29.856701271268122,
+                  "stress": -59.81201026353502
+                },
+                "300": {
+                  "base": -45.04571438089304,
+                  "stress": -74.970652922476
+                },
+                "900": {
+                  "base": -20.19951940438365,
+                  "stress": -50.174137943857666
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -29.9862268836232,
+                  "stress": -59.94127688926772
+                },
+                "60": {
+                  "base": -33.21394526239657,
+                  "stress": -63.16254144111087
+                },
+                "300": {
+                  "base": -39.80107585632862,
+                  "stress": -69.7365010591917
+                },
+                "900": {
+                  "base": -41.509437567193466,
+                  "stress": -71.44144689868313
+                }
+              }
+            },
+            {
+              "candidate": {
+                "time": 1792767180,
+                "side": "bid",
+                "pressure": 710285.8598754,
+                "impact_bps": -1.4845054768393733,
+                "spread_bps": 0.0012228557252466625,
+                "range_bps": 1.4845054768393733,
+                "depth": 561955.9978483433,
+                "refill": 0.6132954758913779,
+                "ofi": 4.3281536236786335,
+                "shock_time": 1792767150,
+                "pressure_ratio": 0.14301617557953328,
+                "recovery_bps": 6.467377313480857
+              },
+              "control": {
+                "time": 1792769160,
+                "side": "bid",
+                "pressure": 792989.6161419998,
+                "impact_bps": 2.6774902489488293,
+                "spread_bps": 0.0012260742223022556,
+                "range_bps": 4.249501198141618,
+                "depth": 656663.1727856466,
+                "refill": 0.00950081419597162,
+                "ofi": -6.600057829225782,
+                "shock_time": 1792769130,
+                "pressure_ratio": 0.013296960323641657,
+                "recovery_bps": 5.542983606805783
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -23.150939408026026,
+                  "stress": -53.119656579514675
+                },
+                "60": {
+                  "base": -21.08998739712524,
+                  "stress": -51.06282544473492
+                },
+                "300": {
+                  "base": -36.69956475780151,
+                  "stress": -66.64119143598157
+                },
+                "900": {
+                  "base": -53.36644708502086,
+                  "stress": -83.27474831116672
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -24.207590251296597,
+                  "stress": -54.1741946481031
+                },
+                "60": {
+                  "base": -23.147255629922014,
+                  "stress": -53.11598016712995
+                },
+                "300": {
+                  "base": -27.085291939986686,
+                  "stress": -57.04614236867286
+                },
+                "900": {
+                  "base": -34.042897085316056,
+                  "stress": -63.989835773822726
+                }
+              }
+            }
+          ]
+        },
+        "ask": {
+          "training_events": 989,
+          "pressure_cut_usdt": 670467.1083856003,
+          "impact_cut_bps": 2.815981650418612,
+          "refill_cut": 0.2854565398184958,
+          "control_refill_ceiling": 0.0551188994245345,
+          "candidates": 2,
+          "controls": 10,
+          "exhaustion_without_refill_filter": {
+            "missing": 0,
+            "counts": {
+              "base": 20,
+              "stress": 20
+            },
+            "mean_bps": {
+              "base": -34.02306501761418,
+              "stress": -64.07613569799365
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 0,
+            "counts": {
+              "base": 2,
+              "stress": 2
+            },
+            "mean_bps": {
+              "base": -40.92827762642273,
+              "stress": -70.9951621932637
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -23.351663856338227,
+                "control_mean_bps": -34.67693428639838,
+                "paired_difference_bps": 11.32527043006015
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -53.38338638534389,
+                "control_mean_bps": -64.73131303306525,
+                "paired_difference_bps": 11.347926647721359
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -19.41395385232823,
+                "control_mean_bps": -32.9598341822919,
+                "paired_difference_bps": 13.54588032996367
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -49.43779898754746,
+                "control_mean_bps": -63.010777868055236,
+                "paired_difference_bps": 13.572978880507776
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -36.25012518822231,
+                "control_mean_bps": -41.79063471769536,
+                "paired_difference_bps": 5.540509529473049
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -66.30765110525942,
+                "control_mean_bps": -71.85924443097427,
+                "paired_difference_bps": 5.5515933257148475
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -78.84753369097707,
+                "control_mean_bps": -36.41243189162094,
+                "paired_difference_bps": -42.43510179935613
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 0,
+                "treated_mean_bps": -108.99027577700723,
+                "control_mean_bps": -66.47028250341863,
+                "paired_difference_bps": -42.5199932735886
+              }
+            }
+          },
+          "ledger": [
+            {
+              "candidate": {
+                "time": 1792765590,
+                "side": "ask",
+                "pressure": 724147.5107816999,
+                "impact_bps": 1.227912842570484,
+                "spread_bps": 0.0012281937645612986,
+                "range_bps": 5.403944679421607,
+                "depth": 538087.23522878,
+                "refill": 0.7572279505219524,
+                "ofi": 0.7336643122661194,
+                "shock_time": 1792765560,
+                "pressure_ratio": 0.22656744892444958,
+                "recovery_bps": 1.9450836874020094
+              },
+              "control": {
+                "time": 1792758930,
+                "side": "ask",
+                "pressure": 860147.0978992992,
+                "impact_bps": 1.6677103660132144,
+                "spread_bps": 0.001223543489915732,
+                "range_bps": 2.8777061357103015,
+                "depth": 719009.6732106867,
+                "refill": 0.029510413547743725,
+                "ofi": -3.3174762104952964,
+                "shock_time": 1792758900,
+                "pressure_ratio": 0.023568963288966894,
+                "recovery_bps": 4.849734210187543
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -23.351663856338227,
+                  "stress": -53.38338638534389
+                },
+                "60": {
+                  "base": -19.41395385232823,
+                  "stress": -49.43779898754746
+                },
+                "300": {
+                  "base": -36.25012518822231,
+                  "stress": -66.30765110525942
+                },
+                "900": {
+                  "base": -78.84753369097707,
+                  "stress": -108.99027577700723
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -34.67693428639838,
+                  "stress": -64.73131303306525
+                },
+                "60": {
+                  "base": -32.9598341822919,
+                  "stress": -63.010777868055236
+                },
+                "300": {
+                  "base": -41.79063471769536,
+                  "stress": -71.85924443097427
+                },
+                "900": {
+                  "base": -36.41243189162094,
+                  "stress": -66.47028250341863
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ETHUSDT": {
+      "book_audit": {
+        "snapshots": 5,
+        "trades": 16306460,
+        "snapshot_reanchors": 4,
+        "trade_sequence_gaps": 3
+      },
+      "invalid_seconds": 7,
+      "valid_update_seconds": 518000,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/ETHUSDT_orderbook.parquet",
+          "171fb1b17e856293cb4d0e7c17bdd3464325bad59d67128fd833e2f98aeceda7"
+        ],
+        [
+          "binance_spot/2026-10-20/00/ETHUSDT_trades.parquet",
+          "b4fd76ba4610077e25539321b921d5eb9bbb7dee0443166d905ae5a242a07c67"
+        ],
+        [
+          "binance_spot/2026-10-20/01/ETHUSDT_orderbook.parquet",
+          "f344463eb294bd18a16893502cd722d3483e0d48963755f36cdd6686e5458a94"
+        ],
+        [
+          "binance_spot/2026-10-20/01/ETHUSDT_trades.parquet",
+          "e8292a5b4a7cca6ccbfc95a99c41bd9d077600ee6e5475bd851986e32400b115"
+        ],
+        [
+          "binance_spot/2026-10-20/02/ETHUSDT_orderbook.parquet",
+          "b87a3e88677f921adcc0cbdd44bdcfef193f7ebdd348877a236b9029713ca363"
+        ],
+        [
+          "binance_spot/2026-10-20/02/ETHUSDT_trades.parquet",
+          "25a26566e9ccfbaef84b5a5505a7452a12cb5dbac4270421763442a9d667e03c"
+        ],
+        [
+          "binance_spot/2026-10-20/03/ETHUSDT_orderbook.parquet",
+          "b6cdfef6fd6af6765550219ef72125ef95dc125faf10b236b9e195ff7bcf2511"
+        ],
+        [
+          "binance_spot/2026-10-20/03/ETHUSDT_trades.parquet",
+          "a2b2d87e22a788e6ae7b7f74364ed0a299aa7a0ce195ecc96d559c06d6632d67"
+        ],
+        [
+          "binance_spot/2026-10-20/04/ETHUSDT_orderbook.parquet",
+          "6a4bc095233186b1fb5a5ba066162b9840057ed32853869c3584e3a6fb2fb6b6"
+        ],
+        [
+          "binance_spot/2026-10-20/04/ETHUSDT_trades.parquet",
+          "5a93e2b3cbb40e70d9889cd0528dd0e1635e1eb897604b701597c41805796dca"
+        ],
+        [
+          "binance_spot/2026-10-20/05/ETHUSDT_orderbook.parquet",
+          "ec90d7be3770938303429b1c9992bc611f0c862f2417e981ecb2838eaa027250"
+        ],
+        [
+          "binance_spot/2026-10-20/05/ETHUSDT_trades.parquet",
+          "ca9801945fe69ac5622bb57e8f5b6000aea4d9f3128c3bd8345ee2fd3315d46a"
+        ],
+        [
+          "binance_spot/2026-10-20/06/ETHUSDT_orderbook.parquet",
+          "88b9b4c9c766657ae42a010cbbd60f87432fd44c6191557faf180e02626cf999"
+        ],
+        [
+          "binance_spot/2026-10-20/06/ETHUSDT_trades.parquet",
+          "7974034f51b3957b0999d4d52e1a8284a92666122f7b31fddf15e1777756b31d"
+        ],
+        [
+          "binance_spot/2026-10-20/07/ETHUSDT_orderbook.parquet",
+          "fc7342fe4b34c5419e419d7992f212cefe068bf4d04e1f23f37b49d39696a98a"
+        ],
+        [
+          "binance_spot/2026-10-20/07/ETHUSDT_trades.parquet",
+          "0db3e01374ab90be657b453bffb45130653a14abf19ae599bd992b3a79f3cd70"
+        ],
+        [
+          "binance_spot/2026-10-20/08/ETHUSDT_orderbook.parquet",
+          "dbd7c3621988118d536b5446fba5c7e370e1dd049d98f4d1a63b8c23660ac7a5"
+        ],
+        [
+          "binance_spot/2026-10-20/08/ETHUSDT_trades.parquet",
+          "1adb3edcec57e37949218ffe3a2177b6a042568f18ed9fe0a0d4efd41228080e"
+        ],
+        [
+          "binance_spot/2026-10-20/09/ETHUSDT_orderbook.parquet",
+          "71b5b6209997d70656e90136accf154b4ec4c21ecc40f0d12a52890638c6dc35"
+        ],
+        [
+          "binance_spot/2026-10-20/09/ETHUSDT_trades.parquet",
+          "1509c37bd036be2b680c10cbf4a8f3409c89b00081a4d86aca2e1cdfc0cd348c"
+        ],
+        [
+          "binance_spot/2026-10-20/10/ETHUSDT_orderbook.parquet",
+          "4376bdd20f3f24c235eaa6e11dfe984c07288652672f8370072b4afeadfa6e04"
+        ],
+        [
+          "binance_spot/2026-10-20/10/ETHUSDT_trades.parquet",
+          "18603852c105c118ed60f7a396c76cd4e54519382dcf261ec0a8209584c64d50"
+        ],
+        [
+          "binance_spot/2026-10-20/11/ETHUSDT_orderbook.parquet",
+          "c58a808cb360cf63facd5d9a390909da24c1d04da1d95f5795ce50e2e28a5816"
+        ],
+        [
+          "binance_spot/2026-10-20/11/ETHUSDT_trades.parquet",
+          "01efd5680211ba3de84164d6325cb794d926d926a2ba4338187e559762e81d5a"
+        ],
+        [
+          "binance_spot/2026-10-20/12/ETHUSDT_orderbook.parquet",
+          "f8c9ffb9d77689c08712c039c1f896e2429a1770286a7dd38f127fcdb23b0326"
+        ],
+        [
+          "binance_spot/2026-10-20/12/ETHUSDT_trades.parquet",
+          "0b2de96a6b2ebd148c531cb00c086fc694f7c606b7b3e8f4a1a5ff44ea125295"
+        ],
+        [
+          "binance_spot/2026-10-20/13/ETHUSDT_orderbook.parquet",
+          "abd7efcc80bd16d02d44155dd37837d8c303eb46d10f4b10914e680050b0e736"
+        ],
+        [
+          "binance_spot/2026-10-20/13/ETHUSDT_trades.parquet",
+          "df39cd7b6e58955939816ab999c6296d3bd601f3969ce75a932ef02b08a8cf77"
+        ],
+        [
+          "binance_spot/2026-10-20/14/ETHUSDT_orderbook.parquet",
+          "bd5edd24c46929d8b1598332f1620cd04c706703a9146ee94c928db399cafab2"
+        ],
+        [
+          "binance_spot/2026-10-20/14/ETHUSDT_trades.parquet",
+          "ad16487be83b8e4bc885ebad5e348783ff82a3a000c0ebde4e2d61acbe6ca5ce"
+        ],
+        [
+          "binance_spot/2026-10-20/15/ETHUSDT_orderbook.parquet",
+          "a9175376d63d2b4e85326f74a9815501d4eb1bf73fd2850b02593b5313bd9f63"
+        ],
+        [
+          "binance_spot/2026-10-20/15/ETHUSDT_trades.parquet",
+          "78dc2838825e8faf3cdec9c0ce44e0556eeecd877c8a371eef67a0396a3e2b31"
+        ],
+        [
+          "binance_spot/2026-10-20/16/ETHUSDT_orderbook.parquet",
+          "85f08dcdcbcabb8a13a5c25e84dc3a131c3d12e1e33eecc1c8e833567986d6f4"
+        ],
+        [
+          "binance_spot/2026-10-20/16/ETHUSDT_trades.parquet",
+          "1b4659f4f8ef4b87e512d7307e925d4c60504a0c12c0a737252253caf22fd4c5"
+        ],
+        [
+          "binance_spot/2026-10-20/17/ETHUSDT_orderbook.parquet",
+          "ca76e0b67257594df3594b65269691154cf430498c202ce8f6127254adcfb5e9"
+        ],
+        [
+          "binance_spot/2026-10-20/17/ETHUSDT_trades.parquet",
+          "0c6e185aa1d3a38d5bb49aa2ed74dcc9d774b18e104fbb303cbad6eff3e44508"
+        ],
+        [
+          "binance_spot/2026-10-20/18/ETHUSDT_orderbook.parquet",
+          "52a33e811a1ffa68820acc205e299df7ffac7ad8a85d146a80cd7676d063484c"
+        ],
+        [
+          "binance_spot/2026-10-20/18/ETHUSDT_trades.parquet",
+          "198ec3b534c6355a4502e924dcbfff32f63ee32bae9eb5a1c81755f94bf5ba87"
+        ],
+        [
+          "binance_spot/2026-10-20/19/ETHUSDT_orderbook.parquet",
+          "a23d0a260719bad0d45ea8fbf5c9e895674e3ac108303d7e7464cff1d1b7bac7"
+        ],
+        [
+          "binance_spot/2026-10-20/19/ETHUSDT_trades.parquet",
+          "64015a00f181ca9676f16543366f9df2feb4fe46d5a37ffd3a499fdf67be1f76"
+        ],
+        [
+          "binance_spot/2026-10-20/20/ETHUSDT_orderbook.parquet",
+          "c26808e2d180a1c3a4408eabc623ca0566ad99e8fcb642d04f624eee83ea104f"
+        ],
+        [
+          "binance_spot/2026-10-20/20/ETHUSDT_trades.parquet",
+          "b3468fe5aa0bbe0009e239b69a4a7debbabceb59d28f30e6008b7d5866fc9ca2"
+        ],
+        [
+          "binance_spot/2026-10-20/21/ETHUSDT_orderbook.parquet",
+          "39995c78d825fb0553203825a79f176968faa599f6fbb7a5680b67c8d5364eb2"
+        ],
+        [
+          "binance_spot/2026-10-20/21/ETHUSDT_trades.parquet",
+          "f55c8eb800daefb67f6fde8d531e6310c0e17108a2ad5cfabb3033ab7e90f4d0"
+        ],
+        [
+          "binance_spot/2026-10-20/22/ETHUSDT_orderbook.parquet",
+          "3cb55001cfd1693fe79da541a63a5ddbe1c2f7ff4baba1c98aa3ec4424750f57"
+        ],
+        [
+          "binance_spot/2026-10-20/22/ETHUSDT_trades.parquet",
+          "c7fa5b4f84c3b5647e1adc288ed0242a67292e99f9d391fd6708ec72fd2593f8"
+        ],
+        [
+          "binance_spot/2026-10-20/23/ETHUSDT_orderbook.parquet",
+          "ad60abe901cb135fa0a036dc725f1c438ac3b95134301a9fb40baa2478a50149"
+        ],
+        [
+          "binance_spot/2026-10-20/23/ETHUSDT_trades.parquet",
+          "72c07b008143d57730e72d252d1a540ef7bbe95f26e8d82f1df4df9c69d95f8f"
+        ],
+        [
+          "binance_spot/2026-10-21/00/ETHUSDT_orderbook.parquet",
+          "aa3f4742b3eb61a1fc22bec2560f31652747153099aba650b0eba3a0a78d1370"
+        ],
+        [
+          "binance_spot/2026-10-21/00/ETHUSDT_trades.parquet",
+          "1f2322ed09914a17eeea6dbbf01d456de6c1f7b6b0b3ba93b222e9ab762b3e92"
+        ],
+        [
+          "binance_spot/2026-10-21/01/ETHUSDT_orderbook.parquet",
+          "a9c0bbeab54ed809e5e46f0f1a36154d68bd92cbb35faa091c1d7e7d8a72b478"
+        ],
+        [
+          "binance_spot/2026-10-21/01/ETHUSDT_trades.parquet",
+          "8a4956fd5d757b96ad8d5d339d1cf16f5b7229b9f464c2b1ac6735f267e8deb2"
+        ],
+        [
+          "binance_spot/2026-10-21/02/ETHUSDT_orderbook.parquet",
+          "e1129a261d8142a6da7fd41f1b23efe4e6b394fac6b6c8c9fa5b3ec5af93935c"
+        ],
+        [
+          "binance_spot/2026-10-21/02/ETHUSDT_trades.parquet",
+          "b0bf6620c2b9534bd68d9258681c5f93b21c406f47f4614e67c674dfaad7a1f0"
+        ],
+        [
+          "binance_spot/2026-10-21/03/ETHUSDT_orderbook.parquet",
+          "45f77e67fc10c2192073cab8465decb6a6bc96fd5a1646cc9dd3f3c26b41a26f"
+        ],
+        [
+          "binance_spot/2026-10-21/03/ETHUSDT_trades.parquet",
+          "cf46a3ec639a36b187d17fa303d8eda977dfbb983f8b7599de3e669d4ec4db2b"
+        ],
+        [
+          "binance_spot/2026-10-21/04/ETHUSDT_orderbook.parquet",
+          "556e9ddaa366af9da9328b0f57d59085033e29ecb68a17a1ffea39ad91d2402d"
+        ],
+        [
+          "binance_spot/2026-10-21/04/ETHUSDT_trades.parquet",
+          "46ec8e3b28fc89b40eba9714e80053f96a224488ced6bf04ddb76a319831b5fc"
+        ],
+        [
+          "binance_spot/2026-10-21/05/ETHUSDT_orderbook.parquet",
+          "de9b6329d5ea782cbfa85b2a20063e6fcf7e49ed9235039e90d91edaae02eac6"
+        ],
+        [
+          "binance_spot/2026-10-21/05/ETHUSDT_trades.parquet",
+          "5e50922c0236b3c880b184cf606feb7291c0689991976c5676f76ca840f26d2e"
+        ],
+        [
+          "binance_spot/2026-10-21/06/ETHUSDT_orderbook.parquet",
+          "4e6711575c40bd4cd713b3fb43e3edebc1fc0d07e9afece8620d1927cb7e408e"
+        ],
+        [
+          "binance_spot/2026-10-21/06/ETHUSDT_trades.parquet",
+          "9be4a19d47e4efec19df853a075a15505e0c1e0f2bccd370be5161427e0a4dc6"
+        ],
+        [
+          "binance_spot/2026-10-21/07/ETHUSDT_orderbook.parquet",
+          "7ccf4f2081e679658db37ffdcd52bb97645b858593094acd9afb63766f7cf257"
+        ],
+        [
+          "binance_spot/2026-10-21/07/ETHUSDT_trades.parquet",
+          "c27d54930f87c57e60a52dd580fda30038676100367203178c2f6adab5b0031f"
+        ],
+        [
+          "binance_spot/2026-10-21/08/ETHUSDT_orderbook.parquet",
+          "4b775066e6fdf43b8369bfcc631ea482858609e62afedbe23dfb6ddc0af0ec0b"
+        ],
+        [
+          "binance_spot/2026-10-21/08/ETHUSDT_trades.parquet",
+          "503a11386240b0b91c71b841123e0ceee04bd803d087df1997bfc8f001e9a418"
+        ],
+        [
+          "binance_spot/2026-10-21/09/ETHUSDT_orderbook.parquet",
+          "e61abc00aa22d1a5041f3765935ca1d0b772d81e04cc3ce00ee8d6db97eb8c41"
+        ],
+        [
+          "binance_spot/2026-10-21/09/ETHUSDT_trades.parquet",
+          "105775ccfd3b7f59e43891586e6ae3a876ba166db0994db7b70d9481a06b7439"
+        ],
+        [
+          "binance_spot/2026-10-21/10/ETHUSDT_orderbook.parquet",
+          "451983afe4ae478af9994b407100aed4128417de07e857738516a8ef54ad2b74"
+        ],
+        [
+          "binance_spot/2026-10-21/10/ETHUSDT_trades.parquet",
+          "25da33df604c362a4fee8dc3ea57ccd05d6fb90789ba23435eb02edb7daa1036"
+        ],
+        [
+          "binance_spot/2026-10-21/11/ETHUSDT_orderbook.parquet",
+          "4e32d8f38587ca4acaa87286e266a80505b1e7add9f2a41158c136f1f6edb64c"
+        ],
+        [
+          "binance_spot/2026-10-21/11/ETHUSDT_trades.parquet",
+          "835a6c2db4fce56c386482b11a2345128b35b8fc3ba9e9354da5b6b3c6f1b788"
+        ],
+        [
+          "binance_spot/2026-10-21/12/ETHUSDT_orderbook.parquet",
+          "8293a20f4501803476a2e1bbb840ab75d6b0082ea650f9467f5e88f59505f9a5"
+        ],
+        [
+          "binance_spot/2026-10-21/12/ETHUSDT_trades.parquet",
+          "72fbf708c98d3dfd204d16235faf89be3aa6eb573e964861704c04ac1fe130a8"
+        ],
+        [
+          "binance_spot/2026-10-21/13/ETHUSDT_orderbook.parquet",
+          "34579254d85f4e7bbf59f60f5438385770cc5753613368cd18d98589853ad238"
+        ],
+        [
+          "binance_spot/2026-10-21/13/ETHUSDT_trades.parquet",
+          "a50085cae48106b2c136c06d4194a6437b0b27310d5fd672289812678aa7c63b"
+        ],
+        [
+          "binance_spot/2026-10-21/14/ETHUSDT_orderbook.parquet",
+          "bb035e3a592fa4dc36af5e6968d39a6a1878a9cd3e4a798ca2d99ca2ea854a54"
+        ],
+        [
+          "binance_spot/2026-10-21/14/ETHUSDT_trades.parquet",
+          "b8859b2039d0277783f2c72dc7d6549d48b1b08e3b0c2c646efe9bc94e570c9b"
+        ],
+        [
+          "binance_spot/2026-10-21/15/ETHUSDT_orderbook.parquet",
+          "cefe992d6d479f14981b3d9fccb93e76acd536313dda7d3cbb8c4f1453b98e2d"
+        ],
+        [
+          "binance_spot/2026-10-21/15/ETHUSDT_trades.parquet",
+          "27506c1fbfb889049848b236eede62c130aa90a9fc6ff67431295a242fb26252"
+        ],
+        [
+          "binance_spot/2026-10-21/16/ETHUSDT_orderbook.parquet",
+          "c1ff7e02011e0d028423cd9e6225eb34728305340f650b3aaeae0348bba90499"
+        ],
+        [
+          "binance_spot/2026-10-21/16/ETHUSDT_trades.parquet",
+          "d7149901050fafb1d30dca2a80247d44752ec09904d96364b05002d476af637f"
+        ],
+        [
+          "binance_spot/2026-10-21/17/ETHUSDT_orderbook.parquet",
+          "734c13d9a8fa1bf61aa6618df26f43dc717f9a6b0456e87660e4a7b350568244"
+        ],
+        [
+          "binance_spot/2026-10-21/17/ETHUSDT_trades.parquet",
+          "12ad923f9c14b7458222382557ca06dda46fe26bea4a16d2c8ba8a29881fedcd"
+        ],
+        [
+          "binance_spot/2026-10-21/18/ETHUSDT_orderbook.parquet",
+          "02a68dea690ffc03dc21ef2919db3db07b72c3907795040ef633af9ea960503c"
+        ],
+        [
+          "binance_spot/2026-10-21/18/ETHUSDT_trades.parquet",
+          "bb2aa9c33676732a6ce9cabcdaafe02d9d363f62497b6bc5f37599bbcbffb5bd"
+        ],
+        [
+          "binance_spot/2026-10-21/19/ETHUSDT_orderbook.parquet",
+          "73ba6cac7a0c31e321e5b5eb4b506aa824e2c59a3cf4d9e3de804388a09bdc3f"
+        ],
+        [
+          "binance_spot/2026-10-21/19/ETHUSDT_trades.parquet",
+          "6ceda506d7de57a99d59678201765d00ea96fd99ef53830d3c00d7831b7fe959"
+        ],
+        [
+          "binance_spot/2026-10-21/20/ETHUSDT_orderbook.parquet",
+          "012b899c58d682267a373606063e27abe4f6b86d664b4bba5aaebf788ff3d357"
+        ],
+        [
+          "binance_spot/2026-10-21/20/ETHUSDT_trades.parquet",
+          "e88335a576afea4a5a6c88b41cd15cb0246d4b83ba815b8d74e10f32f9790ac3"
+        ],
+        [
+          "binance_spot/2026-10-21/21/ETHUSDT_orderbook.parquet",
+          "9ea749b863d856dc10e02b1bde5e5c2b8205aea2e1ce451fd9a158833dfa66fe"
+        ],
+        [
+          "binance_spot/2026-10-21/21/ETHUSDT_trades.parquet",
+          "d11f37ac2949881db62156ed109c356ece8e43ef3dd6e874f10936e2f12000b0"
+        ],
+        [
+          "binance_spot/2026-10-21/22/ETHUSDT_orderbook.parquet",
+          "0afd83c1cb3c2fa4c173c550a68b15ccad14cd8ef29bed5de2c246de5ccc169d"
+        ],
+        [
+          "binance_spot/2026-10-21/22/ETHUSDT_trades.parquet",
+          "b116929035951d3379a71219bc86024465e495fd98e550fdcb6ca88421d420e1"
+        ],
+        [
+          "binance_spot/2026-10-21/23/ETHUSDT_orderbook.parquet",
+          "41ae3290f09a308b20c0e588e598e550af1f43fd5ea9cdd447a6396cac032cb0"
+        ],
+        [
+          "binance_spot/2026-10-21/23/ETHUSDT_trades.parquet",
+          "2d664412349a3e37a35794ed7433cf21079c95afe7448a8ecbdede1d6a08d716"
+        ],
+        [
+          "binance_spot/2026-10-22/00/ETHUSDT_orderbook.parquet",
+          "9ccbad641bb710351e50461a3a6bdf6aafcf251d84159ebbaf356ad25727a0af"
+        ],
+        [
+          "binance_spot/2026-10-22/00/ETHUSDT_trades.parquet",
+          "520b6e1ebe19c3ae356298285ee84df7caf764de3e1646431b4c60e427645e76"
+        ],
+        [
+          "binance_spot/2026-10-22/01/ETHUSDT_orderbook.parquet",
+          "caa4c57f370bd7e56bf16ba1fdea541e2abce08ae98c90257fe503e4b2a915f6"
+        ],
+        [
+          "binance_spot/2026-10-22/01/ETHUSDT_trades.parquet",
+          "3a248c17d3b22c5b0c1ec657b48f67c2e9e8a555715d8dc925b99aae12279aac"
+        ],
+        [
+          "binance_spot/2026-10-22/02/ETHUSDT_orderbook.parquet",
+          "c083acb26983b27b53b6b2e27b3061eb92c5a500dc37e51857b484f79d592262"
+        ],
+        [
+          "binance_spot/2026-10-22/02/ETHUSDT_trades.parquet",
+          "93b5fd60d07fcdda488d09f498e71b9e11487947530ad8ebe679457465a1611a"
+        ],
+        [
+          "binance_spot/2026-10-22/03/ETHUSDT_orderbook.parquet",
+          "a52a666acbe4c2515a81f53e2ed7c13ea3d8e02377c26296e9a969769cf8a1b7"
+        ],
+        [
+          "binance_spot/2026-10-22/03/ETHUSDT_trades.parquet",
+          "5ef58fc669bca4709b0235fd47cd1fad24465b1498da409da1b7beb1888da3a7"
+        ],
+        [
+          "binance_spot/2026-10-22/04/ETHUSDT_orderbook.parquet",
+          "ee4985de9dc0dab8ae1b9a963c8b5b0074d31530300bb7eb4e412ee101365af4"
+        ],
+        [
+          "binance_spot/2026-10-22/04/ETHUSDT_trades.parquet",
+          "3685268776c1748b6f03a4524c563bb64b1ed7616f3ec23765eed3ba6c42b44d"
+        ],
+        [
+          "binance_spot/2026-10-22/05/ETHUSDT_orderbook.parquet",
+          "fa2be22487e190f5648a30b3a050fff892b389640eb476db42283ec3d9bbc8b9"
+        ],
+        [
+          "binance_spot/2026-10-22/05/ETHUSDT_trades.parquet",
+          "80f174cfadab50ff3328d3e752f65f810c155926275801a7dc1bf15d32cbaaaf"
+        ],
+        [
+          "binance_spot/2026-10-22/06/ETHUSDT_orderbook.parquet",
+          "15e497a7828d017d9f8a3bb1e912a8af6bfb56a70500b81e258abc6b00f68b5d"
+        ],
+        [
+          "binance_spot/2026-10-22/06/ETHUSDT_trades.parquet",
+          "7ad7c1d24e2d2b5686613c8e22459317e4ed995479f913190e4e168fec2954e5"
+        ],
+        [
+          "binance_spot/2026-10-22/07/ETHUSDT_orderbook.parquet",
+          "9214d0d76e6269aa4c5078ccceb5abb7e38d9cac9d10c7d8025fa3de67c6408b"
+        ],
+        [
+          "binance_spot/2026-10-22/07/ETHUSDT_trades.parquet",
+          "7241d24e70e34b01876271cafb5ea92b53ed0280b5951ce980f39050d874b9ee"
+        ],
+        [
+          "binance_spot/2026-10-22/08/ETHUSDT_orderbook.parquet",
+          "30cb1c63d6628e574ac1aee0800bbbd4e7f48cde92f0e7a20b1fdf0a9f41e9a7"
+        ],
+        [
+          "binance_spot/2026-10-22/08/ETHUSDT_trades.parquet",
+          "d8fd67a9e9922e13bc4639da7a11c1668aebab55542a0e1a2dd25190155731c0"
+        ],
+        [
+          "binance_spot/2026-10-22/09/ETHUSDT_orderbook.parquet",
+          "425091c5b893cceaa95bc91336f9eb505e523c86ec54c3e0bde54e36934f6078"
+        ],
+        [
+          "binance_spot/2026-10-22/09/ETHUSDT_trades.parquet",
+          "44497bcc69ab5538e4b3aa494473d62197570411100f1ab634fb3677f9e5fd38"
+        ],
+        [
+          "binance_spot/2026-10-22/10/ETHUSDT_orderbook.parquet",
+          "60f932b190699217a992991ff6a4e52b8ff6ec4611962f4c11b48aac0a5bce5e"
+        ],
+        [
+          "binance_spot/2026-10-22/10/ETHUSDT_trades.parquet",
+          "aac6aa1a67eaa8a3254c3901ca6a0bc884e04e162695c0b4ad0159cf5e2f2a01"
+        ],
+        [
+          "binance_spot/2026-10-22/11/ETHUSDT_orderbook.parquet",
+          "507537af7ba5531c27b92de42da71133eacc6489e25b0a0679183efd9fed97c0"
+        ],
+        [
+          "binance_spot/2026-10-22/11/ETHUSDT_trades.parquet",
+          "a5fc1b8be9f608e9668fbdfc0de40ae545864ece393c47efa1894301126ac665"
+        ],
+        [
+          "binance_spot/2026-10-22/12/ETHUSDT_orderbook.parquet",
+          "1b2a32cbf0c0e3de4412e45242da70aca96c9182b9d14e16e60c53f8666c92cb"
+        ],
+        [
+          "binance_spot/2026-10-22/12/ETHUSDT_trades.parquet",
+          "cc7f5e86b0e132cbd5d78fdce9de87975c255172aa87eb2f8e8ad8cc1c7bcb87"
+        ],
+        [
+          "binance_spot/2026-10-22/13/ETHUSDT_orderbook.parquet",
+          "10026980955b6951ad234b08c8c43ff7a2ed0b581be1db8db73c2bfbda95e6b4"
+        ],
+        [
+          "binance_spot/2026-10-22/13/ETHUSDT_trades.parquet",
+          "32b18b26aae9e17e49fe42ca29a176854800002b41564bd4d35440e0e4011f51"
+        ],
+        [
+          "binance_spot/2026-10-22/14/ETHUSDT_orderbook.parquet",
+          "07aac5f26e018d32a52885a66cfc0cd88e78bd17d9291826d6a0ddac28f336d9"
+        ],
+        [
+          "binance_spot/2026-10-22/14/ETHUSDT_trades.parquet",
+          "ed4c9746e7ba3266b707c740eb0a9224b7d7f6cad8c151e23204c03bde35fd49"
+        ],
+        [
+          "binance_spot/2026-10-22/15/ETHUSDT_orderbook.parquet",
+          "df0009f8326dfc7ef8445de6bdd15f62f0c3b859685ef43b1fb7dd4a7e7d7a6b"
+        ],
+        [
+          "binance_spot/2026-10-22/15/ETHUSDT_trades.parquet",
+          "bc6aa5048d11e244160141c9e6000f2ee8bae68902e768349cd8fc0fc7ebfbdf"
+        ],
+        [
+          "binance_spot/2026-10-22/16/ETHUSDT_orderbook.parquet",
+          "340be348e1c16c163288ebff1e4ab53a3f8cb07c6d2bcd58e13e66ca5d0eeb6e"
+        ],
+        [
+          "binance_spot/2026-10-22/16/ETHUSDT_trades.parquet",
+          "cf4aaba58dfeecab886979f7df8880a39d9ca57abc38736992042466ddcc0d76"
+        ],
+        [
+          "binance_spot/2026-10-22/17/ETHUSDT_orderbook.parquet",
+          "f4566b3500a62106ba6b3709c15eb9a8c03b1aaade590eb17228bdb793eca6ae"
+        ],
+        [
+          "binance_spot/2026-10-22/17/ETHUSDT_trades.parquet",
+          "4073b387fa8c759ce8d33f9a2d56e08c8e9aed45aefe88edbb9f8f11d36b010b"
+        ],
+        [
+          "binance_spot/2026-10-22/18/ETHUSDT_orderbook.parquet",
+          "b4173c83d75d0c846e70518bbe1c8533b9d481778e8739c16985ba002a49a3ef"
+        ],
+        [
+          "binance_spot/2026-10-22/18/ETHUSDT_trades.parquet",
+          "f15edfc2ea54aef117e677b06f45d4eea0ae71d1e56e75742e63c463345501ca"
+        ],
+        [
+          "binance_spot/2026-10-22/19/ETHUSDT_orderbook.parquet",
+          "d3c6dfe35e8f2fba82c0f2c512de8af28ca685b7e1746cb559c720181fda57df"
+        ],
+        [
+          "binance_spot/2026-10-22/19/ETHUSDT_trades.parquet",
+          "9d746283a245c068c23eef75144327aacec863f5988cc5e2a8032b3c965bb2a2"
+        ],
+        [
+          "binance_spot/2026-10-22/20/ETHUSDT_orderbook.parquet",
+          "02eeec3fede1ad0f1ddb3c550c2b8de867ecdfba00e39289e8688209af187e4a"
+        ],
+        [
+          "binance_spot/2026-10-22/20/ETHUSDT_trades.parquet",
+          "41f9f33030ab5b65eee7a0d7a1754a43d4bda1d90ece8cd4fdb339be4317ea74"
+        ],
+        [
+          "binance_spot/2026-10-22/21/ETHUSDT_orderbook.parquet",
+          "aeb32415fb2b634aa903b1b38d46530f2e6081151ff80e56d6620914dae89eec"
+        ],
+        [
+          "binance_spot/2026-10-22/21/ETHUSDT_trades.parquet",
+          "6ecca747c5722b1204a5ee3a315a6eb6c590bfd6f53dda8f30009a661b808932"
+        ],
+        [
+          "binance_spot/2026-10-22/22/ETHUSDT_orderbook.parquet",
+          "9f9379917a856715bd07c5cfc587349fc2973cb5c7e39ec95a2cac7a65b45567"
+        ],
+        [
+          "binance_spot/2026-10-22/22/ETHUSDT_trades.parquet",
+          "56d719485de2df604f8ece31f93c34bf0f8802924c7827e0218d95370c5b07c7"
+        ],
+        [
+          "binance_spot/2026-10-22/23/ETHUSDT_orderbook.parquet",
+          "8f0a9cc8bfa1411aa5b17170512be872ef8d69f374782d8cc5d74aa8b5385eab"
+        ],
+        [
+          "binance_spot/2026-10-22/23/ETHUSDT_trades.parquet",
+          "46f7364561f1ff83c13ef9909db0be099863decac3575a118b296a03341a86ea"
+        ],
+        [
+          "binance_spot/2026-10-23/00/ETHUSDT_orderbook.parquet",
+          "d2d90e789ab85ea706c3e59e3fc1837883e1d1d27ec1a4440edc48ac5a185442"
+        ],
+        [
+          "binance_spot/2026-10-23/00/ETHUSDT_trades.parquet",
+          "ece7a2e954f439ec1fe17584c53e36128a69fbf2a94ab942ea34c8f09b948462"
+        ],
+        [
+          "binance_spot/2026-10-23/01/ETHUSDT_orderbook.parquet",
+          "f8e6a9f604ae4bdc3c792a6e61100817f4a71c1d3e997218f8cf21c01f747b05"
+        ],
+        [
+          "binance_spot/2026-10-23/01/ETHUSDT_trades.parquet",
+          "19a4defdbe14581caf6521757c693dfd09ab828a36b2cd7f50f0f8374f00a6e2"
+        ],
+        [
+          "binance_spot/2026-10-23/02/ETHUSDT_orderbook.parquet",
+          "2a1b820c21ef8f1115479a18480145acdb127dc59b2efc1bf286a6cd019fa70c"
+        ],
+        [
+          "binance_spot/2026-10-23/02/ETHUSDT_trades.parquet",
+          "358dde977a075a958428b30d41f6aca15119583cdc79d5f96b06051a55421cc9"
+        ],
+        [
+          "binance_spot/2026-10-23/03/ETHUSDT_orderbook.parquet",
+          "7d71c9db1bc56021be47b7aac7464d77ff9ae9fb7edda155049883ae23a6b689"
+        ],
+        [
+          "binance_spot/2026-10-23/03/ETHUSDT_trades.parquet",
+          "d56c19ccafb7c113120eacf64eaf125511326d2d5dd780942899d9b3bc35c91a"
+        ],
+        [
+          "binance_spot/2026-10-23/04/ETHUSDT_orderbook.parquet",
+          "2f676b0201e8c56be08447cacf3eab6ce8eb7d2c1e70415879c41a0f25ef8de4"
+        ],
+        [
+          "binance_spot/2026-10-23/04/ETHUSDT_trades.parquet",
+          "c097bdfb97cf69b48ff6eba949a165b694ca69ec37688eb5a6d99aa84dd0fce8"
+        ],
+        [
+          "binance_spot/2026-10-23/05/ETHUSDT_orderbook.parquet",
+          "8c41db7751dc19cc03e9e4be998ff8d4ad2d5875f6827236b3794c18525cfe2b"
+        ],
+        [
+          "binance_spot/2026-10-23/05/ETHUSDT_trades.parquet",
+          "d18820f88be8ce3cda4f18dcc1565a677b76f361d215d67bb8e70f8cc3498348"
+        ],
+        [
+          "binance_spot/2026-10-23/06/ETHUSDT_orderbook.parquet",
+          "a01ec00be92ea84494ffa8b51a9da65d26c541006e299b83a55e9e57399421f7"
+        ],
+        [
+          "binance_spot/2026-10-23/06/ETHUSDT_trades.parquet",
+          "b45a2ad3fc6c423027aba8b7180d52745f446b6d00a6d31282148b2111045c06"
+        ],
+        [
+          "binance_spot/2026-10-23/07/ETHUSDT_orderbook.parquet",
+          "16ae18132447a3d6ba146591abcd838fc95271a3415404fc812784595f5f7e3c"
+        ],
+        [
+          "binance_spot/2026-10-23/07/ETHUSDT_trades.parquet",
+          "797fcf2a25a81a61e0d70a381edbf7507a13a0ad6df28cfdaf40d1fbbfcdec91"
+        ],
+        [
+          "binance_spot/2026-10-23/08/ETHUSDT_orderbook.parquet",
+          "512db5f87bc5d18cde0dc9901df31c0b06a05a30cc63df3ba46279815ed79dfb"
+        ],
+        [
+          "binance_spot/2026-10-23/08/ETHUSDT_trades.parquet",
+          "0ccde569830bb1860c46dcc03b360c409ab61c388d2029502ae8810546832e63"
+        ],
+        [
+          "binance_spot/2026-10-23/09/ETHUSDT_orderbook.parquet",
+          "fac1d70fef176ae507d5e14f2089f2f4637aafb40b7307aa8ddd820509ccc9df"
+        ],
+        [
+          "binance_spot/2026-10-23/09/ETHUSDT_trades.parquet",
+          "bdc43143d9ea2b8e4dad434be4f81a91e5e7a3179a1eae9cb020593d211a249d"
+        ],
+        [
+          "binance_spot/2026-10-23/10/ETHUSDT_orderbook.parquet",
+          "95da676e18447541feed75d92ce49403d0412651c0a6c6e805b5e8252f140fa8"
+        ],
+        [
+          "binance_spot/2026-10-23/10/ETHUSDT_trades.parquet",
+          "0be81a019e97d0bacf149a8f140dd1ae6773f1bec76e5262a971e034da1788fe"
+        ],
+        [
+          "binance_spot/2026-10-23/11/ETHUSDT_orderbook.parquet",
+          "ccbe02bf7e8fba0b3ce708b7a92732275d218790a2af5cf67cec4dd9249ed752"
+        ],
+        [
+          "binance_spot/2026-10-23/11/ETHUSDT_trades.parquet",
+          "33cd51e6db8894ee1ec089f881fdc6de9953fc937c0d5fbaff8a624b369d625f"
+        ],
+        [
+          "binance_spot/2026-10-23/12/ETHUSDT_orderbook.parquet",
+          "d8bdab846ee2c8b441d6db94c5145fd22e5ce985055ee50d7c32a98ae1b9cc44"
+        ],
+        [
+          "binance_spot/2026-10-23/12/ETHUSDT_trades.parquet",
+          "14d94663c7db947f4b8e97bfe9d29a4f7ad66b9323148e0aae129cd145431b6d"
+        ],
+        [
+          "binance_spot/2026-10-23/13/ETHUSDT_orderbook.parquet",
+          "5d22ad0712bb0032ca09c75b0fe25be2ba191408e096ca0a1ec3dffc02597fca"
+        ],
+        [
+          "binance_spot/2026-10-23/13/ETHUSDT_trades.parquet",
+          "235b606442e0a051b612f43fdce9c2d785ea70a1d9dc38763a415146bfe34265"
+        ],
+        [
+          "binance_spot/2026-10-23/14/ETHUSDT_orderbook.parquet",
+          "e8901c9d7d48dd5a171eea4ddda213227a6469f2d91286d06022bb7567c3ee63"
+        ],
+        [
+          "binance_spot/2026-10-23/14/ETHUSDT_trades.parquet",
+          "f3067d4517e8dcb4382c9583ec16cb715494b1852d8b0e3230516e9a7b2fddf7"
+        ],
+        [
+          "binance_spot/2026-10-23/15/ETHUSDT_orderbook.parquet",
+          "3697ffd6fdf8123dd7ea65c762e6c0db1ebab5b45cfb119d8b3a2b1c29234436"
+        ],
+        [
+          "binance_spot/2026-10-23/15/ETHUSDT_trades.parquet",
+          "6bb2ac07d4cfd42a34920140faabd8eafe03402043f5ba4cb5e44d46bd53d3a7"
+        ],
+        [
+          "binance_spot/2026-10-23/16/ETHUSDT_orderbook.parquet",
+          "e145837b49d9248bbaf98a83ce15a6c5954bbfbd5a33cfc7db1f4bb4c588f6b9"
+        ],
+        [
+          "binance_spot/2026-10-23/16/ETHUSDT_trades.parquet",
+          "08487e3e42be5cc7ff30a89d1c8cb28d6fe937ba30cbf3291b7421cb3878f1f7"
+        ],
+        [
+          "binance_spot/2026-10-23/17/ETHUSDT_orderbook.parquet",
+          "12df7952dae4d59f1c60fdf4a40da466051085d8a2850eb2be5c3340b71ab987"
+        ],
+        [
+          "binance_spot/2026-10-23/17/ETHUSDT_trades.parquet",
+          "497247ef9ee280a68cb544b4a50e982141dae01072eedcd5cfb78af2ea2b31bd"
+        ],
+        [
+          "binance_spot/2026-10-23/18/ETHUSDT_orderbook.parquet",
+          "0bea9c6f9464e06c8d9a6f64db5095a8010d78e0baa6fe1146136c04fdf1bc17"
+        ],
+        [
+          "binance_spot/2026-10-23/18/ETHUSDT_trades.parquet",
+          "6147b5d0b6321e31b860d8b748a7244271502b245adefc690c72247a1945bc8a"
+        ],
+        [
+          "binance_spot/2026-10-23/19/ETHUSDT_orderbook.parquet",
+          "df41802ecbcce24d8542547f49746eef9650437ec7b28b6f9fd9779ee03ad09f"
+        ],
+        [
+          "binance_spot/2026-10-23/19/ETHUSDT_trades.parquet",
+          "5ec8d1f4634a4458057329efdebed80d23db7920416fe487d5b5cad8ce8b5b9d"
+        ],
+        [
+          "binance_spot/2026-10-23/20/ETHUSDT_orderbook.parquet",
+          "cce70c9dd73c36c4d44919512a4ad38b265204bd1b5d1b14f4c23dcf46041904"
+        ],
+        [
+          "binance_spot/2026-10-23/20/ETHUSDT_trades.parquet",
+          "f2a6434c14f87602d1b186be18e3f4002d42ac66deab1eb75578618577085573"
+        ],
+        [
+          "binance_spot/2026-10-23/21/ETHUSDT_orderbook.parquet",
+          "dbd773266285182e8c299e314f6fcf361c2785c53c976e39f4d4a4f4e3042421"
+        ],
+        [
+          "binance_spot/2026-10-23/21/ETHUSDT_trades.parquet",
+          "107d0f94bc8e87b1a843cb3e9534cf22586f857d0d63003dede717d5b0ecad00"
+        ],
+        [
+          "binance_spot/2026-10-23/22/ETHUSDT_orderbook.parquet",
+          "2874c02a7bdef18db47ce258227e5fa0d9e8639dbd3838b2b99169acaa7dd878"
+        ],
+        [
+          "binance_spot/2026-10-23/22/ETHUSDT_trades.parquet",
+          "352af8a2767b1085273c7ee32d84df7c38c4ff43f28f232724b9686845134e1c"
+        ],
+        [
+          "binance_spot/2026-10-23/23/ETHUSDT_orderbook.parquet",
+          "c1af703090e897ea2208894c23093ccbbdd142efda083cce6007961c34566bac"
+        ],
+        [
+          "binance_spot/2026-10-23/23/ETHUSDT_trades.parquet",
+          "c74d4b8614e257e834f3a65ceb0a4389d7880e5d8c6e5213bd20f494f37874b6"
+        ],
+        [
+          "binance_spot/2026-10-24/00/ETHUSDT_orderbook.parquet",
+          "52533311c3b3f78826d74349193585379e7e95ed3b9187d430b550c2751032d2"
+        ],
+        [
+          "binance_spot/2026-10-24/00/ETHUSDT_trades.parquet",
+          "13dae3039a385e331520204d7947ca0875702de114b107639034cf8c96fc90f8"
+        ],
+        [
+          "binance_spot/2026-10-24/01/ETHUSDT_orderbook.parquet",
+          "81aae937c305ae3e14ff88ee801ebd62aa6ae6f3457b2fea154fc614d1779378"
+        ],
+        [
+          "binance_spot/2026-10-24/01/ETHUSDT_trades.parquet",
+          "0fa35660902367abcbb5e494b74303430feb46300fe4aad3899641c471c3ade8"
+        ],
+        [
+          "binance_spot/2026-10-24/02/ETHUSDT_orderbook.parquet",
+          "f5b0aaf7192c755f15fce31d5b9075e4a9b445a91a8a4c0c820a2759b6c9f55c"
+        ],
+        [
+          "binance_spot/2026-10-24/02/ETHUSDT_trades.parquet",
+          "24415ba9bc3ef44156f600e21612b01fbc6e9ced53ad8b2acf7acb7320523ed8"
+        ],
+        [
+          "binance_spot/2026-10-24/03/ETHUSDT_orderbook.parquet",
+          "efa7aeb6aa43050e64c0c450691c51e02402d691a100d0e9bb81e1580c94f261"
+        ],
+        [
+          "binance_spot/2026-10-24/03/ETHUSDT_trades.parquet",
+          "ec9d99d341fdb673cd3c22e0368f4f579a72f0e5b0906fd2618cceb35ee40200"
+        ],
+        [
+          "binance_spot/2026-10-24/04/ETHUSDT_orderbook.parquet",
+          "b8cdcc7e28c363c77d65eeb0b9b61be03d92f26a53f7b044eb2e7e6da401cbcb"
+        ],
+        [
+          "binance_spot/2026-10-24/04/ETHUSDT_trades.parquet",
+          "caa4f05ad192a5c561a8505f72da5ed27aea000bab4c175a98b51d806c1127e2"
+        ],
+        [
+          "binance_spot/2026-10-24/05/ETHUSDT_orderbook.parquet",
+          "bba87be796f62c2b1045e5789eaba1975fc228fbdf8d68c70c140f69f57d2c48"
+        ],
+        [
+          "binance_spot/2026-10-24/05/ETHUSDT_trades.parquet",
+          "eafd84f3f52497e35f2bcee3c20b6bd6097dbe8f0dbbac053413c3139190ce8f"
+        ],
+        [
+          "binance_spot/2026-10-24/06/ETHUSDT_orderbook.parquet",
+          "2a48a8d229f9e3374a2cce746f1d215bab85e4ec6d23859d165684b474f7b068"
+        ],
+        [
+          "binance_spot/2026-10-24/06/ETHUSDT_trades.parquet",
+          "f3648708ef52b66d8ca7870f38d134fd27dde9f7b3867259c0a78a44c35e0fac"
+        ],
+        [
+          "binance_spot/2026-10-24/07/ETHUSDT_orderbook.parquet",
+          "41f0a4300c34007b0c1fbe494f272148894ad9ab178889ea72c8f1847fab9b0a"
+        ],
+        [
+          "binance_spot/2026-10-24/07/ETHUSDT_trades.parquet",
+          "ce8103369f77666b4d225ebe456bbf22177a769abdcdbf22297902d00b1f94fb"
+        ],
+        [
+          "binance_spot/2026-10-24/08/ETHUSDT_orderbook.parquet",
+          "0c7cfaba2882bfd0159982095866ae47f1e50c3909c254a3c8c5aa242eb25b2c"
+        ],
+        [
+          "binance_spot/2026-10-24/08/ETHUSDT_trades.parquet",
+          "5efc937f80df6bd599255573dff5729d8eb78bbd437699df2f0bba8797487db1"
+        ],
+        [
+          "binance_spot/2026-10-24/09/ETHUSDT_orderbook.parquet",
+          "d8c2f3dbbbbf0e5b28d2f97a12a7343be3cf5431004da467e007362f41a953c1"
+        ],
+        [
+          "binance_spot/2026-10-24/09/ETHUSDT_trades.parquet",
+          "b2bfb07213ab101f9573548c946a96638e2307cd742240dc3b2c294920328f0e"
+        ],
+        [
+          "binance_spot/2026-10-24/10/ETHUSDT_orderbook.parquet",
+          "a650b0d5641aeca58a95837403be4ff97133e275faedd70f1cf49a32252818c8"
+        ],
+        [
+          "binance_spot/2026-10-24/10/ETHUSDT_trades.parquet",
+          "036fcc5c4a6e334af4316c782da85196a2d8de3d8a3bc2dd2991cb72654b14a1"
+        ],
+        [
+          "binance_spot/2026-10-24/11/ETHUSDT_orderbook.parquet",
+          "ed8b519e1928632be6013738c6313a10ce9c405967b35a4de18f045280b1a990"
+        ],
+        [
+          "binance_spot/2026-10-24/11/ETHUSDT_trades.parquet",
+          "ffda64991d86753c3bc2ea6168c305876ae0f0050afc273e8c7ac5b7178fdb4c"
+        ],
+        [
+          "binance_spot/2026-10-24/12/ETHUSDT_orderbook.parquet",
+          "bc099d3f4a3f649cd6693c8fff05c898d38936967b37c47d3a475e5eebc884dd"
+        ],
+        [
+          "binance_spot/2026-10-24/12/ETHUSDT_trades.parquet",
+          "ec0f301688b07b095ef8bb7bf60ce70070e2a8a9dfe5ad310e8942fcc08e4f87"
+        ],
+        [
+          "binance_spot/2026-10-24/13/ETHUSDT_orderbook.parquet",
+          "ecece89290aa97ede93cba06db40027b1394c237f9f535892b55c607be8f2396"
+        ],
+        [
+          "binance_spot/2026-10-24/13/ETHUSDT_trades.parquet",
+          "e9a9a98d4d7e2f29a2567b49c5ac7e568c73b764d5d00b3ebd724b39ef82f391"
+        ],
+        [
+          "binance_spot/2026-10-24/14/ETHUSDT_orderbook.parquet",
+          "7dc5ee32a579da89191434caa2d3d681e72618aa3a4aab9cc73e334a835e9b8b"
+        ],
+        [
+          "binance_spot/2026-10-24/14/ETHUSDT_trades.parquet",
+          "6c29ed6317857edb086cbdd4fc272b8e7b618dedb35c92f1d6b05b68aa0d684b"
+        ],
+        [
+          "binance_spot/2026-10-24/15/ETHUSDT_orderbook.parquet",
+          "f6c5bc1c7df6eb0951650691580a2724b83fd75380c78e64d4e8d9b7f3579ba5"
+        ],
+        [
+          "binance_spot/2026-10-24/15/ETHUSDT_trades.parquet",
+          "5e626006a7e585934dfdce28576b0035121b9e1166140fe20a99bc6dcd75350f"
+        ],
+        [
+          "binance_spot/2026-10-24/16/ETHUSDT_orderbook.parquet",
+          "f96ade0e20f80453a35944b85566e9df385cd9e11df80167cdffe3810b000c33"
+        ],
+        [
+          "binance_spot/2026-10-24/16/ETHUSDT_trades.parquet",
+          "488f628be68b20247e8435d71ec00b10f0927802b240439ce6877364dc5e4b6f"
+        ],
+        [
+          "binance_spot/2026-10-24/17/ETHUSDT_orderbook.parquet",
+          "c716deeeea9f5b28b5818dec8e764bbdf58c5d52927b53fec15f5c50a46600ae"
+        ],
+        [
+          "binance_spot/2026-10-24/17/ETHUSDT_trades.parquet",
+          "6b4e3c3d0c7abcc6cc7434ee7953ea4f70547b51a558b3ffb4b91096dacd355f"
+        ],
+        [
+          "binance_spot/2026-10-24/18/ETHUSDT_orderbook.parquet",
+          "ec30fc83e80c01abc35ba9713fdb790dfbeda68a2844ebcb7b2f084c4bf4eb12"
+        ],
+        [
+          "binance_spot/2026-10-24/18/ETHUSDT_trades.parquet",
+          "de31dd784bf2eefb462e19b6b62d0d2e2f945277d9f7c3a6e66c5927f9104911"
+        ],
+        [
+          "binance_spot/2026-10-24/19/ETHUSDT_orderbook.parquet",
+          "65ae8a40742d3aea8101dd0d3fdd142476b5b74b0161e59823df44fd0baaf8a6"
+        ],
+        [
+          "binance_spot/2026-10-24/19/ETHUSDT_trades.parquet",
+          "fb051d38e2e59bf33e8322505f4dc7a4d2ab80d8fb6866355bba152a540d79ec"
+        ],
+        [
+          "binance_spot/2026-10-24/20/ETHUSDT_orderbook.parquet",
+          "b114010133e689483a2f55074892cfdac0722354f84ab0b7fb2c1e018957913e"
+        ],
+        [
+          "binance_spot/2026-10-24/20/ETHUSDT_trades.parquet",
+          "5ad2f2e8d979ba6de7e772767955aee3a6fd79807edbd5fa9f9152618853bf6b"
+        ],
+        [
+          "binance_spot/2026-10-24/21/ETHUSDT_orderbook.parquet",
+          "ed742c2702ad79dad9d3cbab324ac02b4247018f88be5d10a451be7e6f9cca76"
+        ],
+        [
+          "binance_spot/2026-10-24/21/ETHUSDT_trades.parquet",
+          "0abfa3bf564bad870ee40417394bcc1d806d4509e624324a59ddb32ed25b2b66"
+        ],
+        [
+          "binance_spot/2026-10-24/22/ETHUSDT_orderbook.parquet",
+          "7df72198f67608ad8dad316171cb9b3f9e24f4d4549efd34c5d83bf407cd280b"
+        ],
+        [
+          "binance_spot/2026-10-24/22/ETHUSDT_trades.parquet",
+          "f7a8d2cce3c5f81eeeca8bfd5c1afd19990f8456477901f9d0e23a5d9256fc7b"
+        ],
+        [
+          "binance_spot/2026-10-24/23/ETHUSDT_orderbook.parquet",
+          "058edf749941938c77aef56a383c99a9d61d3492ee8b6bb3dc9dbb5f1357aa50"
+        ],
+        [
+          "binance_spot/2026-10-24/23/ETHUSDT_trades.parquet",
+          "2a557a0be75eeaa4f224b6cfdb55dda30dc5a746f8b39c8551f96754958451ff"
+        ],
+        [
+          "binance_spot/2026-10-25/00/ETHUSDT_orderbook.parquet",
+          "251a9ef675c348c375a025fd0edf5a106510ccbaeb99e070360fd493ddfce6c1"
+        ],
+        [
+          "binance_spot/2026-10-25/00/ETHUSDT_trades.parquet",
+          "aade3ce148d0d6451354c6d9bbcf27fd7bcc8bfa174bec3b97802c2ef491a658"
+        ],
+        [
+          "binance_spot/2026-10-25/01/ETHUSDT_orderbook.parquet",
+          "e816f853f28c4aa9e07d9f78517e032cfaef87c5f5f6d26692fc8c9af3179ab9"
+        ],
+        [
+          "binance_spot/2026-10-25/01/ETHUSDT_trades.parquet",
+          "6e36b6f95b2a417a0f0efbaca40deb71ad5079bf972d3582189d5e81974d47ec"
+        ],
+        [
+          "binance_spot/2026-10-25/02/ETHUSDT_orderbook.parquet",
+          "f1c3e037897c8201a87dddafe373d37871f61c306cd52a5caf9fbc3a60a1ef5f"
+        ],
+        [
+          "binance_spot/2026-10-25/02/ETHUSDT_trades.parquet",
+          "33ab26d31730b134aa23129ee2ae0c701d7274bed6c98b2e3faf3d7d98fe342b"
+        ],
+        [
+          "binance_spot/2026-10-25/03/ETHUSDT_orderbook.parquet",
+          "66e6c7ce67c63a08e08c9b0aff14045d2f89529e24d23bc6edbb731a628ffce7"
+        ],
+        [
+          "binance_spot/2026-10-25/03/ETHUSDT_trades.parquet",
+          "b28cb0ef815e0bddffeb41cf1249212b68793f149f2ef5cfa1ab78f0a81f8966"
+        ],
+        [
+          "binance_spot/2026-10-25/04/ETHUSDT_orderbook.parquet",
+          "e3a572dfd816c8fda0e5cbbb24506209f369fed1ee5e2427c3212fd412ed8b7c"
+        ],
+        [
+          "binance_spot/2026-10-25/04/ETHUSDT_trades.parquet",
+          "060ff50772f1f54aa5195374f4cc88fa3f83f45b6820d08834a19e0ce6f0729a"
+        ],
+        [
+          "binance_spot/2026-10-25/05/ETHUSDT_orderbook.parquet",
+          "c7e810d5ae50cebe8c4603eecd7c00a4e7863f0a4e439e9e56c64181d509a988"
+        ],
+        [
+          "binance_spot/2026-10-25/05/ETHUSDT_trades.parquet",
+          "aed90d42e843d063eada2afebcd864b94e8ab8e37687bb955d4e2d9e51e6e028"
+        ],
+        [
+          "binance_spot/2026-10-25/06/ETHUSDT_orderbook.parquet",
+          "d7b012ccaa38767107dfc927c7a061307ab1a82edbca80b6427ffc6e709a1da2"
+        ],
+        [
+          "binance_spot/2026-10-25/06/ETHUSDT_trades.parquet",
+          "9d084143f6576ff2b8d0b02bd6c07f8d7a5e8872d7dad7ac75397561950befb9"
+        ],
+        [
+          "binance_spot/2026-10-25/07/ETHUSDT_orderbook.parquet",
+          "21bfa20c16837fbc8afb0344e286b6fd1b2ea8f9632c7863f906ae4dd2d43fee"
+        ],
+        [
+          "binance_spot/2026-10-25/07/ETHUSDT_trades.parquet",
+          "077b98ef6cbecf201e74a689dd08037851bdda383099dc2f578c02fcab63ee5c"
+        ],
+        [
+          "binance_spot/2026-10-25/08/ETHUSDT_orderbook.parquet",
+          "cd32f73d612cb26faabbe29312135f82501bce917e4435d7fcffd49ef5930320"
+        ],
+        [
+          "binance_spot/2026-10-25/08/ETHUSDT_trades.parquet",
+          "ee8ebfb6527dcd77647487fbddda262a6843b1005982a39cdfddb44dbb2b4ea0"
+        ],
+        [
+          "binance_spot/2026-10-25/09/ETHUSDT_orderbook.parquet",
+          "eb1b8e9821a0d3c87771937fa333e0fc70ea0097ff9fabc11f8a1fd16873f993"
+        ],
+        [
+          "binance_spot/2026-10-25/09/ETHUSDT_trades.parquet",
+          "9da4c41c040a8e1ab0a40fa0e2a074f6dd9c860c3af49add759e4b094209aaad"
+        ],
+        [
+          "binance_spot/2026-10-25/10/ETHUSDT_orderbook.parquet",
+          "0ef329de7abb1fdfb5591d62758420631adde987037904e232846d16dc589608"
+        ],
+        [
+          "binance_spot/2026-10-25/10/ETHUSDT_trades.parquet",
+          "60bf0d514d762ce7d31aed53cf412d46870063e979d97c340d6d5c52c6ab4887"
+        ],
+        [
+          "binance_spot/2026-10-25/11/ETHUSDT_orderbook.parquet",
+          "35b47a0bdbfc2274e18afdb984aa092930ed3d0b07cccae6e99d16dd4deed6db"
+        ],
+        [
+          "binance_spot/2026-10-25/11/ETHUSDT_trades.parquet",
+          "4e7e56dcc851b99597156e7e41eb590325aea616115df97c8abf2f979cecfe98"
+        ],
+        [
+          "binance_spot/2026-10-25/12/ETHUSDT_orderbook.parquet",
+          "9f719130eed46506217b52967a621e2879407d50dd446c949ddde06b73f8a994"
+        ],
+        [
+          "binance_spot/2026-10-25/12/ETHUSDT_trades.parquet",
+          "c4e5a81a7c20420732f33811bf15bb7c7c05cf9d8771bdce3d3e0b08a427428f"
+        ],
+        [
+          "binance_spot/2026-10-25/13/ETHUSDT_orderbook.parquet",
+          "393520e2eacc23117649bab475a8b970ce6609e19aa1d78e1f1e84d7957454a2"
+        ],
+        [
+          "binance_spot/2026-10-25/13/ETHUSDT_trades.parquet",
+          "b2c052af212b2224cf0aef5fe78feef9862c71e1a108f04130a379d0f2847251"
+        ],
+        [
+          "binance_spot/2026-10-25/14/ETHUSDT_orderbook.parquet",
+          "369bf71b4b6b2a12fb658501dfdb02e1ed704875371880c9805f685cfa105cc0"
+        ],
+        [
+          "binance_spot/2026-10-25/14/ETHUSDT_trades.parquet",
+          "5e3f17484fbd307ec64bb272e8f3adbece9ed0337251843e7e4ef3052cc97caf"
+        ],
+        [
+          "binance_spot/2026-10-25/15/ETHUSDT_orderbook.parquet",
+          "aeef533864eb41c5c1a16490e451c53e367d869376ed76cf62b8ee9b4a796644"
+        ],
+        [
+          "binance_spot/2026-10-25/15/ETHUSDT_trades.parquet",
+          "e614ca2d16011cea5f6d6e155fdc13a8939a421abfd8008eff7afd1d2fbbcebf"
+        ],
+        [
+          "binance_spot/2026-10-25/16/ETHUSDT_orderbook.parquet",
+          "49a5a11554a0314c9cf326dec8f26fde596c356d5917e1a49d56c2ced798e0d1"
+        ],
+        [
+          "binance_spot/2026-10-25/16/ETHUSDT_trades.parquet",
+          "a6aee87fe9f99e610b3ce92397b3223affe2d70ece9c1a4e4bbf130dde0ebbf3"
+        ],
+        [
+          "binance_spot/2026-10-25/17/ETHUSDT_orderbook.parquet",
+          "4ffbd589f6236868e087ba9973c04925c6f8097802c9b9bcb3f5fbfe159d563c"
+        ],
+        [
+          "binance_spot/2026-10-25/17/ETHUSDT_trades.parquet",
+          "1720c21fb6ec2d4760811e4d59ab0c109ef8311d2dd271e56295b52a7c6df9b0"
+        ],
+        [
+          "binance_spot/2026-10-25/18/ETHUSDT_orderbook.parquet",
+          "7f13f81621167c6e9a68780839a4a71084517a0057d9511846f9816285f5721e"
+        ],
+        [
+          "binance_spot/2026-10-25/18/ETHUSDT_trades.parquet",
+          "59277447726993ef65dbb716568650b27ecb79060dd382eb4696b3d25df51cff"
+        ],
+        [
+          "binance_spot/2026-10-25/19/ETHUSDT_orderbook.parquet",
+          "b120ec4158b80e69d77f13b430e64ac5bf105873d082b19c080dbfc0e8a84dc3"
+        ],
+        [
+          "binance_spot/2026-10-25/19/ETHUSDT_trades.parquet",
+          "f50079d6b31b4ce8a466cceb1eefcf5f16c1326284fb3183440e72debec629fa"
+        ],
+        [
+          "binance_spot/2026-10-25/20/ETHUSDT_orderbook.parquet",
+          "d898b5b76cacb1a3f4f0194462851ca3ac4e1a31abf23a298e6a7cd0666ea3aa"
+        ],
+        [
+          "binance_spot/2026-10-25/20/ETHUSDT_trades.parquet",
+          "6e67123bb0ba6468ae1bd814947b5035a9ecd7164b0ce9165818205884febe64"
+        ],
+        [
+          "binance_spot/2026-10-25/21/ETHUSDT_orderbook.parquet",
+          "28a0770dc8dcf2eeca36baf4d39b3785cc5121a3724e4218ad24e0aa523ace68"
+        ],
+        [
+          "binance_spot/2026-10-25/21/ETHUSDT_trades.parquet",
+          "a50a55a48fbf7cdd58cdf75707eca3bee30c66e03b5501f7a0d265065c252e31"
+        ],
+        [
+          "binance_spot/2026-10-25/22/ETHUSDT_orderbook.parquet",
+          "28f232a7eb3a07bf56aa363ca9a0703bfa15913cad8efad98e6c9f0c10d5eb6c"
+        ],
+        [
+          "binance_spot/2026-10-25/22/ETHUSDT_trades.parquet",
+          "48ef555786f0ecaefa91887ad8a1f4c93cb5d9f6eaf461853cd446416161d99e"
+        ],
+        [
+          "binance_spot/2026-10-25/23/ETHUSDT_orderbook.parquet",
+          "dfc6325e186df0dd4cc268ca9211f642d2ca2af45d626ed991fbb4f7acf41d05"
+        ],
+        [
+          "binance_spot/2026-10-25/23/ETHUSDT_trades.parquet",
+          "7602bf83a400f22b368f5a7d541361c2820f962da3d20f25ddd8e5ddea769cc3"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 741,
+          "pressure_cut_usdt": 281797.3461020002,
+          "impact_cut_bps": 4.07631685963371,
+          "refill_cut": 0.14569655933040807,
+          "control_refill_ceiling": 0.014520757248297494,
+          "candidates": 2,
+          "controls": 8,
+          "exhaustion_without_refill_filter": {
+            "missing": 0,
+            "counts": {
+              "base": 20,
+              "stress": 20
+            },
+            "mean_bps": {
+              "base": -26.973334847676202,
+              "stress": -56.93440913470849
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 0,
+            "counts": {
+              "base": 2,
+              "stress": 2
+            },
+            "mean_bps": {
+              "base": -45.72901537612596,
+              "stress": -75.65258765651294
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        },
+        "ask": {
+          "training_events": 811,
+          "pressure_cut_usdt": 385251.85684599995,
+          "impact_cut_bps": 3.8383422106975074,
+          "refill_cut": 0.15369810324680178,
+          "control_refill_ceiling": 0.051514914709022766,
+          "candidates": 1,
+          "controls": 7,
+          "exhaustion_without_refill_filter": {
+            "missing": 0,
+            "counts": {
+              "base": 9,
+              "stress": 9
+            },
+            "mean_bps": {
+              "base": -34.83972999073349,
+              "stress": -64.89443441041311
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 0,
+            "counts": {
+              "base": 1,
+              "stress": 1
+            },
+            "mean_bps": {
+              "base": -6.892119480929262,
+              "stress": -36.8909146708249
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        }
+      }
+    },
+    "DOGEUSDT": {
+      "book_audit": {
+        "snapshots": 5,
+        "trades": 1703332,
+        "snapshot_reanchors": 4,
+        "trade_sequence_gaps": 2
+      },
+      "invalid_seconds": 6,
+      "valid_update_seconds": 511685,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/DOGEUSDT_orderbook.parquet",
+          "e575d6b626995cc8b112497257da3c0ce2ca5bf6133761ee0340c74dc1b428c8"
+        ],
+        [
+          "binance_spot/2026-10-20/00/DOGEUSDT_trades.parquet",
+          "815b93b19deba865ea63c5308e82b4f7a6c536014ca76b784de8009d3182f8c3"
+        ],
+        [
+          "binance_spot/2026-10-20/01/DOGEUSDT_orderbook.parquet",
+          "e27b7839fb571fe47c1cea0af296a1d6bffbaa816684b7f24275aa246f9b2bfa"
+        ],
+        [
+          "binance_spot/2026-10-20/01/DOGEUSDT_trades.parquet",
+          "1ea1b8c0c62aebd28e726274ad6315783a958e9f7b10f4d737a857b800e4a936"
+        ],
+        [
+          "binance_spot/2026-10-20/02/DOGEUSDT_orderbook.parquet",
+          "869bdfd9ca84395a5ba2d6d6f239162aa382ca2f9286008597ffc9b9ec190a54"
+        ],
+        [
+          "binance_spot/2026-10-20/02/DOGEUSDT_trades.parquet",
+          "19efb534d4ab702de601a0dc72d0f214be4e7d4ec0c734d57e0b9c96d335209e"
+        ],
+        [
+          "binance_spot/2026-10-20/03/DOGEUSDT_orderbook.parquet",
+          "5b4ed814a78888ac8724c31c5aa9bf10dcb828d25828a6767cf4cfeaad5931b8"
+        ],
+        [
+          "binance_spot/2026-10-20/03/DOGEUSDT_trades.parquet",
+          "7f626517856f928f0bd88d65ada95e3e4b122b4bef0a7105a67cd67533f6a0bf"
+        ],
+        [
+          "binance_spot/2026-10-20/04/DOGEUSDT_orderbook.parquet",
+          "da52a5f3df61810f92bb800de93abfe49df19560df83d7a19945a181196f4c62"
+        ],
+        [
+          "binance_spot/2026-10-20/04/DOGEUSDT_trades.parquet",
+          "e54097fda09ef3072145dfba7055bdf1b74946d9bc52f89e18e7b9a12aedaee3"
+        ],
+        [
+          "binance_spot/2026-10-20/05/DOGEUSDT_orderbook.parquet",
+          "aaf76324e18ca798c35bdb2561145957f68c6f7b637f50111cc9d8fc0df115a8"
+        ],
+        [
+          "binance_spot/2026-10-20/05/DOGEUSDT_trades.parquet",
+          "1cb0728098f66b03e1680bdcda027d46078e29013cd1707a502afeb8d9e5df89"
+        ],
+        [
+          "binance_spot/2026-10-20/06/DOGEUSDT_orderbook.parquet",
+          "36a6f4f08499967aa3316e1e429440b3e44413cab674f61e07d29bb35592987c"
+        ],
+        [
+          "binance_spot/2026-10-20/06/DOGEUSDT_trades.parquet",
+          "52d54b33c5dad444556a4be65ac1334f72e087ce7bfc8339ffbfb61f67031f71"
+        ],
+        [
+          "binance_spot/2026-10-20/07/DOGEUSDT_orderbook.parquet",
+          "22ffafc5322ad2495f6687a4389f36140408f613ab506e667d363c15f8abc951"
+        ],
+        [
+          "binance_spot/2026-10-20/07/DOGEUSDT_trades.parquet",
+          "603ec4f6efbe6f7a9e1666060070552a43ff88f5adb44d9013eb8b485ab926a2"
+        ],
+        [
+          "binance_spot/2026-10-20/08/DOGEUSDT_orderbook.parquet",
+          "fb1fdb38a117fd89736923a266fc40a29b7b208812523d965cf32526c8b0e4a5"
+        ],
+        [
+          "binance_spot/2026-10-20/08/DOGEUSDT_trades.parquet",
+          "388d04ea148b7fb32c333cba36344b14b9aad6d15c498ab4efe0f5ed52b492d9"
+        ],
+        [
+          "binance_spot/2026-10-20/09/DOGEUSDT_orderbook.parquet",
+          "fe9e5c114b723fdb16331a468d74dd5c981d986b2393c68d3d72e7f32dcb142d"
+        ],
+        [
+          "binance_spot/2026-10-20/09/DOGEUSDT_trades.parquet",
+          "c6181f555fb3f7130e35997a7a26d42a8a3184a73ab178c0673b3f78cbe21eb6"
+        ],
+        [
+          "binance_spot/2026-10-20/10/DOGEUSDT_orderbook.parquet",
+          "d726bbd80d483149bc7b8f00a9f1ef3e17fe1f2ff7afff69705755e40d4258f2"
+        ],
+        [
+          "binance_spot/2026-10-20/10/DOGEUSDT_trades.parquet",
+          "038371b034c22413d883330ae048bc707be2dac89fec333d3fac4c9a706270fc"
+        ],
+        [
+          "binance_spot/2026-10-20/11/DOGEUSDT_orderbook.parquet",
+          "a7c1140e4fd47c9b5b11a1f224d464d7fbced724f47d984833dd2a37eab7b811"
+        ],
+        [
+          "binance_spot/2026-10-20/11/DOGEUSDT_trades.parquet",
+          "9823745c043bfb06ecc956d17374926fdc2587e1a1c6bff0bad96f9c2c1c9b05"
+        ],
+        [
+          "binance_spot/2026-10-20/12/DOGEUSDT_orderbook.parquet",
+          "eb86ccba11aaab59744410beb3db4f32e15f4491f776a4d69987d798d55fb95b"
+        ],
+        [
+          "binance_spot/2026-10-20/12/DOGEUSDT_trades.parquet",
+          "34dc5720e3b7ab4c2cc00f6ec6c9eb9afd514f965475c765450dcbca9470870b"
+        ],
+        [
+          "binance_spot/2026-10-20/13/DOGEUSDT_orderbook.parquet",
+          "6a043e46f88d112d261572aa9d94178a75b47bce37163a3dd6cdf6a13e288b05"
+        ],
+        [
+          "binance_spot/2026-10-20/13/DOGEUSDT_trades.parquet",
+          "15bba3ea9c94ca4184157b8f675f8c5286b552d2bd67a69c45ef5503d99f4641"
+        ],
+        [
+          "binance_spot/2026-10-20/14/DOGEUSDT_orderbook.parquet",
+          "8781d852db1f52b40aa1d95d0ea9f7cc0620d222ac56e4732af6c96e41db8c27"
+        ],
+        [
+          "binance_spot/2026-10-20/14/DOGEUSDT_trades.parquet",
+          "4136281c022132e4505fa99464239b3c5829e865ec4e438cf0ffbbfe9fbf115c"
+        ],
+        [
+          "binance_spot/2026-10-20/15/DOGEUSDT_orderbook.parquet",
+          "75040683ab268da0533d05db1b84e4dbae40ffaa3651f540c99252584f7df9a7"
+        ],
+        [
+          "binance_spot/2026-10-20/15/DOGEUSDT_trades.parquet",
+          "4026052a572811055ce9c5e8d37b678820c5f3f3faed9f690a8a9520122529fe"
+        ],
+        [
+          "binance_spot/2026-10-20/16/DOGEUSDT_orderbook.parquet",
+          "f2e76e1c257b363287c6131a8f92a6a3d58b9e9c84b059286eb4158ac4b0804b"
+        ],
+        [
+          "binance_spot/2026-10-20/16/DOGEUSDT_trades.parquet",
+          "d3822eea792f1adce0b480969bf797a4234980ced7ff66f1fe697540161be415"
+        ],
+        [
+          "binance_spot/2026-10-20/17/DOGEUSDT_orderbook.parquet",
+          "c3296e3c4375641b6a63a6248d822dd2c4722ef846757ef58901122073378afd"
+        ],
+        [
+          "binance_spot/2026-10-20/17/DOGEUSDT_trades.parquet",
+          "85cff65926f93bdad04b2d3dec7c214ca73fc5cce976ca5d58bf0857c7801d1f"
+        ],
+        [
+          "binance_spot/2026-10-20/18/DOGEUSDT_orderbook.parquet",
+          "cdce0d4f06dd5f82f7ee6ece9cf6181aa78e62365cb3a6d980a0a481fe21c8c8"
+        ],
+        [
+          "binance_spot/2026-10-20/18/DOGEUSDT_trades.parquet",
+          "9ca23582784afc86ed9591f48b8b501f2d6bafbc16b47f87525ee86c4f48a04c"
+        ],
+        [
+          "binance_spot/2026-10-20/19/DOGEUSDT_orderbook.parquet",
+          "008c39308707ae20f9a0f97c9af639521503fe9b8f1daa1c1adf5a3dbc66b4d7"
+        ],
+        [
+          "binance_spot/2026-10-20/19/DOGEUSDT_trades.parquet",
+          "b33a2f363345f764af06ccf584a213077bfc8e669650a7a29423036c8e5d01ad"
+        ],
+        [
+          "binance_spot/2026-10-20/20/DOGEUSDT_orderbook.parquet",
+          "467e92b38dea01b498560c57ae3435e577602b75581f1d0a7a45764ee173cd93"
+        ],
+        [
+          "binance_spot/2026-10-20/20/DOGEUSDT_trades.parquet",
+          "00d1361253a231941fd2dab1c12255a017ed789c7fb53fe3bace0992126594f3"
+        ],
+        [
+          "binance_spot/2026-10-20/21/DOGEUSDT_orderbook.parquet",
+          "331a557009b0e9c08a7143d02f5c1e263543a13451a5837ed274bf04e25e93d0"
+        ],
+        [
+          "binance_spot/2026-10-20/21/DOGEUSDT_trades.parquet",
+          "887bb33a0b1ab9d44272732c2ea9ac6276f9e3c1db32e7b6e73610bbc20524c9"
+        ],
+        [
+          "binance_spot/2026-10-20/22/DOGEUSDT_orderbook.parquet",
+          "d2559540f9bb8f4eea4a3d14304998bbb1a4f8eec98974db4b4ec24cd11ffcb5"
+        ],
+        [
+          "binance_spot/2026-10-20/22/DOGEUSDT_trades.parquet",
+          "0acf88507d129e8b0d3bbb81a05b75bbd5329ad0419e34449b12855a3fab3ee0"
+        ],
+        [
+          "binance_spot/2026-10-20/23/DOGEUSDT_orderbook.parquet",
+          "7bccb1a6062ba4d7dd313ec55f2231189a6fcf5f3b9649c34f438298ee16eb12"
+        ],
+        [
+          "binance_spot/2026-10-20/23/DOGEUSDT_trades.parquet",
+          "229ef36552ad3f614e8c523d1b3d68fa85c6a12a6383d98aa23de0485207e1c6"
+        ],
+        [
+          "binance_spot/2026-10-21/00/DOGEUSDT_orderbook.parquet",
+          "19fe7b5eaf2df141f8fe33077481016bf6e4d4275fc66a13ca843e61ad0148b7"
+        ],
+        [
+          "binance_spot/2026-10-21/00/DOGEUSDT_trades.parquet",
+          "d9a70c2f7c192bed3e38476fca057ddd89a70fa16642ad51de00f58ee9e1b3e3"
+        ],
+        [
+          "binance_spot/2026-10-21/01/DOGEUSDT_orderbook.parquet",
+          "9aa655f2ff0fb9832818c0b0a7170e61ebb6811d92f4958c7dee47b60cb0096b"
+        ],
+        [
+          "binance_spot/2026-10-21/01/DOGEUSDT_trades.parquet",
+          "69c80bf5bf256f86d7a37b147708c5e08b4559fdcd137d6154cf3cc400225c7a"
+        ],
+        [
+          "binance_spot/2026-10-21/02/DOGEUSDT_orderbook.parquet",
+          "7eb1f6a4704483ae1aeea0a69fe339bae621b878c58f4f46826f7aced56bb9bd"
+        ],
+        [
+          "binance_spot/2026-10-21/02/DOGEUSDT_trades.parquet",
+          "2141cc99f5de6c12d74cc512b0570dc035e3f5c0780607492fea1cb147c2df7a"
+        ],
+        [
+          "binance_spot/2026-10-21/03/DOGEUSDT_orderbook.parquet",
+          "f7991a6c95b167c06a0ae9f20d2cac7dfa40b9c86919d18b89657eef33f0d90d"
+        ],
+        [
+          "binance_spot/2026-10-21/03/DOGEUSDT_trades.parquet",
+          "b37da8d23bf5bfeb8dc72f00282873df24774adc603ec7b6f289de6034f8e67e"
+        ],
+        [
+          "binance_spot/2026-10-21/04/DOGEUSDT_orderbook.parquet",
+          "e7b18ca05957c20bd71bc0c70c625b7931469f567b0b20aa91856351afe9d90f"
+        ],
+        [
+          "binance_spot/2026-10-21/04/DOGEUSDT_trades.parquet",
+          "a1f0e709ae01d4381b422fcf80ebdf74074297c3aa9f01da20cfc3ee9c44a9dc"
+        ],
+        [
+          "binance_spot/2026-10-21/05/DOGEUSDT_orderbook.parquet",
+          "d1ac4e96106cd09a40b8b052d063b8fdf5bcb3d7e514da987413ccbe1c992e40"
+        ],
+        [
+          "binance_spot/2026-10-21/05/DOGEUSDT_trades.parquet",
+          "eb305c1a3af26d43d902319512721990cdde9b7136d7b3b3c158a2e3b0b48ec9"
+        ],
+        [
+          "binance_spot/2026-10-21/06/DOGEUSDT_orderbook.parquet",
+          "44a9fed3fa617f320f46511998505c4c5428c699bc763bb9daa406efa0532ab1"
+        ],
+        [
+          "binance_spot/2026-10-21/06/DOGEUSDT_trades.parquet",
+          "5638f935fcbc56dccb95ba85ab66ff0ff148f13f24ba8c43dfb8092e3a671508"
+        ],
+        [
+          "binance_spot/2026-10-21/07/DOGEUSDT_orderbook.parquet",
+          "4bd7eafa97d2067213eb7d1f646665a19f5ad65d508db3e4b563aa6d98ac2910"
+        ],
+        [
+          "binance_spot/2026-10-21/07/DOGEUSDT_trades.parquet",
+          "05987f6f24be3257a3042320e3b3353294b74307ef6819fa696360c449c04eb2"
+        ],
+        [
+          "binance_spot/2026-10-21/08/DOGEUSDT_orderbook.parquet",
+          "552e0c9cbfa25602950b9322d3e3b01ea9e13e695116abe87cbb21f2a432df02"
+        ],
+        [
+          "binance_spot/2026-10-21/08/DOGEUSDT_trades.parquet",
+          "3f7d1f7982c7f0e7b389771b24adfc9a1e30d933ac8ec5c82fc534c4111661c5"
+        ],
+        [
+          "binance_spot/2026-10-21/09/DOGEUSDT_orderbook.parquet",
+          "f0e327f315b07a9919275d87791a2623c543dfcdacc2ab6d6f35c9a1e8238b66"
+        ],
+        [
+          "binance_spot/2026-10-21/09/DOGEUSDT_trades.parquet",
+          "a073a364ebf85226a678f0e3be91e4ca84735e4512916d8bdc1af458aa271d6c"
+        ],
+        [
+          "binance_spot/2026-10-21/10/DOGEUSDT_orderbook.parquet",
+          "61f1aacc33408b1acb6fa21e716ddcc23c5eaf5a22250d2568763780464f114a"
+        ],
+        [
+          "binance_spot/2026-10-21/10/DOGEUSDT_trades.parquet",
+          "ce9dc8498d8cee80f64b6eed0188eae30cfbc1af3d09fa91c2817f5800687929"
+        ],
+        [
+          "binance_spot/2026-10-21/11/DOGEUSDT_orderbook.parquet",
+          "9a68231c90c7180eaddd8f7b13701124a2ef4814de28d2ba5a39a9d8136fde96"
+        ],
+        [
+          "binance_spot/2026-10-21/11/DOGEUSDT_trades.parquet",
+          "7ec50d2de86fa263b1c435539dd7c0d8785d2152d4ea7a118067682184a2a2aa"
+        ],
+        [
+          "binance_spot/2026-10-21/12/DOGEUSDT_orderbook.parquet",
+          "d3409a9567a3c733921172bac265857ea91abc47984e42dfccc546605239fe0b"
+        ],
+        [
+          "binance_spot/2026-10-21/12/DOGEUSDT_trades.parquet",
+          "b049c7bf84b120154d26fac768e64cd06ffcd877d558a46391fe8ef31b5e1287"
+        ],
+        [
+          "binance_spot/2026-10-21/13/DOGEUSDT_orderbook.parquet",
+          "392900dddc835c4116e6c8b1d9e8d20440c388fe7962ac1636eae6fc52166ad3"
+        ],
+        [
+          "binance_spot/2026-10-21/13/DOGEUSDT_trades.parquet",
+          "2e4f62ffd2138024edc49709301a65310a689db865aa7f13da58aad225380ac2"
+        ],
+        [
+          "binance_spot/2026-10-21/14/DOGEUSDT_orderbook.parquet",
+          "9d43c3f57e3cd4273bbb4e9eaeeb2dd521b92f6595c5df6102614fce886e66fd"
+        ],
+        [
+          "binance_spot/2026-10-21/14/DOGEUSDT_trades.parquet",
+          "aa3876101212c7d0dc4d63f26cd9e34f80ca85c453c885c42fa0dc332178bbce"
+        ],
+        [
+          "binance_spot/2026-10-21/15/DOGEUSDT_orderbook.parquet",
+          "61ba72c13653792d0f179952876bba79d233d3d8a16e76f6427e0851a4eb2821"
+        ],
+        [
+          "binance_spot/2026-10-21/15/DOGEUSDT_trades.parquet",
+          "53c329f5de2f78c8aac452f7344536e806a5669dea363669f5f6756ad5be404a"
+        ],
+        [
+          "binance_spot/2026-10-21/16/DOGEUSDT_orderbook.parquet",
+          "477d8615bcc08b1ada777893440b20416277f5cebdb8943aafc9beb421a1fe94"
+        ],
+        [
+          "binance_spot/2026-10-21/16/DOGEUSDT_trades.parquet",
+          "7a02a4e7814a446093dc243c9ea5a9bd6ddc837eca1d519f925375cce394d249"
+        ],
+        [
+          "binance_spot/2026-10-21/17/DOGEUSDT_orderbook.parquet",
+          "45080a9143ec14af2aee8fec2079e392dcabb892410f428062d2299413eba5c2"
+        ],
+        [
+          "binance_spot/2026-10-21/17/DOGEUSDT_trades.parquet",
+          "95eeaa2c471b16fba7576df6a785830ad2d425b08fc0fb01e8cc9bb13de53176"
+        ],
+        [
+          "binance_spot/2026-10-21/18/DOGEUSDT_orderbook.parquet",
+          "6ee249fea99f2119e5144c53251dba67490c7ae5861a1e1c4b67f4d092b3a006"
+        ],
+        [
+          "binance_spot/2026-10-21/18/DOGEUSDT_trades.parquet",
+          "079947eaa9695ea15ce58e163a49be60a3d837ec10acbfde4df0ec24db46097d"
+        ],
+        [
+          "binance_spot/2026-10-21/19/DOGEUSDT_orderbook.parquet",
+          "83f2957abacac2ed522d6e144e8528f5b593747592e46057a4e71b1b9e5c718c"
+        ],
+        [
+          "binance_spot/2026-10-21/19/DOGEUSDT_trades.parquet",
+          "2528f062b318b38eb0ee84ecf818ee0453416a569aedc458fb33e92adb37b069"
+        ],
+        [
+          "binance_spot/2026-10-21/20/DOGEUSDT_orderbook.parquet",
+          "0028adc21c92b8b986964c940dd136b70334c0b72af7dcff42da7da90d24a7d6"
+        ],
+        [
+          "binance_spot/2026-10-21/20/DOGEUSDT_trades.parquet",
+          "b99c3f5d98395cc93e0a2686dd8f2b2e1206f0e692ebcbea932d66c881b39b09"
+        ],
+        [
+          "binance_spot/2026-10-21/21/DOGEUSDT_orderbook.parquet",
+          "417c1e5e31cf835453b38a2941274e25ad159f2d0c7d65fe5521a74f68f3f6ff"
+        ],
+        [
+          "binance_spot/2026-10-21/21/DOGEUSDT_trades.parquet",
+          "7b3b60cc8b9ed15e0181de175abfb06067ab929c3201f01899acfdf8d26f68a6"
+        ],
+        [
+          "binance_spot/2026-10-21/22/DOGEUSDT_orderbook.parquet",
+          "92dad35265ca95eafee3296794701a34f02b3d5d43540a569509222ff60355bf"
+        ],
+        [
+          "binance_spot/2026-10-21/22/DOGEUSDT_trades.parquet",
+          "ea3752469494d7d1c7efff90f29ee327cdb2ccd06b33619b39dfdfde5079a034"
+        ],
+        [
+          "binance_spot/2026-10-21/23/DOGEUSDT_orderbook.parquet",
+          "06cd8cbb58b024aa124ba1f1134fcc9fe41fce3ce96082473f7fb2d63d1e1f9d"
+        ],
+        [
+          "binance_spot/2026-10-21/23/DOGEUSDT_trades.parquet",
+          "ae175487b231a5ac443dbaa69cf23532cda05f2ca46ac89e30f47fc1f9fa4dbb"
+        ],
+        [
+          "binance_spot/2026-10-22/00/DOGEUSDT_orderbook.parquet",
+          "835308db34b3365e0e7c2750e67ebdef61b5d954e63266cb01f8c739ce40169a"
+        ],
+        [
+          "binance_spot/2026-10-22/00/DOGEUSDT_trades.parquet",
+          "71c5805796156939edce0ac14781419ddc11401e23d6f9b51a91840649dced20"
+        ],
+        [
+          "binance_spot/2026-10-22/01/DOGEUSDT_orderbook.parquet",
+          "677921591d8d8de789b4d91aad4840fe2f3dd3680f37ad781e36e57b75586fda"
+        ],
+        [
+          "binance_spot/2026-10-22/01/DOGEUSDT_trades.parquet",
+          "34bf4dce6d2a9f643bfabc2773bd557ee287fd6d879705ea4641088b53be2cdb"
+        ],
+        [
+          "binance_spot/2026-10-22/02/DOGEUSDT_orderbook.parquet",
+          "4ddc9c77ddf4eeea4050aa1f5cdf981197b1cf387c51d997abe44868bc249588"
+        ],
+        [
+          "binance_spot/2026-10-22/02/DOGEUSDT_trades.parquet",
+          "017691bc2c4fd7c9ac7847bd9a3859a8f9a53d33997b87c3ea9e1f36b4cc4cef"
+        ],
+        [
+          "binance_spot/2026-10-22/03/DOGEUSDT_orderbook.parquet",
+          "6e3f2dfbe12e570498534e7331cd3a6b15e3e6727d339fcff0c0b66b4482b960"
+        ],
+        [
+          "binance_spot/2026-10-22/03/DOGEUSDT_trades.parquet",
+          "ec08717d436ae8b98ba4e75c1947103391772f20918eaff4d11e1475fd762630"
+        ],
+        [
+          "binance_spot/2026-10-22/04/DOGEUSDT_orderbook.parquet",
+          "5f3fe152a886818257b77f9ffd380a5cd5730af873f46f0a7ab51eb14fff0d57"
+        ],
+        [
+          "binance_spot/2026-10-22/04/DOGEUSDT_trades.parquet",
+          "779c5175d44f79c120e4a5ba88ac53ee23282ac0d834bc9472174a6b1ae1a82f"
+        ],
+        [
+          "binance_spot/2026-10-22/05/DOGEUSDT_orderbook.parquet",
+          "1227bdc0befb261abe34cf5217146df3d817f212c2bb487de6f56ff76716ba9c"
+        ],
+        [
+          "binance_spot/2026-10-22/05/DOGEUSDT_trades.parquet",
+          "c0c8be355c562a8c8c26f179934526584e89e48def9bd740784e06d22645b2d7"
+        ],
+        [
+          "binance_spot/2026-10-22/06/DOGEUSDT_orderbook.parquet",
+          "a33ab5176085f09ab5e9a0de55f3a1bbdaa28b32e314328bd02e5ba5a9d05955"
+        ],
+        [
+          "binance_spot/2026-10-22/06/DOGEUSDT_trades.parquet",
+          "c1c7d474204b999b14e3e4aec19e34c4e14c738cbb2198eefe98c7480e9a51c6"
+        ],
+        [
+          "binance_spot/2026-10-22/07/DOGEUSDT_orderbook.parquet",
+          "846d058fbd9bb6ffe822b416a62783efc13fc02cf3c4c90c546a093a602e4084"
+        ],
+        [
+          "binance_spot/2026-10-22/07/DOGEUSDT_trades.parquet",
+          "f4dd1912fb9a5887babc8d72e2b3d384b343dc2cc26631f37784c85bb3085c9c"
+        ],
+        [
+          "binance_spot/2026-10-22/08/DOGEUSDT_orderbook.parquet",
+          "1cc8d72be2c05c2faa103962090a1c8880801088070b90a3b70d142ac1a28a93"
+        ],
+        [
+          "binance_spot/2026-10-22/08/DOGEUSDT_trades.parquet",
+          "a431302c97e6b088bf42babab97117846a3711c444198a78cc0e8787a165c14e"
+        ],
+        [
+          "binance_spot/2026-10-22/09/DOGEUSDT_orderbook.parquet",
+          "c24bff96a18c49e9355978468c692a0a1b0885a825678f8a67e0e7b9c7f0bfa9"
+        ],
+        [
+          "binance_spot/2026-10-22/09/DOGEUSDT_trades.parquet",
+          "4023a9f211666a66118d68ccc71daffb0edcee4e7312d43a234a970b355fef2e"
+        ],
+        [
+          "binance_spot/2026-10-22/10/DOGEUSDT_orderbook.parquet",
+          "a79e7bc21d4c7ad79e6399e5f64f6feb649195ba9438a6a1514f6a024005896d"
+        ],
+        [
+          "binance_spot/2026-10-22/10/DOGEUSDT_trades.parquet",
+          "3d458cd31c527d082f63601e82c6783b1618111131b22512b89b73a115b12a0a"
+        ],
+        [
+          "binance_spot/2026-10-22/11/DOGEUSDT_orderbook.parquet",
+          "5553438eb518b736b6659d220886e20253b76cc2871c2cd33ff7e02f6065e2ad"
+        ],
+        [
+          "binance_spot/2026-10-22/11/DOGEUSDT_trades.parquet",
+          "47312c5eca4bd257f3dbbc950c5dffa987f10a64ec939c730d3f608f02a2dcdc"
+        ],
+        [
+          "binance_spot/2026-10-22/12/DOGEUSDT_orderbook.parquet",
+          "3996b0141cfc1188e92a4259fea1c7095dc50d05ebe8e8b6167ef54239e69996"
+        ],
+        [
+          "binance_spot/2026-10-22/12/DOGEUSDT_trades.parquet",
+          "50e2aa3ced2c3fbd0c044e32ecf60db13e4c0aec2f4dbd93ed3886d36d2da182"
+        ],
+        [
+          "binance_spot/2026-10-22/13/DOGEUSDT_orderbook.parquet",
+          "2995012c95af38b0cd0a12ed0b9e0acb0a11e79cbb7cfb0c97e3d20f80390408"
+        ],
+        [
+          "binance_spot/2026-10-22/13/DOGEUSDT_trades.parquet",
+          "e99c52224d178300d82265067da5e750ebe62c3f66025ca9db82a556da019faf"
+        ],
+        [
+          "binance_spot/2026-10-22/14/DOGEUSDT_orderbook.parquet",
+          "07ecb1f266ba765e31d367dd7b0fb69eba02bfd08951c281fdbfa43ad1ad1d00"
+        ],
+        [
+          "binance_spot/2026-10-22/14/DOGEUSDT_trades.parquet",
+          "7c23f1f67ae10330fa8a9fc654ad9602a7c5d96d50f20f0e82c7b1109a537583"
+        ],
+        [
+          "binance_spot/2026-10-22/15/DOGEUSDT_orderbook.parquet",
+          "df1002eae1db65b1fb2f5770eb0f2a00e62bf4f76ceeae2b4f5e4733de85ba8b"
+        ],
+        [
+          "binance_spot/2026-10-22/15/DOGEUSDT_trades.parquet",
+          "79eed3d7fa470ea63ffcce48dc8a1e59f54014181a1b38e7c268d21c099f596a"
+        ],
+        [
+          "binance_spot/2026-10-22/16/DOGEUSDT_orderbook.parquet",
+          "d290ae8d98d879d4df8e57ff62ed2d04bf4cf924da192c998b07e07599f68039"
+        ],
+        [
+          "binance_spot/2026-10-22/16/DOGEUSDT_trades.parquet",
+          "b85d868ffe0f7a5c658a4932a05758d7327d728b0dbd730f85625533ac0efaca"
+        ],
+        [
+          "binance_spot/2026-10-22/17/DOGEUSDT_orderbook.parquet",
+          "da318b1429046b2bfeeeccbbd92eb868b1b654d54bb603bd57f39291202b5e82"
+        ],
+        [
+          "binance_spot/2026-10-22/17/DOGEUSDT_trades.parquet",
+          "c9d7083f617b881c8342b1e0adae720a2b0efd04922a98d5e1a050fdfafe84ea"
+        ],
+        [
+          "binance_spot/2026-10-22/18/DOGEUSDT_orderbook.parquet",
+          "c9e8d3a2c771f8baa85d8f41e67ac1fdf9eddec1f235eb3481c41d24767fb507"
+        ],
+        [
+          "binance_spot/2026-10-22/18/DOGEUSDT_trades.parquet",
+          "74e4ec79e0fe5307bc0153cbfa016c371d5dd8133df47779ca43651b9d87a010"
+        ],
+        [
+          "binance_spot/2026-10-22/19/DOGEUSDT_orderbook.parquet",
+          "6f5f3463220d4323e141cbc7a79797293d78bb2bd4ce0a1276889036b587ecd1"
+        ],
+        [
+          "binance_spot/2026-10-22/19/DOGEUSDT_trades.parquet",
+          "2b5b0c803623065549b9493ab719994e686e8dae3cf9bcd48a538d42e6b0d0fe"
+        ],
+        [
+          "binance_spot/2026-10-22/20/DOGEUSDT_orderbook.parquet",
+          "0f0eb9740ba4100c3d78604574862a57308d4ab82a605b23e7c92fb463088ab7"
+        ],
+        [
+          "binance_spot/2026-10-22/20/DOGEUSDT_trades.parquet",
+          "35bf9630183e74c351daa216e23e76e07b21897f10f1530636e6360316ee6290"
+        ],
+        [
+          "binance_spot/2026-10-22/21/DOGEUSDT_orderbook.parquet",
+          "dd196898b4d9fc54e5f97c44ff963f74d51755c9fc6e6b5c08885b5dde793a69"
+        ],
+        [
+          "binance_spot/2026-10-22/21/DOGEUSDT_trades.parquet",
+          "77d2aed9ce87170a4218a9e3ab125819e51d79f73072b130b97794d0b0ac72d2"
+        ],
+        [
+          "binance_spot/2026-10-22/22/DOGEUSDT_orderbook.parquet",
+          "212cfd9058254b8e093eff4daed27450598b54f8bef396b5b036e4813df447c7"
+        ],
+        [
+          "binance_spot/2026-10-22/22/DOGEUSDT_trades.parquet",
+          "078da5a29f9f90af9a2e383c5d31eff3efdeec79dbc6870ceea81aa6ee5ce4a3"
+        ],
+        [
+          "binance_spot/2026-10-22/23/DOGEUSDT_orderbook.parquet",
+          "6aad379807a4c0b765b796c6f3fbd2cb9129d1aba28f1b427f119ade95984007"
+        ],
+        [
+          "binance_spot/2026-10-22/23/DOGEUSDT_trades.parquet",
+          "7f25748a303caa7ee2f35ff08e076a4241b04293423961dbdb5057328ffd3437"
+        ],
+        [
+          "binance_spot/2026-10-23/00/DOGEUSDT_orderbook.parquet",
+          "86b7610a96a983612b044316028e2809f17dd55c8b61c5935ecef41a51a2dfb7"
+        ],
+        [
+          "binance_spot/2026-10-23/00/DOGEUSDT_trades.parquet",
+          "5e4288d131c24721ccd6d9914f49c3e49ba55835830c029ab16691e0d6e5775f"
+        ],
+        [
+          "binance_spot/2026-10-23/01/DOGEUSDT_orderbook.parquet",
+          "248774aa7177199ef6a3ac26d9458fa3b00d1880c5a25399f7465c7974e25b17"
+        ],
+        [
+          "binance_spot/2026-10-23/01/DOGEUSDT_trades.parquet",
+          "73b502bf749b9472b4a0f0457d1856c49e05e13dd74e9eee1da3df484601a005"
+        ],
+        [
+          "binance_spot/2026-10-23/02/DOGEUSDT_orderbook.parquet",
+          "369d77040ed47eb11957b1049c57735e757bed710eeed2f182781a413cabde81"
+        ],
+        [
+          "binance_spot/2026-10-23/02/DOGEUSDT_trades.parquet",
+          "5493ef9d80317392999168447cb7a7102e005cecdfbb94fd92bf521209cb969a"
+        ],
+        [
+          "binance_spot/2026-10-23/03/DOGEUSDT_orderbook.parquet",
+          "0ce28929998f7bf6474b47317713830e3debc2e1d0f86cc193e8f87400d8697f"
+        ],
+        [
+          "binance_spot/2026-10-23/03/DOGEUSDT_trades.parquet",
+          "2a18b8f1225447f45cd7ea1484ca19ab6a3c4b41932ca33f18b096a7d6f77eda"
+        ],
+        [
+          "binance_spot/2026-10-23/04/DOGEUSDT_orderbook.parquet",
+          "163a4ccc229c57c905f70d4066750daab3e1259f4c7362b44617e4a90725fdd9"
+        ],
+        [
+          "binance_spot/2026-10-23/04/DOGEUSDT_trades.parquet",
+          "d19fda7361a180f187bbeb602dfcef62d22ffb554fe2632c23b4172a3fe84c50"
+        ],
+        [
+          "binance_spot/2026-10-23/05/DOGEUSDT_orderbook.parquet",
+          "7ca1165ac9949fcb48dfdab2836de46fcd8e160241095f9bc47f53fce20c6b10"
+        ],
+        [
+          "binance_spot/2026-10-23/05/DOGEUSDT_trades.parquet",
+          "8b3b39afee5ed9ae02d1d25d43aacf55704d6df25719f6063e363eafa2818d55"
+        ],
+        [
+          "binance_spot/2026-10-23/06/DOGEUSDT_orderbook.parquet",
+          "9b7aac780609a9730eb52f9a790dec90c9e7cc4ff5a296d2b3f159bb57d80963"
+        ],
+        [
+          "binance_spot/2026-10-23/06/DOGEUSDT_trades.parquet",
+          "dd14b210b71427755247c2c83572811c557fd43b755483cfb13773bf2edb7f11"
+        ],
+        [
+          "binance_spot/2026-10-23/07/DOGEUSDT_orderbook.parquet",
+          "a1d08e13df3896ba1fdc6c43c9a0eecdbfcd158ab346a2a6b27c652122ff1a58"
+        ],
+        [
+          "binance_spot/2026-10-23/07/DOGEUSDT_trades.parquet",
+          "476a71e04ae61074ed0207ea40c9210787cf9134715c79d22cfadb3bec7529db"
+        ],
+        [
+          "binance_spot/2026-10-23/08/DOGEUSDT_orderbook.parquet",
+          "77d828a1071227b1d2e4b4fb3ee5d9d9b0fc88b1660fbcf06a2567ad5028aba4"
+        ],
+        [
+          "binance_spot/2026-10-23/08/DOGEUSDT_trades.parquet",
+          "8fb14b712ac6db9c52550ec68d015e33c34e3ad9bd44c485c21aa9476c969511"
+        ],
+        [
+          "binance_spot/2026-10-23/09/DOGEUSDT_orderbook.parquet",
+          "1c0500c524c0f3ddd365f1a4f77790d2483392f6667274e73e8f5efda304db35"
+        ],
+        [
+          "binance_spot/2026-10-23/09/DOGEUSDT_trades.parquet",
+          "3d042cf74a049ddb0cea0599656477544636d9a0c0cd3fac6c3f889e78bee0f3"
+        ],
+        [
+          "binance_spot/2026-10-23/10/DOGEUSDT_orderbook.parquet",
+          "f66dd99b3071de373806deaee791bc42c793e0f412d8197b70b13d32448aec28"
+        ],
+        [
+          "binance_spot/2026-10-23/10/DOGEUSDT_trades.parquet",
+          "fda0654297827ef461bd9a680ed59397461084a909d4a6a18d9fe27c719f9cf1"
+        ],
+        [
+          "binance_spot/2026-10-23/11/DOGEUSDT_orderbook.parquet",
+          "1933062cde6b4273340beebbcf7f2b1797a7f524acbd3dceb19f66d75d6ddfaa"
+        ],
+        [
+          "binance_spot/2026-10-23/11/DOGEUSDT_trades.parquet",
+          "5005418c4840ff0535d91b93ebbe717c24344644944ab0988cad8609ae5cf3ed"
+        ],
+        [
+          "binance_spot/2026-10-23/12/DOGEUSDT_orderbook.parquet",
+          "9baa41d48024adbb772b759ff372252727e4d489292fe808540853919d6899b8"
+        ],
+        [
+          "binance_spot/2026-10-23/12/DOGEUSDT_trades.parquet",
+          "2b71516ca3d2157756e5e97ada71b9a9196e4a48b26af2db124cfee8e3b59c4b"
+        ],
+        [
+          "binance_spot/2026-10-23/13/DOGEUSDT_orderbook.parquet",
+          "050e0cedf8f5c0ab61a93d9719f54b53d6f3e149619549bc8cf33e9c76015d78"
+        ],
+        [
+          "binance_spot/2026-10-23/13/DOGEUSDT_trades.parquet",
+          "10be0581d0bf10660701bb12fbf32b830b536abbe0bafc692be98d6762ea6075"
+        ],
+        [
+          "binance_spot/2026-10-23/14/DOGEUSDT_orderbook.parquet",
+          "3b32e8226d932a8cad36be1207adacb676523b3822532893351ab31ddccc75d4"
+        ],
+        [
+          "binance_spot/2026-10-23/14/DOGEUSDT_trades.parquet",
+          "759f72d49fcb7c89fda5a04f54a0d9a4c9e280f348763d95ca2f368b069db130"
+        ],
+        [
+          "binance_spot/2026-10-23/15/DOGEUSDT_orderbook.parquet",
+          "6d973d8c5fe419209fa2ced52d8643e18613be5870c57183be9c1480ea2c2b0c"
+        ],
+        [
+          "binance_spot/2026-10-23/15/DOGEUSDT_trades.parquet",
+          "176230776d6c5b5dcf105c4a01577267edf2366322d65416e5efbff3bf591e2c"
+        ],
+        [
+          "binance_spot/2026-10-23/16/DOGEUSDT_orderbook.parquet",
+          "a71dc19127545d6ecf10db8b6f1ee416dbc17358a53e15b4708664310945dc29"
+        ],
+        [
+          "binance_spot/2026-10-23/16/DOGEUSDT_trades.parquet",
+          "06c66b9362e7e79e99269e0785d96754b4899b0ea4c6330c6c3076ef8caa531f"
+        ],
+        [
+          "binance_spot/2026-10-23/17/DOGEUSDT_orderbook.parquet",
+          "e4d400694fd750a193b76df68c7a7ea7c955a1f281816c7e17f9a58aa2d7c032"
+        ],
+        [
+          "binance_spot/2026-10-23/17/DOGEUSDT_trades.parquet",
+          "84b61d37d9b0744e0db46ddb0299edb95f165d24cb540fd2f704ed92876ad994"
+        ],
+        [
+          "binance_spot/2026-10-23/18/DOGEUSDT_orderbook.parquet",
+          "c9c104c5143317e26d6f97b06b2d8dbb5cc8fffe3271438494aeb271d73bacf0"
+        ],
+        [
+          "binance_spot/2026-10-23/18/DOGEUSDT_trades.parquet",
+          "e87e59935506593bbc5c3b52675683171841307571bb560a0d0a6ba30675371b"
+        ],
+        [
+          "binance_spot/2026-10-23/19/DOGEUSDT_orderbook.parquet",
+          "565ce3431f344791d77fa6555c2c1b635e36df02ed1402e07f14c479d813e065"
+        ],
+        [
+          "binance_spot/2026-10-23/19/DOGEUSDT_trades.parquet",
+          "4af93a642eeb09e8d8ff097f0c850832cd17bac310897794cf915f1ebe465cf6"
+        ],
+        [
+          "binance_spot/2026-10-23/20/DOGEUSDT_orderbook.parquet",
+          "b305807bce77153f2842f7a4aeefab5ede09a1b0b44e6e0eff45654cddefd2d0"
+        ],
+        [
+          "binance_spot/2026-10-23/20/DOGEUSDT_trades.parquet",
+          "a382c67b3255c5097aa8dbee831a86593adeb421b496d8d7b4ae5e1105c765da"
+        ],
+        [
+          "binance_spot/2026-10-23/21/DOGEUSDT_orderbook.parquet",
+          "e3b6afdc03e80c5aeefd50c7c0324d03ffd57e74ab6e9333340569362b7b7222"
+        ],
+        [
+          "binance_spot/2026-10-23/21/DOGEUSDT_trades.parquet",
+          "a211078217e7cc819eecb626c02fa0b90a7056c58d7dde4af65c22842ebd8ca0"
+        ],
+        [
+          "binance_spot/2026-10-23/22/DOGEUSDT_orderbook.parquet",
+          "209ecb5eb4977187d8c5be3e795b79d93ab65b7736f0010620fc292188f843a1"
+        ],
+        [
+          "binance_spot/2026-10-23/22/DOGEUSDT_trades.parquet",
+          "82e014495b4b63fb871a499ac817dd2a20664763ba647d57e4ad601d522fff21"
+        ],
+        [
+          "binance_spot/2026-10-23/23/DOGEUSDT_orderbook.parquet",
+          "d805265399f81b7fc6a6398ae685c83254b0f68b6c24b391ed1fde68abc9a9f6"
+        ],
+        [
+          "binance_spot/2026-10-23/23/DOGEUSDT_trades.parquet",
+          "6940ba55be3e3a203185e6dd3c85c5c3301f8709dd455d4ddfc72174c930e8cb"
+        ],
+        [
+          "binance_spot/2026-10-24/00/DOGEUSDT_orderbook.parquet",
+          "62cc65169fb6f10a54218abdfe9475247be91c5fe598483e0bc9cf24b9a3bcb1"
+        ],
+        [
+          "binance_spot/2026-10-24/00/DOGEUSDT_trades.parquet",
+          "e0dd9bd6ddb8469fac35cfc309c5aaf9bb23a16d97ee8ba2137a3becfafc43ef"
+        ],
+        [
+          "binance_spot/2026-10-24/01/DOGEUSDT_orderbook.parquet",
+          "1427d75fd580bc4dfa67415c243e06cea0d8cf38e01a0923a42b17ed004318de"
+        ],
+        [
+          "binance_spot/2026-10-24/01/DOGEUSDT_trades.parquet",
+          "8400268ca22a60972a8738f25b201aa29a4389ee98fd6895cf5bc7455e162472"
+        ],
+        [
+          "binance_spot/2026-10-24/02/DOGEUSDT_orderbook.parquet",
+          "6813315b85f2494da73b81f7b2dc3ef95e78258a732e671fa60e260558b347b4"
+        ],
+        [
+          "binance_spot/2026-10-24/02/DOGEUSDT_trades.parquet",
+          "2963571c7499e2b3a26edca28277b961e61be56988a85ae70e4c8bdd82afe9ad"
+        ],
+        [
+          "binance_spot/2026-10-24/03/DOGEUSDT_orderbook.parquet",
+          "db4e38776c16c30ec30d5ce767d5c9f6b05a608b5a40bc6a39aaa1d6a1f1b1b9"
+        ],
+        [
+          "binance_spot/2026-10-24/03/DOGEUSDT_trades.parquet",
+          "9011efb9b1eb26a2e7504dfad918e5c9784ef528c205ae01133f4999c144d488"
+        ],
+        [
+          "binance_spot/2026-10-24/04/DOGEUSDT_orderbook.parquet",
+          "1ec169aca60e2848513b49efd1108d2ae69543dd8a27f4150863b0df78cccf70"
+        ],
+        [
+          "binance_spot/2026-10-24/04/DOGEUSDT_trades.parquet",
+          "b853268f81ace0e881169627c02cfff54158558a3c1f87ecbed2f3be88662380"
+        ],
+        [
+          "binance_spot/2026-10-24/05/DOGEUSDT_orderbook.parquet",
+          "9d23c97a2fa6070d9b2cf45305fb525aa9b5c50a32f01a42f6eefae38149bb62"
+        ],
+        [
+          "binance_spot/2026-10-24/05/DOGEUSDT_trades.parquet",
+          "ae2acd5ffe1e893a725fb42fffad23e7b4a6ffdfa23f1ec6a7f0f4fe0e4bcf99"
+        ],
+        [
+          "binance_spot/2026-10-24/06/DOGEUSDT_orderbook.parquet",
+          "edd2c54999564e95a3ebdbc57d01c8b2668502dbf4dbfe4478288161f85d7d3b"
+        ],
+        [
+          "binance_spot/2026-10-24/06/DOGEUSDT_trades.parquet",
+          "41954303a61008e3970767acbf4726aab93fa7c1c4152753da46d4d5673b474c"
+        ],
+        [
+          "binance_spot/2026-10-24/07/DOGEUSDT_orderbook.parquet",
+          "361e5890ff2e8a370adea0cd787eb7681a4a6bb200991e844f195a935103c479"
+        ],
+        [
+          "binance_spot/2026-10-24/07/DOGEUSDT_trades.parquet",
+          "4f90adae165a1cb26a4752c2ac4e917dff254a683a0c08b5e35d3b9c956b1878"
+        ],
+        [
+          "binance_spot/2026-10-24/08/DOGEUSDT_orderbook.parquet",
+          "a638c8b80132bfbc7600b678c7be612add69bc53ae7ec60390155da87a671ca5"
+        ],
+        [
+          "binance_spot/2026-10-24/08/DOGEUSDT_trades.parquet",
+          "027154eae7fc93db330e5977d4bf003d2e5a10b30c6aac6606b32d8687745829"
+        ],
+        [
+          "binance_spot/2026-10-24/09/DOGEUSDT_orderbook.parquet",
+          "3b5e3ce6827de82f316896218d2505767a26f786cb0fed08f238471abedfc0ec"
+        ],
+        [
+          "binance_spot/2026-10-24/09/DOGEUSDT_trades.parquet",
+          "998d17dc3446ffe99984b25b0ca49d8ee3499e90dac310f5fde799eb7f0d2e3e"
+        ],
+        [
+          "binance_spot/2026-10-24/10/DOGEUSDT_orderbook.parquet",
+          "cce617d7c9864845f39478602c9e4f1b38e1d3e66f3f3d31b80c12c10fc7b075"
+        ],
+        [
+          "binance_spot/2026-10-24/10/DOGEUSDT_trades.parquet",
+          "3caf96874511e522e098ce5152312aba5e68a44b07e86a7f5cfd4630f131f744"
+        ],
+        [
+          "binance_spot/2026-10-24/11/DOGEUSDT_orderbook.parquet",
+          "2202b679b46183782c334a1287790cf8abeab8db590b6661f9f8496ff9a30af9"
+        ],
+        [
+          "binance_spot/2026-10-24/11/DOGEUSDT_trades.parquet",
+          "ec1fa0058f81473fbb5a4273b0eb720932372fd747d846c5e39b63dfd97fc79c"
+        ],
+        [
+          "binance_spot/2026-10-24/12/DOGEUSDT_orderbook.parquet",
+          "edd94b18711421ddf4a5abbeb47152812d20d3bf95a4653feed5fafea00054e1"
+        ],
+        [
+          "binance_spot/2026-10-24/12/DOGEUSDT_trades.parquet",
+          "9d745a9090fc0f33fc75dd03864913ed11af4dcb7b5a2616c2209b9ce53e365f"
+        ],
+        [
+          "binance_spot/2026-10-24/13/DOGEUSDT_orderbook.parquet",
+          "1c77d3021e5d9de36ff0428c81529e7f702a725b3d4c24302360afb39a3d01eb"
+        ],
+        [
+          "binance_spot/2026-10-24/13/DOGEUSDT_trades.parquet",
+          "c1e24a80dc6178919712c93dd2b662bee343207d031d9985bebe95dcc1369876"
+        ],
+        [
+          "binance_spot/2026-10-24/14/DOGEUSDT_orderbook.parquet",
+          "43c480932f213d6d821328a344bf896ca15f77e74940f47fe74c3ccbd0077cef"
+        ],
+        [
+          "binance_spot/2026-10-24/14/DOGEUSDT_trades.parquet",
+          "7f5035e47bcdb4a2bed5e3a1991832d3a4371d57d8306b8993170ae54058d31d"
+        ],
+        [
+          "binance_spot/2026-10-24/15/DOGEUSDT_orderbook.parquet",
+          "caa60d1438511851a6688b65d26b26169fbbd1a02035a7745f9b6dea32020b7c"
+        ],
+        [
+          "binance_spot/2026-10-24/15/DOGEUSDT_trades.parquet",
+          "adf38addde93d106117341221076b51442d6dae2ef60b635ccb4d0809a790726"
+        ],
+        [
+          "binance_spot/2026-10-24/16/DOGEUSDT_orderbook.parquet",
+          "6de0f489e7577041a0d710c94ece0cf1ae7bb4b2dd0b14ec2465845648aefe34"
+        ],
+        [
+          "binance_spot/2026-10-24/16/DOGEUSDT_trades.parquet",
+          "3999c695b13a50af58cef70564b1de59d27778eb1e45740dff052d8290c7503e"
+        ],
+        [
+          "binance_spot/2026-10-24/17/DOGEUSDT_orderbook.parquet",
+          "68437abbfd85ae4f7b19a500094ec3da143a59fddf464857fa73029d2932142d"
+        ],
+        [
+          "binance_spot/2026-10-24/17/DOGEUSDT_trades.parquet",
+          "d678316f53964754f8bd74ede07f11978fe5646783261951ff76dfec34e990d5"
+        ],
+        [
+          "binance_spot/2026-10-24/18/DOGEUSDT_orderbook.parquet",
+          "5d8eaa4234b4f7c6e517180a51b3e494ce7687cd25943b0ec1e0340b5508f8a3"
+        ],
+        [
+          "binance_spot/2026-10-24/18/DOGEUSDT_trades.parquet",
+          "2622684e1c941cf0202d26fa38fb78cc2d14e52611205745621d0deadd7d14f5"
+        ],
+        [
+          "binance_spot/2026-10-24/19/DOGEUSDT_orderbook.parquet",
+          "4ac6143b79e61bed8f1c38ba40596609e666971d73299a0439d72986de671e17"
+        ],
+        [
+          "binance_spot/2026-10-24/19/DOGEUSDT_trades.parquet",
+          "3ce77c337dd521d54a192d9d6b0c6ba6e843a57bab57922b7202bb89a7beda13"
+        ],
+        [
+          "binance_spot/2026-10-24/20/DOGEUSDT_orderbook.parquet",
+          "8624a3ddcc3f4586fa8342d8fe692bbf65cf4fd38e4343890927a99a401cdfae"
+        ],
+        [
+          "binance_spot/2026-10-24/20/DOGEUSDT_trades.parquet",
+          "1a8fb592aac0e9d5f94f5fd21de8728451c14290f314c24ee45e93e1d7b60453"
+        ],
+        [
+          "binance_spot/2026-10-24/21/DOGEUSDT_orderbook.parquet",
+          "55a1b391fce001e5910c57b2ad90914d1d841dbd01e1c04f5940a9d5779035eb"
+        ],
+        [
+          "binance_spot/2026-10-24/21/DOGEUSDT_trades.parquet",
+          "b7a0033ace63a6fc3e00f8dc27460f26a5622b990167289b870975994a81c23a"
+        ],
+        [
+          "binance_spot/2026-10-24/22/DOGEUSDT_orderbook.parquet",
+          "b7b5a1b66e5030ab03552242138efa622ba460bddfdb774365af47f2087907eb"
+        ],
+        [
+          "binance_spot/2026-10-24/22/DOGEUSDT_trades.parquet",
+          "289ec3b973edd46b80153e13035216e593a1690716339903509f7e5ec4d159bc"
+        ],
+        [
+          "binance_spot/2026-10-24/23/DOGEUSDT_orderbook.parquet",
+          "83ef29868fef8899dc345f98629c30b692774c79abba2530005b1b2cbab3cb8a"
+        ],
+        [
+          "binance_spot/2026-10-24/23/DOGEUSDT_trades.parquet",
+          "4294b800c7baef3a98e80264954fe7ccecde67416d5441d462ecc88984744b52"
+        ],
+        [
+          "binance_spot/2026-10-25/00/DOGEUSDT_orderbook.parquet",
+          "76e422f7fe3321defc6e6e367700b1ae5acedeea0edc1edbe9ae3f5f917818d0"
+        ],
+        [
+          "binance_spot/2026-10-25/00/DOGEUSDT_trades.parquet",
+          "3dd61aa549c779ca0123252fc21f0c71c0cabdf873dd3c28e48fac116c61de1a"
+        ],
+        [
+          "binance_spot/2026-10-25/01/DOGEUSDT_orderbook.parquet",
+          "c3399c244a6ecfe54ad8e059772ac3af1e08927c91d6dd36f68097542842886e"
+        ],
+        [
+          "binance_spot/2026-10-25/01/DOGEUSDT_trades.parquet",
+          "744984bc489243e57cf52a945bd8d7f391ede9b28cd9da128b769dfb6944f4b2"
+        ],
+        [
+          "binance_spot/2026-10-25/02/DOGEUSDT_orderbook.parquet",
+          "57e1d27e957d53e73e5b603835e72182fe5091286b40b71cf4dfdaeaa57a054d"
+        ],
+        [
+          "binance_spot/2026-10-25/02/DOGEUSDT_trades.parquet",
+          "939f54e9a449f6ac7ef72be9e895afec9c215a7c1e0b64a6e8fdaa7277f9e8cb"
+        ],
+        [
+          "binance_spot/2026-10-25/03/DOGEUSDT_orderbook.parquet",
+          "63cb9340ed2657d8f9f78e436733b8d3720550b27ffee4545ba27c042f18af84"
+        ],
+        [
+          "binance_spot/2026-10-25/03/DOGEUSDT_trades.parquet",
+          "a8c8770f0244350447f20dfa911bbafea8eab8cd7760f061a34811859dd17e10"
+        ],
+        [
+          "binance_spot/2026-10-25/04/DOGEUSDT_orderbook.parquet",
+          "d581712e33325b34e710bfbac2964ae63f5d017250c27f00369c3bb52636d0df"
+        ],
+        [
+          "binance_spot/2026-10-25/04/DOGEUSDT_trades.parquet",
+          "d9bf12ab0353485d2eb169a15aa80419dff052115598a635997ad6ec209b1a67"
+        ],
+        [
+          "binance_spot/2026-10-25/05/DOGEUSDT_orderbook.parquet",
+          "a9e5b921295c725f15101f3b79791da5c14209f0146676fcaf06c723677bbabe"
+        ],
+        [
+          "binance_spot/2026-10-25/05/DOGEUSDT_trades.parquet",
+          "f4c6e71a8a1995f36f426ea420d698ca6c9b29063ed809e0a38073a0dc8355a9"
+        ],
+        [
+          "binance_spot/2026-10-25/06/DOGEUSDT_orderbook.parquet",
+          "9bcb6bde0bd08434ae9bcf95944cc76d55a7806bc22419700b09d222e40f2496"
+        ],
+        [
+          "binance_spot/2026-10-25/06/DOGEUSDT_trades.parquet",
+          "79695b3c583ce1ba17907a9f7433c81bc857f472dba107a71d16c30773dc640f"
+        ],
+        [
+          "binance_spot/2026-10-25/07/DOGEUSDT_orderbook.parquet",
+          "b518871927f34f1a7650105fb6a09b973b699cbf00b80edaf5af9ded75a7d92e"
+        ],
+        [
+          "binance_spot/2026-10-25/07/DOGEUSDT_trades.parquet",
+          "4d9fd92398712b6a41a14d4c2a008f970b171d47c8b77f677b3513842c22d5c5"
+        ],
+        [
+          "binance_spot/2026-10-25/08/DOGEUSDT_orderbook.parquet",
+          "85554080dee755ba3b52ac307d7eefcf7f20e44dadb35186eeb248b474799481"
+        ],
+        [
+          "binance_spot/2026-10-25/08/DOGEUSDT_trades.parquet",
+          "673ae414693e06123104bdb84ffccf36cc7fc220acdd98a5ad13ce539baca54e"
+        ],
+        [
+          "binance_spot/2026-10-25/09/DOGEUSDT_orderbook.parquet",
+          "7f2cc424c64964589c6bfb8aeae00a9025f9e391352dcfce344aa6c672302461"
+        ],
+        [
+          "binance_spot/2026-10-25/09/DOGEUSDT_trades.parquet",
+          "577f0111ccefff1f2dcb1bcdd0f55b6ef372a996e8ac9e99a422f15012b14650"
+        ],
+        [
+          "binance_spot/2026-10-25/10/DOGEUSDT_orderbook.parquet",
+          "94f8a1ac9e6ad4a4c4561eb0d989579bef39d547d39f5c8718892be0cffe6bad"
+        ],
+        [
+          "binance_spot/2026-10-25/10/DOGEUSDT_trades.parquet",
+          "4a2763b9e4d372bb9950bdcf1b88662d5c975b6a18cc36c26bc196e5258d35ce"
+        ],
+        [
+          "binance_spot/2026-10-25/11/DOGEUSDT_orderbook.parquet",
+          "4360d2ad038674d836637dad0700cee7c62f747f3abce886bd49a41ea249acef"
+        ],
+        [
+          "binance_spot/2026-10-25/11/DOGEUSDT_trades.parquet",
+          "d62dc42947e917d52e449ed8c3cd2d0d1b3bfe51f0ae6d51179d1c26b2ce97ea"
+        ],
+        [
+          "binance_spot/2026-10-25/12/DOGEUSDT_orderbook.parquet",
+          "702c4c4c86893e07c0804f338b10c99cca852693e1e91bff7071cd2faa62a144"
+        ],
+        [
+          "binance_spot/2026-10-25/12/DOGEUSDT_trades.parquet",
+          "0e457a81b6f4513601a045e54242414389507e7228a41991716d70ccac6a5d66"
+        ],
+        [
+          "binance_spot/2026-10-25/13/DOGEUSDT_orderbook.parquet",
+          "016218764bbd7d73fe026f60dbea5eb558f64bd88e5ce301fa82e3b613f5299b"
+        ],
+        [
+          "binance_spot/2026-10-25/13/DOGEUSDT_trades.parquet",
+          "2747c803182646625f06ef1b439cf66541e6fe8b4da8b3cc0a637862f2e71e1a"
+        ],
+        [
+          "binance_spot/2026-10-25/14/DOGEUSDT_orderbook.parquet",
+          "bf4a0d41357b7d1d42e69ff9d23f7542eb1bb1be3c7582658d2ab5755fbcba12"
+        ],
+        [
+          "binance_spot/2026-10-25/14/DOGEUSDT_trades.parquet",
+          "2ec70c20c5d36b1cab5953a8fe82adc0e9c1b355122e6a1d6637f4d0318b31da"
+        ],
+        [
+          "binance_spot/2026-10-25/15/DOGEUSDT_orderbook.parquet",
+          "680486c823c0b7db8259ea382611feb7a04de161203460f23613066b49bdb687"
+        ],
+        [
+          "binance_spot/2026-10-25/15/DOGEUSDT_trades.parquet",
+          "173beb84e16c79f113a11b5f46a9b22aa2f08d6a2d471dafe9abd1c8bb7c7a27"
+        ],
+        [
+          "binance_spot/2026-10-25/16/DOGEUSDT_orderbook.parquet",
+          "b44ab5c09b5a63cd00c8715b8a230b752a45110c2393a4e2a94e873f53612a28"
+        ],
+        [
+          "binance_spot/2026-10-25/16/DOGEUSDT_trades.parquet",
+          "551966dd3edb3952897d92d5f959647617dd2854a78938331adf90f1b42218b0"
+        ],
+        [
+          "binance_spot/2026-10-25/17/DOGEUSDT_orderbook.parquet",
+          "ebaa054ae849e91adc6a29436f56b903271ebff06553cd45b80b12e331b9b9bf"
+        ],
+        [
+          "binance_spot/2026-10-25/17/DOGEUSDT_trades.parquet",
+          "f8b423afcd8ef9aee36260cab832e1af5e39b9c2f25668815b2c99da01755640"
+        ],
+        [
+          "binance_spot/2026-10-25/18/DOGEUSDT_orderbook.parquet",
+          "34f3db8b861f987d44e6370bf7e6837d00e08a79e902e1063a38080c878a2782"
+        ],
+        [
+          "binance_spot/2026-10-25/18/DOGEUSDT_trades.parquet",
+          "1465fa33085a4dc5e07fc35835c737d3dffbe472b82b4f77dc1365ed139fade9"
+        ],
+        [
+          "binance_spot/2026-10-25/19/DOGEUSDT_orderbook.parquet",
+          "48e3081384d26aa7e53ff035019a0f790219c60133732a0a5db839b1d761f5b8"
+        ],
+        [
+          "binance_spot/2026-10-25/19/DOGEUSDT_trades.parquet",
+          "bb6c686d0c05d849a8707898e00b2b09a450b8fbbf6e2c955d4cf2ab66e38f7e"
+        ],
+        [
+          "binance_spot/2026-10-25/20/DOGEUSDT_orderbook.parquet",
+          "9ad636b1d20cb64675a38790fd3743a342186d611fe6a877e9ca84b143537a1f"
+        ],
+        [
+          "binance_spot/2026-10-25/20/DOGEUSDT_trades.parquet",
+          "2fea9225ab9d52e8651870ce10ac6c39c77df4fe7aa385f2395b6baf3ceff1ff"
+        ],
+        [
+          "binance_spot/2026-10-25/21/DOGEUSDT_orderbook.parquet",
+          "4e47f8584829aa8a8e2fd0657132ac10418f5077c986751eb125429f11eb9dce"
+        ],
+        [
+          "binance_spot/2026-10-25/21/DOGEUSDT_trades.parquet",
+          "6315092f006b500eb944e1f93b8ecaac5821a6211d636311659fa3f875c5aab5"
+        ],
+        [
+          "binance_spot/2026-10-25/22/DOGEUSDT_orderbook.parquet",
+          "cbcf17c54827bcf42077ea8d7b978725eec2ceca5358b42937f68fc81ff9b93e"
+        ],
+        [
+          "binance_spot/2026-10-25/22/DOGEUSDT_trades.parquet",
+          "eada60a7c7452adcca91f529fb246f33962a5f4544086a070aa203c1553f38dc"
+        ],
+        [
+          "binance_spot/2026-10-25/23/DOGEUSDT_orderbook.parquet",
+          "a9d83d12881d267727f68105ba779d5d3f50b85d987cf4c376da75b3839c2653"
+        ],
+        [
+          "binance_spot/2026-10-25/23/DOGEUSDT_trades.parquet",
+          "eb71fe7d64ca836e62f45530efb30373b037f35e4c219adf4d1429be9ffcb775"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 1036,
+          "pressure_cut_usdt": 16130.087860000003,
+          "impact_cut_bps": 2.441257259607382,
+          "refill_cut": 0.18524126927828027,
+          "control_refill_ceiling": 0.0251860050921238,
+          "candidates": 12,
+          "controls": 15,
+          "exhaustion_without_refill_filter": {
+            "missing": 3,
+            "counts": {
+              "base": 40,
+              "stress": 40
+            },
+            "mean_bps": {
+              "base": -34.3476007806726,
+              "stress": -64.29393021376023
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 0,
+            "counts": {
+              "base": 12,
+              "stress": 12
+            },
+            "mean_bps": {
+              "base": -33.86575703307777,
+              "stress": -63.81304991334099
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -34.20480237548889,
+                "control_mean_bps": -33.360220260989166,
+                "paired_difference_bps": -0.8445821144997249
+              },
+              "stress": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -64.1514173341667,
+                "control_mean_bps": -63.30852396265897,
+                "paired_difference_bps": -0.8428933715077278
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -32.07062680659317,
+                "control_mean_bps": -34.29039692859496,
+                "paired_difference_bps": 2.219770122001787
+              },
+              "stress": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -62.02150905198668,
+                "control_mean_bps": -64.23684074085557,
+                "paired_difference_bps": 2.2153316888688814
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -37.57738520702829,
+                "control_mean_bps": -27.20627253222115,
+                "paired_difference_bps": -10.371112674807147
+              },
+              "stress": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -67.51725668212242,
+                "control_mean_bps": -57.16688106006059,
+                "paired_difference_bps": -10.350375622061833
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -38.46612402132588,
+                "control_mean_bps": -49.709192530243534,
+                "paired_difference_bps": 11.243068508917652
+              },
+              "stress": {
+                "pairs": 3,
+                "missing": 0,
+                "treated_mean_bps": -68.40421846204909,
+                "control_mean_bps": -79.62480644143824,
+                "paired_difference_bps": 11.22058797938916
+              }
+            }
+          },
+          "ledger": [
+            {
+              "candidate": {
+                "time": 1792761810,
+                "side": "bid",
+                "pressure": 16225.362140000001,
+                "impact_bps": -1.2478163230538797,
+                "spread_bps": 1.2476866307631616,
+                "range_bps": 6.2383033838439985,
+                "depth": 42873.28235766667,
+                "refill": 0.3894554750443308,
+                "ofi": 2.8559946099649176,
+                "shock_time": 1792761780,
+                "pressure_ratio": 0.13130674814016816,
+                "recovery_bps": 3.742515013742398
+              },
+              "control": {
+                "time": 1792763850,
+                "side": "bid",
+                "pressure": 31051.06407000001,
+                "impact_bps": 1.2461059206138176,
+                "spread_bps": 1.2461887632837332,
+                "range_bps": 4.984113242545358,
+                "depth": 31408.347718666668,
+                "refill": 0.004831771293304988,
+                "ofi": -4.561846909407639,
+                "shock_time": 1792763820,
+                "pressure_ratio": 0.005833673834546951,
+                "recovery_bps": 7.4743074174091495
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -33.71911138468967,
+                  "stress": -63.66669748310981
+                },
+                "60": {
+                  "base": -33.71911138468967,
+                  "stress": -63.66669748310981
+                },
+                "300": {
+                  "base": -42.43202045771482,
+                  "stress": -72.36218508355924
+                },
+                "900": {
+                  "base": -42.43202045771482,
+                  "stress": -72.36218508355924
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -32.47068993522784,
+                  "stress": -62.42077225389679
+                },
+                "60": {
+                  "base": -22.52796017930956,
+                  "stress": -52.49792299854472
+                },
+                "300": {
+                  "base": -15.070912862370411,
+                  "stress": -45.05578605702895
+                },
+                "900": {
+                  "base": -77.21297383686272,
+                  "stress": -107.07359390298107
+                }
+              }
+            },
+            {
+              "candidate": {
+                "time": 1792784520,
+                "side": "bid",
+                "pressure": 25385.60276000001,
+                "impact_bps": -2.5292444017216256,
+                "spread_bps": 1.264451688963693,
+                "range_bps": 5.057849257474505,
+                "depth": 30836.958075333336,
+                "refill": 0.2223282540642733,
+                "ofi": 2.3986867078230913,
+                "shock_time": 1792784490,
+                "pressure_ratio": 0.041227050619774205,
+                "recovery_bps": 3.7926675549437134
+              },
+              "control": {
+                "time": 1792787070,
+                "side": "bid",
+                "pressure": 25550.435859999994,
+                "impact_bps": -1.263902933939508,
+                "spread_bps": 1.2638497199019445,
+                "range_bps": 5.055292366742246,
+                "depth": 36405.724721,
+                "refill": 0.0007091209754415518,
+                "ofi": 1.6109693660670252,
+                "shock_time": 1792787040,
+                "pressure_ratio": 0.003267334868861999,
+                "recovery_bps": 2.5273267336122007
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -36.2918926027346,
+                  "stress": -66.23433442189541
+                },
+                "60": {
+                  "base": -32.507761538842956,
+                  "stress": -62.45776973279118
+                },
+                "300": {
+                  "base": -33.76913856014075,
+                  "stress": -63.716624629162176
+                },
+                "900": {
+                  "base": -32.507761538842956,
+                  "stress": -62.45776973279118
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -33.7677042716779,
+                  "stress": -63.71519320855842
+                },
+                "60": {
+                  "base": -40.07219889739023,
+                  "stress": -70.00708198939205
+                },
+                "300": {
+                  "base": -22.419613945392886,
+                  "stress": -52.38979340305614
+                },
+                "900": {
+                  "base": -11.07152361911138,
+                  "stress": -41.064393597557356
+                }
+              }
+            },
+            {
+              "candidate": {
+                "time": 1792853040,
+                "side": "bid",
+                "pressure": 34087.82243,
+                "impact_bps": -1.3126804954536242,
+                "spread_bps": 1.312376209188478,
+                "range_bps": 7.87349952097679,
+                "depth": 11479.572296333334,
+                "refill": 0.30093482360351526,
+                "ofi": -2.336261723232169,
+                "shock_time": 1792853010,
+                "pressure_ratio": 0.1542313062324879,
+                "recovery_bps": 9.183941868289502
+              },
+              "control": {
+                "time": 1792848330,
+                "side": "bid",
+                "pressure": 30316.434149999997,
+                "impact_bps": 1.288825881407618,
+                "spread_bps": 1.2886155310142233,
+                "range_bps": 3.8659794295917957,
+                "depth": 16138.177374666666,
+                "refill": 0.013828893527704016,
+                "ofi": -0.4312167773619931,
+                "shock_time": 1792848300,
+                "pressure_ratio": 0.005101701579900353,
+                "recovery_bps": 3.8659794295917957
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -32.603403139042406,
+                  "stress": -62.553220097494865
+                },
+                "60": {
+                  "base": -29.98500749624689,
+                  "stress": -59.940059940059065
+                },
+                "300": {
+                  "base": -36.53099660322931,
+                  "stress": -66.47296033364584
+                },
+                "900": {
+                  "base": -40.45859006741986,
+                  "stress": -70.39270056979683
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -33.84226657606176,
+                  "stress": -63.78960642552169
+                },
+                "60": {
+                  "base": -40.27103170908509,
+                  "stress": -70.20551723462992
+                },
+                "300": {
+                  "base": -44.128290788900145,
+                  "stress": -74.05506372009667
+                },
+                "900": {
+                  "base": -60.8430801347565,
+                  "stress": -90.7364318237763
+                }
+              }
+            }
+          ]
+        },
+        "ask": {
+          "training_events": 960,
+          "pressure_cut_usdt": 17003.21417999999,
+          "impact_cut_bps": 5.042546592822797,
+          "refill_cut": 0.23227538503454703,
+          "control_refill_ceiling": 0.02310548558328045,
+          "candidates": 7,
+          "controls": 18,
+          "exhaustion_without_refill_filter": {
+            "missing": 5,
+            "counts": {
+              "base": 55,
+              "stress": 55
+            },
+            "mean_bps": {
+              "base": -26.770333127748824,
+              "stress": -56.808894708910394
+            }
+          },
+          "exhaustion_with_strong_refill": {
+            "missing": 2,
+            "counts": {
+              "base": 5,
+              "stress": 5
+            },
+            "mean_bps": {
+              "base": -24.78108277389405,
+              "stress": -54.81566485723401
+            }
+          },
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 1,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": [
+            {
+              "candidate": {
+                "time": 1792931040,
+                "side": "ask",
+                "pressure": 29375.86117000001,
+                "impact_bps": 2.6090927028218145,
+                "spread_bps": 1.304172078023191,
+                "range_bps": 6.521455820015591,
+                "depth": 17190.138638333334,
+                "refill": 0.2433063159795699,
+                "ofi": -0.16666912817160254,
+                "shock_time": 1792931010,
+                "pressure_ratio": 0.004014039258887196,
+                "recovery_bps": 2.6090927028216804
+              },
+              "control": {
+                "time": 1792935480,
+                "side": "ask",
+                "pressure": 36828.22617999999,
+                "impact_bps": 2.603997150316211,
+                "spread_bps": 1.3019590550658415,
+                "range_bps": 6.510416896623074,
+                "depth": 14842.151204333333,
+                "refill": 0.020252699827423518,
+                "ofi": 1.2695433775461507,
+                "shock_time": 1792935450,
+                "pressure_ratio": 0.001420206603064802,
+                "recovery_bps": 1.3019138151443574
+              },
+              "treated_bps": {
+                "30": {
+                  "base": null,
+                  "stress": null
+                },
+                "60": {
+                  "base": null,
+                  "stress": null
+                },
+                "300": {
+                  "base": null,
+                  "stress": null
+                },
+                "900": {
+                  "base": null,
+                  "stress": null
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -31.319357283430886,
+                  "stress": -61.36701919310427
+                },
+                "60": {
+                  "base": -31.319357283430886,
+                  "stress": -61.36701919310427
+                },
+                "300": {
+                  "base": -43.05850530055437,
+                  "stress": -73.12965139052146
+                },
+                "900": {
+                  "base": -48.27590441927491,
+                  "stress": -78.35748792270365
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "evaluation_start_utc_second": 1792713600,
+  "confirmation": {
+    "seconds": 30,
+    "maximum_remaining_pressure": 0.5,
+    "opposite_turnover_dominates": true,
+    "mid_recovers": true
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "diagnostic_only": true,
+  "source": "https://api.tardis.dev/v1/data-feeds/okex-swap",
+  "receiver": "Tardis collection clock, not the local device",
+  "start_utc": "2026-11-01T00:00:00+00:00",
+  "interval_seconds": 3600,
+  "observed_receipt_ns": [
+    1793491200008768400,
+    1793494799948119500
+  ],
+  "provider_disconnect_markers": 0,
+  "slice_sha256": {
+    "0000.ndjson.gz": "41db36094d47b18d9d8275997779eae6342d74d744d924efb42f2e48d569a501",
+    "0010.ndjson.gz": "9c333eb98540c40be7db6f5d8abb77415b7cf1b7abc2476b561f0539c1468db2",
+    "0020.ndjson.gz": "a2246518b08bd059eb323971a9f2a63d56004be4e212e035d589cc38824c42de",
+    "0030.ndjson.gz": "90bb4230b9dfd1b87fde538d8802da0cf352040bc1eb54ddacb71e2757e532d3",
+    "0040.ndjson.gz": "4b5eae2113278defb7aae2f3771adb00fbc4bb378727f85058c41d19e7cae9db",
+    "0050.ndjson.gz": "f746f7473cbdea2c2cdd7c458c0f49a0d41b1b7ca7b5687660b60837a9b80033"
+  },
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "usable": 3539,
+      "received": 3600,
+      "fresh": 3540,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 34620,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 17899,
+        "trades": 11281,
+        "funding-rate": 61
+      },
+      "audit": {
+        "book_sequence": 1,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 591,
+        "trade_not_ready": 658,
+        "trade_messages": 10623
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "usable": 3539,
+      "received": 3600,
+      "fresh": 3540,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 35497,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 17797,
+        "trades": 19498,
+        "funding-rate": 61
+      },
+      "audit": {
+        "book_sequence": 1,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 596,
+        "trade_not_ready": 419,
+        "trade_messages": 19079
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "usable": 3539,
+      "received": 3600,
+      "fresh": 3540,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 31095,
+        "trades": 2274,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 17899,
+        "funding-rate": 61
+      },
+      "audit": {
+        "book_sequence": 1,
+        "trade_not_ready": 65,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 562,
+        "trade_messages": 2209
+      }
+    }
+  }
+}

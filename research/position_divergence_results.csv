@@ -1,0 +1,10 @@
+month,rule,fee,n,wins,net_usdt,drawdown_pct,valid_metric_samples
+2024-09,position_rotation,0,41,12,-1.28025,1.9729,8640
+2024-09,position_rotation,0.001,41,8,-3.32456,3.5701,8640
+2024-09,position_rotation,0.002,41,7,-5.36887,5.4691,8640
+2024-09,crowded_short,0,75,29,-0.36485,1.3503,8640
+2024-09,crowded_short,0.001,75,25,-4.10689,4.5676,8640
+2024-09,crowded_short,0.002,71,12,-7.87866,8.0047,8640
+2024-09,leverage_exit,0,30,16,0.51665,0.6624,8640
+2024-09,leverage_exit,0.001,30,12,-0.98131,1.2206,8640
+2024-09,leverage_exit,0.002,30,7,-2.47927,2.5224,8640

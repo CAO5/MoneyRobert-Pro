@@ -1,0 +1,73 @@
+{
+  "diagnostic_only": true,
+  "formal_window_utc": "2026-11-21T00:00:00+00:00",
+  "start_utc": "2026-11-20T15:46:31+00:00",
+  "end_utc_exclusive": "2026-11-20T16:50:44+00:00",
+  "audited_complete_seconds": 3853,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "usable": 1561,
+      "invalid": 2271,
+      "audit": {
+        "configuration": 1,
+        "connect": 71,
+        "trade_not_ready": 54183,
+        "snapshots": 70,
+        "book_not_ready": 3435,
+        "trade_messages": 216032,
+        "disconnect": 117
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "usable": 1586,
+      "invalid": 2232,
+      "audit": {
+        "configuration": 1,
+        "connect": 85,
+        "trade_not_ready": 56493,
+        "snapshots": 83,
+        "book_not_ready": 3988,
+        "disconnect": 136,
+        "trade_messages": 236223
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "usable": 1550,
+      "invalid": 2251,
+      "audit": {
+        "configuration": 1,
+        "connect": 13,
+        "snapshots": 13,
+        "book_not_ready": 12389,
+        "trade_not_ready": 8567,
+        "trade_messages": 10436,
+        "disconnect": 27
+      }
+    }
+  },
+  "none_usable_seconds": 1813,
+  "all_usable_seconds": 980,
+  "pairs": [
+    {
+      "instruments": [
+        "BTC-USDT-SWAP",
+        "ETH-USDT-SWAP"
+      ],
+      "simultaneously_missing_seconds": 2023
+    },
+    {
+      "instruments": [
+        "BTC-USDT-SWAP",
+        "DOGE-USDT-SWAP"
+      ],
+      "simultaneously_missing_seconds": 1872
+    },
+    {
+      "instruments": [
+        "ETH-USDT-SWAP",
+        "DOGE-USDT-SWAP"
+      ],
+      "simultaneously_missing_seconds": 1907
+    }
+  ]
+}

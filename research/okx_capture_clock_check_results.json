@@ -1,0 +1,45 @@
+{
+  "instrument": "BTC-USDT-SWAP",
+  "utc_hour": "2026-11-20T13:00:00+00:00",
+  "vendor_archive_sha256": "dd4e194d7e0067229270bb70a431142e99224913fa22e2b14c3dfad6b108443b",
+  "direct_updates": 10855,
+  "vendor_updates": 35991,
+  "comparable_exchange_time_ms": [
+    1795182118002,
+    1795183199803
+  ],
+  "exactly_matched": 10818,
+  "matched_fraction_of_direct": 0.9965914325195763,
+  "matched_payload_mismatches": 0,
+  "payload_mismatch_examples": [],
+  "delta_wall_clock_ms": {
+    "min": -4051.552528,
+    "p50": -3689.902365,
+    "p90": -3483.4646,
+    "p99": -1131.064243,
+    "max": 2076.910857
+  },
+  "direct_wall_minus_exchange_ms": {
+    "min": -3563.4976,
+    "p50": -3548.26725,
+    "p90": -3342.2131,
+    "p99": -988.4423,
+    "max": 2217.8272
+  },
+  "vendor_wall_minus_exchange_ms": {
+    "min": 140.244517,
+    "p50": 141.5216605,
+    "p90": 142.656489,
+    "p99": 146.834167,
+    "max": 499.646228
+  },
+  "direct_added_delay_above_observed_min_ms": {
+    "min": 0,
+    "p50": 15.0,
+    "p90": 221,
+    "p99": 2575,
+    "max": 5781
+  },
+  "direct_updates_above_one_second_extra_delay": 431,
+  "note": "Exact native sequence and exchange timestamp join; diagnostics only. Wall offsets are not latency."
+}

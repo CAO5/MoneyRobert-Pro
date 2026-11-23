@@ -1,0 +1,49 @@
+{
+  "rows": 367164,
+  "first_utc": "2026-11-20T13:41:51+00:00",
+  "last_utc": "2026-11-20T14:32:07+00:00",
+  "elapsed_seconds": 3016.3032279,
+  "controls": {
+    "disconnect": 4,
+    "connect": 3
+  },
+  "clocks": {
+    "wall_reversals": 0,
+    "monotonic_reversals": 0
+  },
+  "instruments": {
+    "BTC-USDT-SWAP": {
+      "funding-rate": 54,
+      "mark-price": 14892,
+      "books": 29951,
+      "snapshots": 3,
+      "trades": 98198,
+      "trade_gap_messages": 0,
+      "missing_trade_ids": 0,
+      "overlapping_trade_messages": 0,
+      "invalid_book_links": 0
+    },
+    "ETH-USDT-SWAP": {
+      "funding-rate": 54,
+      "mark-price": 14898,
+      "books": 29961,
+      "snapshots": 3,
+      "trades": 128631,
+      "trade_gap_messages": 0,
+      "missing_trade_ids": 0,
+      "overlapping_trade_messages": 0,
+      "invalid_book_links": 0
+    },
+    "DOGE-USDT-SWAP": {
+      "funding-rate": 54,
+      "mark-price": 14892,
+      "books": 28984,
+      "snapshots": 3,
+      "trades": 6551,
+      "trade_gap_messages": 0,
+      "missing_trade_ids": 0,
+      "overlapping_trade_messages": 0,
+      "invalid_book_links": 0
+    }
+  }
+}

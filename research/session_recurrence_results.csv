@@ -1,0 +1,13 @@
+period,rule,quarter_hour_slots_utc,fee,trades,wins,net_usdt,dd_pct
+formation,trained_clock,10;2;90;60,0,368,218,6.81062,1.1481
+formation,trained_clock,10;2;90;60,0.001,243,99,-7.88572,8.0152
+formation,trained_clock,10;2;90;60,0.002,101,21,-7.99454,8.0004
+formation,six_hour_clock,0;24;48;72,0,368,198,1.76968,1.8456
+formation,six_hour_clock,0;24;48;72,0.001,176,57,-7.99911,8.0154
+formation,six_hour_clock,0;24;48;72,0.002,65,4,-8.08039,8.1043
+forward,trained_clock,10;2;90;60,0,244,111,3.65268,3.849
+forward,trained_clock,10;2;90;60,0.001,131,44,-7.96261,8.0246
+forward,trained_clock,10;2;90;60,0.002,83,12,-8.03985,8.0574
+forward,six_hour_clock,0;24;48;72,0,244,128,4.49447,1.6276
+forward,six_hour_clock,0;24;48;72,0.001,244,93,-7.66082,7.9673
+forward,six_hour_clock,0;24;48;72,0.002,70,8,-8.00616,8.0697

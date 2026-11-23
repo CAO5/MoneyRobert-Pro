@@ -1,0 +1,752 @@
+{
+  "diagnostic_only": true,
+  "promotion_allowed": false,
+  "primary_seconds": 300,
+  "delay_seconds": 1,
+  "note": "Same scored strong-refill orders. A break-even estimate is not a feasible fee quote.",
+  "evaluation_source": {
+    "diagnostic_only": true,
+    "source": "https://api.tardis.dev/v1/data-feeds/okex-swap",
+    "receiver": "Tardis collection clock, not the local device",
+    "start_utc": "2026-11-01T00:00:00+00:00",
+    "interval_seconds": 86400,
+    "observed_receipt_ns": [
+      1793491200008768400,
+      1793577599928208500
+    ],
+    "provider_disconnect_markers": 13,
+    "slice_sha256": {
+      "0000.ndjson.gz": "41db36094d47b18d9d8275997779eae6342d74d744d924efb42f2e48d569a501",
+      "0010.ndjson.gz": "9c333eb98540c40be7db6f5d8abb77415b7cf1b7abc2476b561f0539c1468db2",
+      "0020.ndjson.gz": "a2246518b08bd059eb323971a9f2a63d56004be4e212e035d589cc38824c42de",
+      "0030.ndjson.gz": "90bb4230b9dfd1b87fde538d8802da0cf352040bc1eb54ddacb71e2757e532d3",
+      "0040.ndjson.gz": "4b5eae2113278defb7aae2f3771adb00fbc4bb378727f85058c41d19e7cae9db",
+      "0050.ndjson.gz": "f746f7473cbdea2c2cdd7c458c0f49a0d41b1b7ca7b5687660b60837a9b80033",
+      "0060.ndjson.gz": "edd80d1d85de65b6f4c17d671a73908e2f2a5b35418fec48dce5dd0b614c450a",
+      "0070.ndjson.gz": "d420f81c3cbff55973952bf6f4f317d6ff78d07fc0fee28719a041fca3eb41b1",
+      "0080.ndjson.gz": "ae77486cabdb33fb28aefb48fc9300f0faac3992a0001135f5cb61fbc0a66065",
+      "0090.ndjson.gz": "0c70fe8ea4249eb56ccec1eeca4be7e20383bfd5e3ec90ce49d36230fc68e4ca",
+      "0100.ndjson.gz": "829a03ca7e081b54793a101e2dcb9ede59a7cca059344ddd1f27ad286e3d0185",
+      "0110.ndjson.gz": "568ac93ebbd92732754990e05b8de194217b51e23db0412df20e173481edb61d",
+      "0120.ndjson.gz": "f44e378f812a6d396c13039a828f555ac5d3a6ef37a8a4dc00747056cc875f80",
+      "0130.ndjson.gz": "5b6ca8d669ebb610451b268993eeffe9ac868321d3ffa8b5a5161896381c6923",
+      "0140.ndjson.gz": "f2e606441afd3c309b02ebb480f33d5a9e715da54c7f1f0f998f83a9396d233f",
+      "0150.ndjson.gz": "249b9b370daf1fc5bcaecde2bd86a4c27acdc4c35946e118181fdd607475b4d0",
+      "0160.ndjson.gz": "e7f48a12a2394bcea491300d3400071c9c584ee5f3db3d6a886232f1088c7d07",
+      "0170.ndjson.gz": "a7016a764d02b1ae43e11f8d3e05ac9f96156c86ab53f91b7b2c8a6aa320a709",
+      "0180.ndjson.gz": "588d83d8c3140b8e5477b4b91e44b806603f042817a31797c874590fdc83779b",
+      "0190.ndjson.gz": "e233506a5185b06cabcd968d0c321845ec00405291e7ea7cadc5f0f21c57847c",
+      "0200.ndjson.gz": "8a904cfcefa6a512a025ec953b650c8512f8a6a0eebbcd9aa0eedc81f1fbc7ff",
+      "0210.ndjson.gz": "ca7151b267e22c33327cf226ca754be197c8b046f4362fea15b8044458a62dca",
+      "0220.ndjson.gz": "3daf5968a5dab16b1738e0066dbd7f358ac987af69f34bcdab8cece9b177f9d6",
+      "0230.ndjson.gz": "6138ea88cb75918d707c607396c6dca18d87c1be3caf2b5e93ccd7f171a6ede8",
+      "0240.ndjson.gz": "5c29acc82e7f40e33b6ce3caeb4377fe68866b52995e107a26c0c990e25cca40",
+      "0250.ndjson.gz": "9e2777bea48f578bf86be7427a01d9711f997a43745fac095d55c11d397a82dc",
+      "0260.ndjson.gz": "5932afc577095774836ec26dd02428be165696b1676887d4a8aaa81bf81b4502",
+      "0270.ndjson.gz": "0db1ce0a924ba849be6f028a7fa99f51d743eec441b4838072c9c63ef0cff041",
+      "0280.ndjson.gz": "12fe66042f555d3899ab6389b37e3d376d292062cf7fdc7c8459dc42c49ab300",
+      "0290.ndjson.gz": "01dc56668aa4c90083f0c6c27650847ec84c4fce2e95e0c63299212d73a0e705",
+      "0300.ndjson.gz": "d8981abb0f8cbc8d33b94d537135bd6a11c4dd34779d942a0527289ce0781e71",
+      "0310.ndjson.gz": "ebc3b147c7349aafdd7f0584bbe36999d0c48a34efc7956a9d9e1f53358ee112",
+      "0320.ndjson.gz": "039872e6ba739cff5341c8ef867f5a9e940eb6609c45e2a141b6244417471d57",
+      "0330.ndjson.gz": "bd51aebcc6a10760bf84704670832dce2432430a96a363bbb3104d57a249b738",
+      "0340.ndjson.gz": "f02ef044804d07971ccb3133d23a7339ca188f9ed9742d4a4e736abd045fb86b",
+      "0350.ndjson.gz": "66d5b4ad2cfb29699cf6645cfdeb95fc6086bc2aa8db4a8a254f85cc66dc3e41",
+      "0360.ndjson.gz": "24f7fab1ea6c63dce30ffbed145aeaf5c5f543b770409bdb12c8f4e11e8a4759",
+      "0370.ndjson.gz": "789cac294afeed2dcc3d0d989a54f458ac95b84e8544c2c3a448926fdf74fe5e",
+      "0380.ndjson.gz": "9a4d70ecf86bb2a01f9116560407a58bb5faa2491d87ae5f849f926feb428287",
+      "0390.ndjson.gz": "99860f405105a8b9880894cfd678d804694f435566f1632fd15cfd6abaa1ae1b",
+      "0400.ndjson.gz": "32af12291e33dc584c4da4f477b9336f748eeae02c304e1d154e2ed90140f804",
+      "0410.ndjson.gz": "2cadc228570935461d0a9dff4d74fb11dbb28604a02672c30207e49e91c54984",
+      "0420.ndjson.gz": "31f1b0b9d4cacc94f2bdbbdf505263b7417592dae1479b7fe80bb0bdd7074edd",
+      "0430.ndjson.gz": "9b7bf1ce6f72df2914e7c4c0913a63ff00db63fb15238df05b10dee602294cba",
+      "0440.ndjson.gz": "d8e841e07843f6b231d4c62f27e8cc6653926d361f9568236be7ecb65d5426f7",
+      "0450.ndjson.gz": "0c6c7feeb2ddde530cf7e573e8f787fe16b90e9d6bfc75339bc5ce6a06f2459e",
+      "0460.ndjson.gz": "a472342b8dce84b1ca32b968b7e71f15c97f3ba218365164d7bf50b2e799fa26",
+      "0470.ndjson.gz": "f1031dbf165022bdcb22385479757903f03a0cb23f02039d339a638ac5b89bb5",
+      "0480.ndjson.gz": "7f7a27b5b7cfbf1f731bc17a41cbba6ee21b7cd40b1a75cab62947d216a9b189",
+      "0490.ndjson.gz": "fa1f8888d9e62b9269c29ddaa66fe55d83d73cc287ef50096e8ea6388f39eaf7",
+      "0500.ndjson.gz": "b45b54d3e0ed317925b5a1a88f92f7e072ebf7b5b7d5dcc3996e661db47f843e",
+      "0510.ndjson.gz": "7478bf1072ab42517b7de6c84f7f575ff3201224e91bbfa73f2edd218af4c620",
+      "0520.ndjson.gz": "daa59f29081fb504022f2080392fe71fb21c92c87a2052d2f7304302562af838",
+      "0530.ndjson.gz": "6c4ec2cc5234389d49d67fddda9d5357da40128065321a8d7758668d3b69cba8",
+      "0540.ndjson.gz": "a640c803026d50d7a9d15e9a05fdfd0971c6e3d7340acdf4705a50cc0379a364",
+      "0550.ndjson.gz": "9dcef73d94b09122efcb5693439cc3146daa7487140271b8b83b0d631175aa4f",
+      "0560.ndjson.gz": "921741d54c5682a6949ff8043a99c4bc0fdbc406930ca015e50861fe3dee3bac",
+      "0570.ndjson.gz": "ef47f5bd59f800044b4cec275738a820eb922ec002894af03177d81bd176e108",
+      "0580.ndjson.gz": "4f5a1a117c8e02b37af6f2267732205375afd2edb88e19d592c5d347508f20ee",
+      "0590.ndjson.gz": "61a9654bbcb4257505695ca4f3beeeb95fce7100eea31d7f2a2964c9b1d5ba5e",
+      "0600.ndjson.gz": "8af8b0e2fccdd5e7d6f3d81b4a414a52de914e830604e4cf81bb1add77ee24f5",
+      "0610.ndjson.gz": "9ccb89a407d32ac8022151dd156602019475ca403c5ae80a9b46cc547a588ca5",
+      "0620.ndjson.gz": "bd74eb78c6526ffbc50b83b65142c5a5e7532b63c906654a71011d71003e4ed1",
+      "0630.ndjson.gz": "491af5564bfd88d2ed939192f0157cbfd789445abbb4f7068fec15070cf0e752",
+      "0640.ndjson.gz": "b98865105f069c8d832f4f154196a30e14a44993d744bfe1237545cb437cb5e6",
+      "0650.ndjson.gz": "f5a9b0e20b0a45ce9a3fde86964605bac7266dcdfae61a936231bf1789387085",
+      "0660.ndjson.gz": "223f3985ba749835a3e8e27474f1060ceff35ad2216b1b4d5918027f9659f480",
+      "0670.ndjson.gz": "3f1396335b669178c6baed0b5db6a1d68cf0aeb5c69ab3d6c1c65b62f8a9a65e",
+      "0680.ndjson.gz": "4622d940a6cd384f9bd7dd5ff65ad21713aeb36ff140148b17b55df76c2e32f4",
+      "0690.ndjson.gz": "3a9c9e8525dc74669f54f4c4781caff83bdfc6ef6e3524e1edb706bc090719ac",
+      "0700.ndjson.gz": "20632b81308d9f287a8f9f08d87ac33293092e0f803013c62dc8167aba21a821",
+      "0710.ndjson.gz": "92b3ec0a84ba3703c15d861df94e9a8ea5f5339a753c805df08228a163f4f9c0",
+      "0720.ndjson.gz": "b9b373a9d669b58e9fcb6c02508cb2defe1e99617bbef1a5fca5d77998c219ef",
+      "0730.ndjson.gz": "c6e5a708cd6cdaf7afba8205b310896e6bec02d33de36ed169d43f35e8ecfc61",
+      "0740.ndjson.gz": "4dae0bd7a7adb4139c7266522cf680f2c0e39f2dc67f09c53c1f21abd623a08e",
+      "0750.ndjson.gz": "acaf80e823d36d776c91c6ec0ae7b2bd9a72beb69d826da10591d45b61a0b572",
+      "0760.ndjson.gz": "c4315d1e786a3aec112fbf240c7b76a91f42d1988ded85bef3b23bd740d8c53f",
+      "0770.ndjson.gz": "2432d1649d52dd645615618ed0c8a31706e78db20a8c84a8fab920497b51ea14",
+      "0780.ndjson.gz": "a3d906e6449701aa4166610bd10112f7db1f236a9006f0e6519cc24bb0020745",
+      "0790.ndjson.gz": "02c63f9c9b0e0fdab2db2d68400a51503a7904bc4af24e88146a484701bee1f3",
+      "0800.ndjson.gz": "182bfd9bc9d3ce257228d05f5582ba315e7ad6057098da328587f7f4c647bbb8",
+      "0810.ndjson.gz": "03fdf9dbf9316e770a72eaf86fcf9562f05a2e8356f378dde06fd930c040dfd4",
+      "0820.ndjson.gz": "01e24601801368db75b4d6ce7e305c130598b6139400a9d4dce3038dcb96cee8",
+      "0830.ndjson.gz": "800c1633996c79c9d2258def6304e34a6be73ef0b265f4fa320bfaa6211e1b4c",
+      "0840.ndjson.gz": "5fbf314bd4aa19f1a9815453f0b1982d35c3e90ab4e8cec447351aad19cc4442",
+      "0850.ndjson.gz": "67988869650346ce08fd2bdf240940661977d74f884f5c0b6a19a79280295f1d",
+      "0860.ndjson.gz": "a431ed14dd59091e09a3e90a9f342b3ecf5dc5a4d1d8f91cefc3e0f195c82cfd",
+      "0870.ndjson.gz": "6076ba3f2d87b9e55040830116eddc8e34f08beb8dd0a0ae97313c3d6511db39",
+      "0880.ndjson.gz": "2e35ad86102a9201a7323c8883417a5ad03ce8270b1e6b4ff296006840d07abc",
+      "0890.ndjson.gz": "7b24302d749542c25f0afa550ca97beb01b2d68f8d86bf4726ab301702957c86",
+      "0900.ndjson.gz": "536434a9d3ccf01cd6894cb1845b40383008ed2ed57e82e28af2a01c0574ecf4",
+      "0910.ndjson.gz": "6494e67a06a60dabf26739c41a403644da556a2792f78e48d4c73ffc3b117192",
+      "0920.ndjson.gz": "8285c69e13f9bed910376302c93f785dcf4461eae2360630dd6fc926f6b8794b",
+      "0930.ndjson.gz": "2653a0e2fce916ba930d97751e2d12eabc1fe9a95a049ced1c8216e8836f3fe6",
+      "0940.ndjson.gz": "75956952d4dc9071b945975994c24b5398009d4582dfcd13847bbdae63e13318",
+      "0950.ndjson.gz": "7afe365ee2924e0a0060a78e4d6480466db9e2730aae3a6852ac1a46859addce",
+      "0960.ndjson.gz": "b1883fda718ab054e4178e6dbd63095891798c41561bc3962af28041041c66e5",
+      "0970.ndjson.gz": "87951b0cd38e5ac4cc30da6c9beb79059bb04c0c69babea7eaf73d00059f2442",
+      "0980.ndjson.gz": "b6aea10adeb22fa0a020917b52477c9142cd5e7f568c22392255a439792703dc",
+      "0990.ndjson.gz": "7d14ac277dab2448de47a88958f6d5ba0a9522d1d2111e637312babe3abe43cc",
+      "1000.ndjson.gz": "407b2f6e9142e236a31540aea8bbd3a8c0f2d61e6da889bc0d99a52c172f5264",
+      "1010.ndjson.gz": "a0e0b7e39cba73ea6fb9fa7f2e99e1fbf9c802ada0aec057de9ef6fdbfe403e4",
+      "1020.ndjson.gz": "b71bd78434f8837c8ecba4a013d7881251bd9465873e6032dd2469787faa6e8b",
+      "1030.ndjson.gz": "82db508e03c713cdbcdbd9320f39f87047d20e74dd61622ec7acb906f94ab153",
+      "1040.ndjson.gz": "dee8809163dbc4a4cc38b4a2d4304940316a4b1f429b5a9b363b6cadc3cf76fd",
+      "1050.ndjson.gz": "eb07731e0fe132b04f2fc5aa4e52c03e56abb5c3c19eeb8a7e2b7e99d6ad0b53",
+      "1060.ndjson.gz": "d694a653912aa879d0e6eb8a74b160d0e82f7735202b9c8ea5119a57e580df7d",
+      "1070.ndjson.gz": "8e91259e7adb9edf7ae52854d928449fae8cae298da79efcc390255d2f929a6b",
+      "1080.ndjson.gz": "c4dbeae22e46ce48e443850e520150a720cf44ac9f57831721568a45aff29352",
+      "1090.ndjson.gz": "ad3d739d14e830a3fbe7f2c55206e65565c19d9eb6b6d469a02ae56b78f15167",
+      "1100.ndjson.gz": "cb52b4c92b92833b3f541a74d42bfab44cb9a2c4365da15665d7f6984e0be07a",
+      "1110.ndjson.gz": "3d7fadb4630c94381a5e37a5b645ee312d52589b3596c676fadaa33b9f218104",
+      "1120.ndjson.gz": "56e660e048d969af41d674f8dbfdeb2cf98d8ea39ca500b517f101653c4737b1",
+      "1130.ndjson.gz": "d2d373917a3831154fd98809298c2e3bd88497d2acd4cdac41bad39c3e3a9d61",
+      "1140.ndjson.gz": "c01002ace0460af383205a59ec490971829a9658cce9f860c1f681b387d8733b",
+      "1150.ndjson.gz": "4735b6983bdc12e6f1ea3aa292a5c62f3c9277758d97136165b4a59cc4bed710",
+      "1160.ndjson.gz": "00001bcd6f53528c0da4826c6a126686489089c19530fc05ef86ea55455ad334",
+      "1170.ndjson.gz": "5815281ed99e189b6cf9612bb2461e719e29dd34ceb8c3549154938c13080e00",
+      "1180.ndjson.gz": "778e925b7a33896002fa7591ad3f99a783cca67a082fbfac3114606ccad36dde",
+      "1190.ndjson.gz": "a4345782b46d8d00f58e9306e8f60fdd357a39d304dcdc0fdf32aa449c90a97e",
+      "1200.ndjson.gz": "589498924cc6c38397ba3b79232050f298b37e09fd468de7fb26dca44217cc5c",
+      "1210.ndjson.gz": "6d9e0249ab606c4532c91383cc51bf8b7972a86f9a422947897bbdebaece7e6b",
+      "1220.ndjson.gz": "b4117b4fb3e87b3529eff67382b974af48ea389bf68bd7a7959b782de95abc7e",
+      "1230.ndjson.gz": "bd83767c71c298df2b6c86f66d2f72de42da5d709746ac3e681ada9f12725148",
+      "1240.ndjson.gz": "482bd1cb82faf187850a82882ad60684f5aff31a3cd2013ff2911ef53def0354",
+      "1250.ndjson.gz": "72b5e57f573e0937aed8b07e1288de57243cbf66ee2d7a98b9d98591f0298c20",
+      "1260.ndjson.gz": "ff12160caa96bb49a91501ef62b10e89f28edf0132bc0d371f1a9a78c96f8ffd",
+      "1270.ndjson.gz": "d834b323b17a90f3ccb1ece815170d92052fa3e42c3e2d2210a4e140df03a832",
+      "1280.ndjson.gz": "b00ee8eddc00f85f41548b73fd9d31ab4953ba19a80355fc6ddb1c66d52aba0d",
+      "1290.ndjson.gz": "a87c655b0f01b2fc19bdc69839eac5937a555941e059d2b96a589e465a0501b7",
+      "1300.ndjson.gz": "4218939f956cd26c91c188a6ae9745c719139eab80115e192d99e4cc63e2d89a",
+      "1310.ndjson.gz": "0b1845a27eb62851aff7d3c646d577131b4d4509e5c85716f29785f548be6e0c",
+      "1320.ndjson.gz": "6c328bb810e7095ff533e7711e02235528c2e2fa8dc112b426484822497072e3",
+      "1330.ndjson.gz": "fd2b16893c80e48702882afa0e43ce4203f5f5eee2544ccd7d4442bd56b403f0",
+      "1340.ndjson.gz": "7ecc0d2624cb599753aa8ed9b197f4307e2af60680377c33106755ca084691e3",
+      "1350.ndjson.gz": "536c169aeeec5fb6d9aabc40fb99c1884b2ca9a8a6dfc582ed5dcd322358624e",
+      "1360.ndjson.gz": "7f531bb284c25bd5ceedb9c7f2e57a018f198b1afaee571af4b9efa850be4a66",
+      "1370.ndjson.gz": "68e353f04d3ad49bab558abbace84cefc9b4a696f24974557c0abd5476d0d89a",
+      "1380.ndjson.gz": "c9c21118a5f160f636e0a34018797894c1c4b57029ca92b7c02cccfeffabfe82",
+      "1390.ndjson.gz": "5b5b010c1ca2a8dd9682aa6c8c0dd8387a3b2b7bcb0110e633822377bcf2c256",
+      "1400.ndjson.gz": "41c7a1640834f6eb34251037583e18d395ea6f885ce58ef40d7b58f5706f1381",
+      "1410.ndjson.gz": "96c6aec437402109679a0d92b399defff8d6401aaeb8bd6b17b4d5c10658b44b",
+      "1420.ndjson.gz": "5c66b8bbb6876adba32207eb2c91997f423a433031d699d74647e99de9081ced",
+      "1430.ndjson.gz": "b879515e5f5889dd8899f8933de9791d06bce46b86e12e85266b516297b60d88"
+    }
+  },
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "absorption": {
+        "bid": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 2,
+          "mean_zero_fee_zero_extra_slippage_bps": -2.870714623618134,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": -2.859339256359027,
+              "visible_spread_cost_bps": 0.012811442608590443,
+              "extra_slippage_cost_bps": 10.006438576599052,
+              "fee_cost_bps": 20.012878589275566,
+              "signed_funding_bps": 0.0,
+              "net_bps": -32.89146786484077
+            },
+            "stress": {
+              "directional_mid_bps": -2.860770357087935,
+              "visible_spread_cost_bps": 0.012817854742028175,
+              "extra_slippage_cost_bps": 20.022893608230667,
+              "fee_cost_bps": 40.04579296364012,
+              "signed_funding_bps": 0.0,
+              "net_bps": -62.94227478370006
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": -2.859339256359027,
+              "visible_spread_cost_bps": 0.012811442608590443,
+              "extra_slippage_cost_bps": 10.006438576599052,
+              "fee_cost_bps": 10.006439294637783,
+              "signed_funding_bps": 0.0,
+              "net_bps": -22.885028570204184
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793522010,
+              "zero_fee_zero_extra_slippage_bps": -11.52342498237444,
+              "round_trip_turnover_per_open_notional": 2.0011523424982376,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": -11.516365117121868,
+                  "visible_spread_cost_bps": 0.012824460041152385,
+                  "extra_slippage_cost_bps": 10.010767096038604,
+                  "fee_cost_bps": 20.021539956673205,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -41.56149662987272
+                },
+                "stress": {
+                  "directional_mid_bps": -11.522129063626933,
+                  "visible_spread_cost_bps": 0.012830878689821629,
+                  "extra_slippage_cost_bps": 20.03155497996113,
+                  "fee_cost_bps": 40.06313302984455,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -71.62964795212206
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": -11.516365117121868,
+                  "visible_spread_cost_bps": 0.012824460041152385,
+                  "extra_slippage_cost_bps": 10.010767096038604,
+                  "fee_cost_bps": 10.010769978336603,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -31.550726651537172
+                }
+              }
+            },
+            {
+              "decision_utc_second": 1793523000,
+              "zero_fee_zero_extra_slippage_bps": 5.781995735138172,
+              "round_trip_turnover_per_open_notional": 1.9994218004264863,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": 5.797686604403814,
+                  "visible_spread_cost_bps": 0.012798425176028501,
+                  "extra_slippage_cost_bps": 10.002110057159502,
+                  "fee_cost_bps": 20.004217221877926,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -24.221439099808823
+                },
+                "stress": {
+                  "directional_mid_bps": 5.800588349451063,
+                  "visible_spread_cost_bps": 0.012804830794234723,
+                  "extra_slippage_cost_bps": 20.01423223650021,
+                  "fee_cost_bps": 40.028452897435685,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -54.25490161527806
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": 5.797686604403814,
+                  "visible_spread_cost_bps": 0.012798425176028501,
+                  "extra_slippage_cost_bps": 10.002110057159502,
+                  "fee_cost_bps": 10.002108610938963,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -14.2193304888712
+                }
+              }
+            }
+          ],
+          "candidate_count": 3,
+          "rejected": 0
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 2,
+          "mean_zero_fee_zero_extra_slippage_bps": -3.8813743636320948,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": -3.8705017748540285,
+              "visible_spread_cost_bps": 0.012814246788420889,
+              "extra_slippage_cost_bps": 10.006944159259604,
+              "fee_cost_bps": 20.0138902601809,
+              "signed_funding_bps": 0.0,
+              "net_bps": -33.90415044108238
+            },
+            "stress": {
+              "directional_mid_bps": -3.8724389629295337,
+              "visible_spread_cost_bps": 0.012820660325352033,
+              "extra_slippage_cost_bps": 20.02390527964239,
+              "fee_cost_bps": 40.04781832980579,
+              "signed_funding_bps": 0.0,
+              "net_bps": -63.95698323270392
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": -3.8705017748540285,
+              "visible_spread_cost_bps": 0.012814246788420889,
+              "extra_slippage_cost_bps": 10.006944159259604,
+              "fee_cost_bps": 10.00694513009045,
+              "signed_funding_bps": 0.0,
+              "net_bps": -23.897205310991982
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793522070,
+              "zero_fee_zero_extra_slippage_bps": -11.268768460782216,
+              "round_trip_turnover_per_open_notional": 2.001126876846078,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": -11.261579263540904,
+                  "visible_spread_cost_bps": 0.012826400073116221,
+                  "extra_slippage_cost_bps": 10.010639704080372,
+                  "fee_cost_bps": 20.021285045367694,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -41.3063304130617
+                },
+                "stress": {
+                  "directional_mid_bps": -11.267215689598737,
+                  "visible_spread_cost_bps": 0.012832819692772439,
+                  "extra_slippage_cost_bps": 20.03130006852893,
+                  "fee_cost_bps": 40.062622697155646,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -71.37397127497717
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": -11.261579263540904,
+                  "visible_spread_cost_bps": 0.012826400073116221,
+                  "extra_slippage_cost_bps": 10.010639704080372,
+                  "fee_cost_bps": 10.010642522683847,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -31.295687890377117
+                }
+              }
+            },
+            {
+              "decision_utc_second": 1793523030,
+              "zero_fee_zero_extra_slippage_bps": 3.506019733518026,
+              "round_trip_turnover_per_open_notional": 1.9996493980266483,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": 3.520575713832847,
+                  "visible_spread_cost_bps": 0.012802093503725558,
+                  "extra_slippage_cost_bps": 10.003248614438833,
+                  "fee_cost_bps": 20.00649547499411,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -26.50197046910305
+                },
+                "stress": {
+                  "directional_mid_bps": 3.52233776373967,
+                  "visible_spread_cost_bps": 0.012808500957931627,
+                  "extra_slippage_cost_bps": 20.016510490755845,
+                  "fee_cost_bps": 40.03301396245595,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -56.53999519043068
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": 3.520575713832847,
+                  "visible_spread_cost_bps": 0.012802093503725558,
+                  "extra_slippage_cost_bps": 10.003248614438833,
+                  "fee_cost_bps": 10.003247737497055,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -16.498722731606847
+                }
+              }
+            }
+          ],
+          "candidate_count": 2,
+          "rejected": 0
+        }
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "absorption": {
+        "bid": {
+          "scored": 1,
+          "mean_zero_fee_zero_extra_slippage_bps": -10.389335962951133,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": -10.34014328129802,
+              "visible_spread_cost_bps": 0.04400060970760858,
+              "extra_slippage_cost_bps": 9.989810426804821,
+              "fee_cost_bps": 19.97962604568219,
+              "signed_funding_bps": 0.0,
+              "net_bps": -40.353580363491155
+            },
+            "stress": {
+              "directional_mid_bps": -10.334978374564107,
+              "visible_spread_cost_bps": 0.04397863138108131,
+              "extra_slippage_cost_bps": 19.96964102301344,
+              "fee_cost_bps": 39.93930280394208,
+              "signed_funding_bps": 0.0,
+              "net_bps": -70.2879008329
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": -10.34014328129802,
+              "visible_spread_cost_bps": 0.04400060970760858,
+              "extra_slippage_cost_bps": 9.989810426804821,
+              "fee_cost_bps": 9.989813022841094,
+              "signed_funding_bps": 0.0,
+              "net_bps": -30.363767340649805
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793513640,
+              "zero_fee_zero_extra_slippage_bps": -10.389335962951133,
+              "round_trip_turnover_per_open_notional": 1.9989610664037052,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": -10.34014328129802,
+                  "visible_spread_cost_bps": 0.04400060970760858,
+                  "extra_slippage_cost_bps": 9.989810426804821,
+                  "fee_cost_bps": 19.97962604568219,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": -40.353580363491155
+                },
+                "stress": {
+                  "directional_mid_bps": -10.334978374564107,
+                  "visible_spread_cost_bps": 0.04397863138108131,
+                  "extra_slippage_cost_bps": 19.96964102301344,
+                  "fee_cost_bps": 39.93930280394208,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": -70.2879008329
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": -10.34014328129802,
+                  "visible_spread_cost_bps": 0.04400060970760858,
+                  "extra_slippage_cost_bps": 9.989810426804821,
+                  "fee_cost_bps": 9.989813022841094,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": -30.363767340649805
+                }
+              }
+            }
+          ],
+          "candidate_count": 1,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        }
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "absorption": {
+        "bid": {
+          "scored": 1,
+          "mean_zero_fee_zero_extra_slippage_bps": 22.570366436537906,
+          "zero_extra_slippage_break_even_one_way_fee_bps": 11.272462038326605,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": 23.886092004450052,
+              "visible_spread_cost_bps": 1.3270051113577734,
+              "extra_slippage_cost_bps": 10.00628204219541,
+              "fee_cost_bps": 20.0125528048509,
+              "signed_funding_bps": 0.0,
+              "net_bps": -7.459747953954175
+            },
+            "stress": {
+              "directional_mid_bps": 23.874160889562717,
+              "visible_spread_cost_bps": 1.3263422716418107,
+              "extra_slippage_cost_bps": 20.002567798636225,
+              "fee_cost_bps": 40.00509050163856,
+              "signed_funding_bps": 0.0,
+              "net_bps": -37.45983968235508
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": 23.886092004450052,
+              "visible_spread_cost_bps": 1.3270051113577734,
+              "extra_slippage_cost_bps": 10.00628204219541,
+              "fee_cost_bps": 10.00627640242545,
+              "signed_funding_bps": 0.0,
+              "net_bps": 2.546528448470886
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793506320,
+              "zero_fee_zero_extra_slippage_bps": 22.570366436537906,
+              "round_trip_turnover_per_open_notional": 2.0022570366436536,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": 23.886092004450052,
+                  "visible_spread_cost_bps": 1.3270051113577734,
+                  "extra_slippage_cost_bps": 10.00628204219541,
+                  "fee_cost_bps": 20.0125528048509,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": -7.459747953954175
+                },
+                "stress": {
+                  "directional_mid_bps": 23.874160889562717,
+                  "visible_spread_cost_bps": 1.3263422716418107,
+                  "extra_slippage_cost_bps": 20.002567798636225,
+                  "fee_cost_bps": 40.00509050163856,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": -37.45983968235508
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": 23.886092004450052,
+                  "visible_spread_cost_bps": 1.3270051113577734,
+                  "extra_slippage_cost_bps": 10.00628204219541,
+                  "fee_cost_bps": 10.00627640242545,
+                  "signed_funding_bps": -0.0,
+                  "net_bps": 2.546528448470886
+                }
+              }
+            }
+          ],
+          "candidate_count": 1,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 2,
+          "mean_zero_fee_zero_extra_slippage_bps": -1.3379903932894224,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": -0.018296032662662665,
+              "visible_spread_cost_bps": 1.3203636904883331,
+              "extra_slippage_cost_bps": 10.005671831110956,
+              "fee_cost_bps": 20.011344331554263,
+              "signed_funding_bps": 0.0,
+              "net_bps": -31.355675885815614
+            },
+            "stress": {
+              "directional_mid_bps": -0.01830518983616658,
+              "visible_spread_cost_bps": 1.3210245331762653,
+              "extra_slippage_cost_bps": 20.021359349741456,
+              "fee_cost_bps": 40.0427213781455,
+              "signed_funding_bps": 0.0,
+              "net_bps": -61.40341045089922
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": -0.018296032662662665,
+              "visible_spread_cost_bps": 1.3203636904883331,
+              "extra_slippage_cost_bps": 10.005671831110956,
+              "fee_cost_bps": 10.005672165777131,
+              "signed_funding_bps": 0.0,
+              "net_bps": -21.35000372003787
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793513220,
+              "zero_fee_zero_extra_slippage_bps": 6.5832784726804965,
+              "round_trip_turnover_per_open_notional": 1.9993416721527317,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": 7.903886110270085,
+                  "visible_spread_cost_bps": 1.3173143517112238,
+                  "extra_slippage_cost_bps": 10.001709215370104,
+                  "fee_cost_bps": 20.00341513745681,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -23.418552594266217
+                },
+                "stress": {
+                  "directional_mid_bps": 7.907842009224176,
+                  "visible_spread_cost_bps": 1.3179736682035719,
+                  "extra_slippage_cost_bps": 20.013430151678346,
+                  "fee_cost_bps": 40.026847123621316,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -53.450408934277576
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": 7.903886110270085,
+                  "visible_spread_cost_bps": 1.3173143517112238,
+                  "extra_slippage_cost_bps": 10.001709215370104,
+                  "fee_cost_bps": 10.001707568728404,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -13.416845025537357
+                }
+              }
+            },
+            {
+              "decision_utc_second": 1793525220,
+              "zero_fee_zero_extra_slippage_bps": -9.259259259259341,
+              "round_trip_turnover_per_open_notional": 2.000925925925926,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": -7.94047817559541,
+                  "visible_spread_cost_bps": 1.3234130292654425,
+                  "extra_slippage_cost_bps": 10.009634446851807,
+                  "fee_cost_bps": 20.019273525651716,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -39.29279917736501
+                },
+                "stress": {
+                  "directional_mid_bps": -7.944452388896509,
+                  "visible_spread_cost_bps": 1.3240753981489586,
+                  "extra_slippage_cost_bps": 20.029288547804565,
+                  "fee_cost_bps": 40.05859563266969,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -69.35641196752087
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": -7.94047817559541,
+                  "visible_spread_cost_bps": 1.3234130292654425,
+                  "extra_slippage_cost_bps": 10.009634446851807,
+                  "fee_cost_bps": 10.009636762825858,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -29.283162414538378
+                }
+              }
+            }
+          ],
+          "candidate_count": 2,
+          "rejected": 0
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "scored": 0,
+          "mean_zero_fee_zero_extra_slippage_bps": null,
+          "zero_extra_slippage_break_even_one_way_fee_bps": null,
+          "means_by_cost_lane": {
+            "base": null,
+            "stress": null,
+            "okx_level1_example": null
+          },
+          "samples": [],
+          "candidate_count": 0,
+          "rejected": 0
+        },
+        "ask": {
+          "scored": 1,
+          "mean_zero_fee_zero_extra_slippage_bps": 1.3173494928217626,
+          "zero_extra_slippage_break_even_one_way_fee_bps": 0.6587181345109019,
+          "means_by_cost_lane": {
+            "base": {
+              "directional_mid_bps": 2.6360169941396805,
+              "visible_spread_cost_bps": 1.3180084970684685,
+              "extra_slippage_cost_bps": 10.004343497000406,
+              "fee_cost_bps": 20.008686334999933,
+              "signed_funding_bps": 0.0,
+              "net_bps": -28.695021334928448
+            },
+            "stress": {
+              "directional_mid_bps": 2.6373363219645753,
+              "visible_spread_cost_bps": 1.3186681609809152,
+              "extra_slippage_cost_bps": 20.018701351857498,
+              "fee_cost_bps": 40.03740006638175,
+              "signed_funding_bps": 0.0,
+              "net_bps": -58.73743325725505
+            },
+            "okx_level1_example": {
+              "directional_mid_bps": 2.6360169941396805,
+              "visible_spread_cost_bps": 1.3180084970684685,
+              "extra_slippage_cost_bps": 10.004343497000406,
+              "fee_cost_bps": 10.004343167499966,
+              "signed_funding_bps": 0.0,
+              "net_bps": -18.690678167428363
+            }
+          },
+          "samples": [
+            {
+              "decision_utc_second": 1793513250,
+              "zero_fee_zero_extra_slippage_bps": 1.3173494928217626,
+              "round_trip_turnover_per_open_notional": 1.9998682650507178,
+              "cost_lanes": {
+                "base": {
+                  "directional_mid_bps": 2.6360169941396805,
+                  "visible_spread_cost_bps": 1.3180084970684685,
+                  "extra_slippage_cost_bps": 10.004343497000406,
+                  "fee_cost_bps": 20.008686334999933,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -28.695021334928448
+                },
+                "stress": {
+                  "directional_mid_bps": 2.6373363219645753,
+                  "visible_spread_cost_bps": 1.3186681609809152,
+                  "extra_slippage_cost_bps": 20.018701351857498,
+                  "fee_cost_bps": 40.03740006638175,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -58.73743325725505
+                },
+                "okx_level1_example": {
+                  "directional_mid_bps": 2.6360169941396805,
+                  "visible_spread_cost_bps": 1.3180084970684685,
+                  "extra_slippage_cost_bps": 10.004343497000406,
+                  "fee_cost_bps": 10.004343167499966,
+                  "signed_funding_bps": 0.0,
+                  "net_bps": -18.690678167428363
+                }
+              }
+            }
+          ],
+          "candidate_count": 1,
+          "rejected": 0
+        }
+      }
+    }
+  }
+}

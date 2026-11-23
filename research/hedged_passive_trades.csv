@@ -1,0 +1,3 @@
+day,entry,fee,decision_second,closed_second,requested_qty,filled_qty,cycled,incremental_usdt
+2024-11-01,passive,0.001,56310,56495,151,151,True,-0.08533915999998953
+2024-11-01,take,0.001,56310,56494,151,151,True,-0.11703858999998573

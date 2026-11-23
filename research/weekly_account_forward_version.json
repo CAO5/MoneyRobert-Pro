@@ -1,0 +1,17 @@
+{
+  "frozen_utc": "2026-11-20T06:35:52.729971+00:00",
+  "start_utc_day": "2026-11-23",
+  "strategy": "Previously frozen fixed and volatility-sized rotation, immediate stop",
+  "evaluation": "Complete UTC calendar weeks, Monday 00:00 to the final second before next Monday. Mark positions at executable bids net of the cost model. Week scores are observations. The separately registered execution gate still applies.",
+  "baselines": [
+    "100 USDT cash",
+    "BTC buy and hold at up to 12.25 USDT initial",
+    "ETH buy and hold at up to 12.25 USDT initial"
+  ],
+  "files": {
+    "research/weekly_account_forward.py": "0a9061793c4ec5c5dfc63316995fc1319a2cdbf56cbb631506997fdac6519985",
+    "research/weekly_account_score.py": "63722812f520956f495de26d1bbb183326d7da5129b299b75339a86fd9490215",
+    "research/weekly_rotation_delayed_account.py": "097c5727cc44e88291fa2d8bc0e723cdc09b7abda8df2bfabb98c32f6d0b5f42",
+    "research/weekly_profit_volatility_forward_version.json": "75f68d9363add5c99e3e69b70e12a74fbb7f9f4ac26eefcfad01851923d499ff"
+  }
+}

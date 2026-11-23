@@ -1,0 +1,20 @@
+{
+  "start_utc": "2026-11-17",
+  "end_utc_exclusive": "2026-11-19",
+  "horizon_seconds": 300,
+  "block_days": 3,
+  "min_pair_days": 12,
+  "balance_note": "OFI is descriptive, not a matching input; part of it can reflect refilling itself.",
+  "before_fee_and_slippage": null,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "ready": false
+    },
+    "ETH-USDT-SWAP": {
+      "ready": false
+    },
+    "DOGE-USDT-SWAP": {
+      "ready": false
+    }
+  }
+}

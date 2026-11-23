@@ -1,0 +1,380 @@
+{
+  "start_utc": "2026-10-21",
+  "end_utc_exclusive": "2026-11-20",
+  "warmup_start_utc": "2026-09-21",
+  "initial_cash": 100.0,
+  "days": 30,
+  "passive_exit_price": "last completed four-hour close",
+  "venues": {
+    "binance": {
+      "currency": "USDT",
+      "decisions": [
+        {
+          "monday_utc": "2026-10-26",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.051116464627332214,
+            "ETHUSDT": -0.13344243393524635
+          }
+        },
+        {
+          "monday_utc": "2026-11-02",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.09448746099618632,
+            "ETHUSDT": -0.16561787204705647
+          }
+        },
+        {
+          "monday_utc": "2026-11-09",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.1064981225481395,
+            "ETHUSDT": -0.16140704943751139
+          }
+        },
+        {
+          "monday_utc": "2026-11-16",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.20416179550879243,
+            "ETHUSDT": -0.23854193029112436
+          }
+        }
+      ],
+      "sources": {
+        "BTCUSDT": {
+          "url": "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&startTime=1789948800000&endTime=1795132799999&limit=360",
+          "sha256": "a09c7b666fa75827962c002bd2c99ffa86e5245722c41462443fc64b12ae4ac9"
+        },
+        "ETHUSDT": {
+          "url": "https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=4h&startTime=1789948800000&endTime=1795132799999&limit=360",
+          "sha256": "c3694bfa489a14763a0913ee69903f06f74abd790bae86c55ba916ab5a9a33b4"
+        }
+      },
+      "bars_per_symbol": 180,
+      "costs": {
+        "base": {
+          "accounts": {
+            "fixed_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_confirmed": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            }
+          },
+          "passive": {
+            "cash": {
+              "net": 0,
+              "drawdown_amount": 0
+            },
+            "BTCUSDT": {
+              "net": -2.967110299034701,
+              "drawdown_amount": 3.280836597481809,
+              "drawdown_pct": 3.2731232293158774,
+              "initial_notional": 11.620619005800002,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.25283831551774805
+            },
+            "ETHUSDT": {
+              "net": -3.4846411765499994,
+              "drawdown_amount": 4.071585488850005,
+              "drawdown_pct": 4.057138384339709,
+              "initial_notional": 12.24581985,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.28212292784953885
+            }
+          }
+        },
+        "stress": {
+          "accounts": {
+            "fixed_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_confirmed": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            }
+          },
+          "passive": {
+            "cash": {
+              "net": 0,
+              "drawdown_amount": 0
+            },
+            "BTCUSDT": {
+              "net": -2.9975541347387917,
+              "drawdown_amount": 3.275912880727205,
+              "drawdown_pct": 3.269360841400548,
+              "initial_notional": 11.6264264116,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.25283831551774805
+            },
+            "ETHUSDT": {
+              "net": -3.4458620900760053,
+              "drawdown_amount": 3.984165554292005,
+              "drawdown_pct": 3.9717575161522634,
+              "initial_notional": 12.006900905999998,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.28212292784953885
+            }
+          }
+        }
+      },
+      "actionable_fill_check": "no_order_signals"
+    },
+    "bitstamp": {
+      "currency": "USD",
+      "decisions": [
+        {
+          "monday_utc": "2026-10-26",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.0522038381570783,
+            "ETHUSDT": -0.13424010122060137
+          }
+        },
+        {
+          "monday_utc": "2026-11-02",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.09567558307602253,
+            "ETHUSDT": -0.1665694827984553
+          }
+        },
+        {
+          "monday_utc": "2026-11-09",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.10679488201401988,
+            "ETHUSDT": -0.16216674822028943
+          }
+        },
+        {
+          "monday_utc": "2026-11-16",
+          "ranked_candidate": null,
+          "trailing_28d": {
+            "BTCUSDT": -0.2035216882406412,
+            "ETHUSDT": -0.23789076774857976
+          }
+        }
+      ],
+      "sources": {
+        "BTCUSDT": {
+          "file": "btcusd-1789948800-1795132800.json",
+          "url": "https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=14400&limit=360&end=1795118400",
+          "sha256": "1f0026f4ae34864a51d2de81e0ae84cbea04a272addf3e1944273f764438fcf5",
+          "first_utc": "2026-09-21T00:00:00+00:00",
+          "end_utc_exclusive": "2026-11-20T00:00:00+00:00",
+          "rows": 360
+        },
+        "ETHUSDT": {
+          "file": "ethusd-1789948800-1795132800.json",
+          "url": "https://www.bitstamp.net/api/v2/ohlc/ethusd/?step=14400&limit=360&end=1795118400",
+          "sha256": "c6f1dec8d2ae54232e0452033670945b66dddb04de24d98423f08c8ecc446ab7",
+          "first_utc": "2026-09-21T00:00:00+00:00",
+          "end_utc_exclusive": "2026-11-20T00:00:00+00:00",
+          "rows": 360
+        }
+      },
+      "bars_per_symbol": 180,
+      "costs": {
+        "base": {
+          "accounts": {
+            "fixed_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_confirmed": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            }
+          },
+          "passive": {
+            "cash": {
+              "net": 0,
+              "drawdown_amount": 0
+            },
+            "BTCUSDT": {
+              "net": -2.965873966832689,
+              "drawdown_amount": 3.2819423369355007,
+              "drawdown_pct": 3.274106854677261,
+              "initial_notional": 11.609234116200001,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.25298250541796585
+            },
+            "ETHUSDT": {
+              "net": -3.473295270899996,
+              "drawdown_amount": 4.0614507087749985,
+              "drawdown_pct": 4.046819604509011,
+              "initial_notional": 12.224859375,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.2816818414322251
+            }
+          }
+        },
+        "stress": {
+          "accounts": {
+            "fixed_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_immediate": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            },
+            "scaled_confirmed": {
+              "net": 0.0,
+              "drawdown_amount": 0.0,
+              "drawdown_pct": 0.0,
+              "trades": 0,
+              "missed_entries": 0,
+              "open_at_end": false,
+              "max_holding_sec": 0,
+              "missing_4h_bars_held": 0,
+              "passes": false,
+              "ledger": [],
+              "cutoff_close_used": false
+            }
+          },
+          "passive": {
+            "cash": {
+              "net": 0,
+              "drawdown_amount": 0
+            },
+            "BTCUSDT": {
+              "net": -2.9962854691307967,
+              "drawdown_amount": 3.277016960742003,
+              "drawdown_pct": 3.270342357506373,
+              "initial_notional": 11.6150358324,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.25298250541796585
+            },
+            "ETHUSDT": {
+              "net": -3.5047939835999955,
+              "drawdown_amount": 4.055355485099994,
+              "drawdown_pct": 4.042246806226412,
+              "initial_notional": 12.23096875,
+              "final_sell_below_minimum": true,
+              "underlying_return": -0.2816818414322251
+            }
+          }
+        }
+      },
+      "actionable_fill_check": "no_order_signals"
+    }
+  }
+}

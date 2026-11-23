@@ -1,0 +1,100 @@
+{
+  "diagnostic_only": true,
+  "sealed_receipt_bounds": {
+    "first_receipt_ns": 1795189525991489400,
+    "last_receipt_ns": 1795223158573866900
+  },
+  "capture_missed_window_start": false,
+  "min_fresh_update_coverage": 0.9,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "days": {
+        "2026-11-21": {
+          "completed_hours": 1,
+          "usable_seconds": 2799,
+          "remaining_seconds": 82800,
+          "max_possible_usable_seconds": 85599,
+          "max_possible_coverage": 0.9907291666666667,
+          "can_still_meet_daily_coverage": true
+        },
+        "2026-11-22": {
+          "completed_hours": 0,
+          "usable_seconds": 0,
+          "remaining_seconds": 86400,
+          "max_possible_usable_seconds": 86400,
+          "max_possible_coverage": 1.0,
+          "can_still_meet_daily_coverage": true
+        }
+      },
+      "hours": {
+        "2026-11-21T00:00:00+00:00": {
+          "usable": 2799,
+          "received": 3058,
+          "fresh": 2912,
+          "trade_discontinuity": false
+        }
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "days": {
+        "2026-11-21": {
+          "completed_hours": 1,
+          "usable_seconds": 2729,
+          "remaining_seconds": 82800,
+          "max_possible_usable_seconds": 85529,
+          "max_possible_coverage": 0.9899189814814815,
+          "can_still_meet_daily_coverage": true
+        },
+        "2026-11-22": {
+          "completed_hours": 0,
+          "usable_seconds": 0,
+          "remaining_seconds": 86400,
+          "max_possible_usable_seconds": 86400,
+          "max_possible_coverage": 1.0,
+          "can_still_meet_daily_coverage": true
+        }
+      },
+      "hours": {
+        "2026-11-21T00:00:00+00:00": {
+          "usable": 2729,
+          "received": 2966,
+          "fresh": 2839,
+          "trade_discontinuity": false
+        }
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "days": {
+        "2026-11-21": {
+          "completed_hours": 1,
+          "usable_seconds": 2687,
+          "remaining_seconds": 82800,
+          "max_possible_usable_seconds": 85487,
+          "max_possible_coverage": 0.9894328703703704,
+          "can_still_meet_daily_coverage": true
+        },
+        "2026-11-22": {
+          "completed_hours": 0,
+          "usable_seconds": 0,
+          "remaining_seconds": 86400,
+          "max_possible_usable_seconds": 86400,
+          "max_possible_coverage": 1.0,
+          "can_still_meet_daily_coverage": true
+        }
+      },
+      "hours": {
+        "2026-11-21T00:00:00+00:00": {
+          "usable": 2687,
+          "received": 3039,
+          "fresh": 2879,
+          "trade_discontinuity": false
+        }
+      }
+    }
+  },
+  "start_utc_second": 1795219200,
+  "end_utc_second": 1795392000,
+  "archives": [
+    "F:\\temp\\okx-behavior-20261120-split"
+  ]
+}

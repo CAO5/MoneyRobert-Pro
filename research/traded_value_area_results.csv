@@ -1,0 +1,13 @@
+period,rule,fee,trades,wins,net_usdt,dd_pct
+formation,reaccept,0,124,65,-0.13781,1.1704
+formation,reaccept,0.001,124,36,-6.32801,6.4451
+formation,reaccept,0.002,78,7,-8.00093,8.0073
+formation,leave_value,0,160,86,1.14265,1.734
+formation,leave_value,0.001,160,39,-6.84617,7.1417
+formation,leave_value,0.002,85,11,-8.02475,8.0281
+forward_screen,reaccept,0,156,73,-1.99253,2.2871
+forward_screen,reaccept,0.001,129,34,-7.95968,8.027
+forward_screen,reaccept,0.002,69,9,-8.00057,8.0334
+forward_screen,leave_value,0,142,64,-5.1069,6.1389
+forward_screen,leave_value,0.001,86,23,-8.1439,8.1795
+forward_screen,leave_value,0.002,42,4,-8.02095,8.0533

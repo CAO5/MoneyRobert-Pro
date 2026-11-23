@@ -1,0 +1,13 @@
+period,rule,fee,trades,wins,net_usdt,dd_pct
+formation,subsidy_mix,0,56,26,-1.8519,2.2256
+formation,subsidy_mix,0.001,56,16,-4.64383,4.6702
+formation,subsidy_mix,0.002,56,8,-7.43575,7.4621
+formation,ltc_control,0,101,46,-4.04685,4.3428
+formation,ltc_control,0.001,86,27,-7.9767,8.0189
+formation,ltc_control,0.002,54,11,-7.95859,8.0104
+forward_screen,subsidy_mix,0,38,21,0.26607,1.2847
+forward_screen,subsidy_mix,0.001,38,19,-1.62234,2.2937
+forward_screen,subsidy_mix,0.002,38,15,-3.51074,3.8715
+forward_screen,ltc_control,0,105,55,2.78072,1.8275
+forward_screen,ltc_control,0.001,105,42,-2.43819,4.221
+forward_screen,ltc_control,0.002,105,37,-7.6571,7.7023

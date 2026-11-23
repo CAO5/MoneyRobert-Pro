@@ -1,0 +1,40 @@
+{
+  "diagnostic_only": true,
+  "instrument": "BTC-USDT-SWAP",
+  "probe": "F:\\temp\\okx-book-only-probe-20261120",
+  "reference": "F:\\temp\\okx-behavior-20261120-split",
+  "overlap_receipt_ns": [
+    1795190200388624200,
+    1795190380318859600
+  ],
+  "overlap_seconds": 179.9302354,
+  "probe_counts": {
+    "nonempty_updates": 1706,
+    "receipt_seconds": 165
+  },
+  "reference_counts": {
+    "nonempty_updates": 1353,
+    "receipt_seconds": 146
+  },
+  "exact_header_matches": 1344,
+  "payload_mismatches": 0,
+  "probe_minus_reference_monotonic_ms": {
+    "min": -12030.1162,
+    "p50": 7.601100000000001,
+    "p90": 7959.5243,
+    "p99": 21575.8053,
+    "max": 22619.8207
+  },
+  "probe_over_one_second_earlier": 12,
+  "reference_over_one_second_earlier": 208,
+  "raw_book_freshness": {
+    "complete_seconds": 179,
+    "probe_seconds": 120,
+    "reference_seconds": 131,
+    "either_seconds": 138,
+    "added_by_probe": 7,
+    "relative_delay_limit_ms": 1000,
+    "note": "Shared fastest observed receipt offset; ignores book continuity, trades, and quote executability."
+  },
+  "note": "Same-machine receipt comparison for identical native updates; not absolute latency or strategy coverage."
+}

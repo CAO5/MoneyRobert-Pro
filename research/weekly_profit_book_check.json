@@ -1,0 +1,277 @@
+{
+  "reference": "weekly_profit_cycle_results.json",
+  "period": "2020-01-06/2026-10-26",
+  "candidate": "weekly_trend",
+  "selection": "All distinct reference fills on first UTC day of a month. First eligible quote during the recorded historical fill minute. Fixed signals.",
+  "quote_provider": "Tardis.dev Binance Spot bookTicker",
+  "source_minutes": {
+    "ETHUSDT/2020-06-01T00:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2020-06-01&offset=1&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22ethusdt%22%5D%7D%5D",
+      "gzip_sha256": "94db06441f3598a32a1008e11fb042ef58071fc71bce6af6b63aaeea745abaf5",
+      "valid_quotes": 1687
+    },
+    "ETHUSDT/2023-05-01T00:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2023-05-01&offset=1&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22ethusdt%22%5D%7D%5D",
+      "gzip_sha256": "e348b3c295e094173f8a812a2285038e3fb2c93d75d448818dfce45e3bba8c3b",
+      "valid_quotes": 6729
+    },
+    "ETHUSDT/2023-05-01T20:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2023-05-01&offset=1201&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22ethusdt%22%5D%7D%5D",
+      "gzip_sha256": "af10390024b46e2e45bab13384f839913011a358df6553bce0e3d861190bd088",
+      "valid_quotes": 3678
+    },
+    "BTCUSDT/2024-01-01T00:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2024-01-01&offset=1&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22btcusdt%22%5D%7D%5D",
+      "gzip_sha256": "f76f9121c2a63add73a30c726eea8954722d380a6e4978d7ce42d5f3d0ef5142",
+      "valid_quotes": 3139
+    },
+    "BTCUSDT/2024-04-01T00:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2024-04-01&offset=1&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22btcusdt%22%5D%7D%5D",
+      "gzip_sha256": "8b8e0d31b0c3958b965a001d83aad46aafa842adfc078949474d0a036e33de6c",
+      "valid_quotes": 5241
+    },
+    "BTCUSDT/2024-04-01T16:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2024-04-01&offset=961&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22btcusdt%22%5D%7D%5D",
+      "gzip_sha256": "959bf28b167d676bab715f151f2c1e991e02242fbee13ff2d82a5a773d4851f9",
+      "valid_quotes": 12428
+    },
+    "ETHUSDT/2025-09-01T00:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2025-09-01&offset=1&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22ethusdt%22%5D%7D%5D",
+      "gzip_sha256": "862a896017fec4da01d40925dc419dc117990dedf7e0d214ce2c69e7dd89024f",
+      "valid_quotes": 7608
+    },
+    "ETHUSDT/2023-06-01T08:01:00+00:00": {
+      "url": "https://api.tardis.dev/v1/data-feeds/binance?from=2023-06-01&offset=481&filters=%5B%7B%22channel%22%3A%22bookTicker%22%2C%22symbols%22%3A%5B%22ethusdt%22%5D%7D%5D",
+      "gzip_sha256": "f4d90ca40eec0d7fcbcc2a91cac4e2bffcf4c8797f0b7a9c1839fa5671999089",
+      "valid_quotes": 1059
+    }
+  },
+  "results": {
+    "base": [
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1590969660,
+        "exit": 1591574460,
+        "minute_open_net_usdt": 0.7094726836500023,
+        "buy": {
+          "quote_receipt_utc": "2020-06-01T00:01:00.024885+00:00",
+          "ask": 230.86,
+          "ask_qty": 5.0,
+          "quantity": 0.053000000000000005,
+          "debit_usdt": 12.25393948779,
+          "minute_open": 230.85999999999999
+        }
+      },
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1682899260,
+        "exit": 1682971260,
+        "minute_open_net_usdt": -0.399674391869997,
+        "buy": {
+          "quote_receipt_utc": "2023-05-01T00:01:00.000368+00:00",
+          "ask": 1870.77,
+          "ask_qty": 5.4507,
+          "quantity": 0.006500000000000001,
+          "debit_usdt": 12.178251087502499,
+          "minute_open": 1870.7599999999998
+        },
+        "sell": {
+          "quote_receipt_utc": "2023-05-01T20:01:00.000218+00:00",
+          "bid": 1814.79,
+          "bid_qty": 0.544,
+          "quantity": 0.006500000000000001,
+          "credit_usdt": 11.778446695567503,
+          "minute_open": 1814.8
+        },
+        "book_net_usdt": -0.39980439193499606,
+        "net_change_usdt": -0.00013000006499908068
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1703462460,
+        "exit": 1704067260,
+        "minute_open_net_usdt": -0.2255827864835993,
+        "sell": {
+          "quote_receipt_utc": "2024-01-01T00:01:00.001487+00:00",
+          "bid": 42298.61,
+          "bid_qty": 7.0805,
+          "quantity": 0.00028000000000000003,
+          "credit_usdt": 11.825851305605402,
+          "minute_open": 42298.62
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1704067260,
+        "exit": 1704672060,
+        "minute_open_net_usdt": 0.41128854734519926,
+        "buy": {
+          "quote_receipt_utc": "2024-01-01T00:01:00.001487+00:00",
+          "ask": 42298.62,
+          "ask_qty": 0.54582,
+          "quantity": 0.00028000000000000003,
+          "debit_usdt": 11.861384942206803,
+          "minute_open": 42298.62000000001
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1711929660,
+        "exit": 1711987260,
+        "minute_open_net_usdt": -0.5223648236449492,
+        "buy": {
+          "quote_receipt_utc": "2024-04-01T00:01:00.000894+00:00",
+          "ask": 71186.01,
+          "ask_qty": 3.46826,
+          "quantity": 0.00017,
+          "debit_usdt": 12.119780183360849,
+          "minute_open": 71186.01
+        },
+        "sell": {
+          "quote_receipt_utc": "2024-04-01T16:01:00.000423+00:00",
+          "bid": 68322.54,
+          "bid_qty": 3.54068,
+          "quantity": 0.00017,
+          "credit_usdt": 11.5974153597159,
+          "minute_open": 68322.53999999998
+        },
+        "book_net_usdt": -0.5223648236449492,
+        "net_change_usdt": 0.0
+      },
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1756684860,
+        "exit": 1757188860,
+        "minute_open_net_usdt": -0.3958186549004985,
+        "buy": {
+          "quote_receipt_utc": "2025-09-01T00:01:00.020612+00:00",
+          "ask": 4389.96,
+          "ask_qty": 0.0168,
+          "quantity": 0.0027,
+          "debit_usdt": 11.870677264445998,
+          "minute_open": 4389.96
+        }
+      }
+    ],
+    "stress": [
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1590969660,
+        "exit": 1591574460,
+        "minute_open_net_usdt": 0.6716461145999997,
+        "buy": {
+          "quote_receipt_utc": "2020-06-01T00:01:00.024885+00:00",
+          "ask": 230.86,
+          "ask_qty": 5.0,
+          "quantity": 0.053000000000000005,
+          "debit_usdt": 12.272311211160002,
+          "minute_open": 230.86
+        }
+      },
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1682899260,
+        "exit": 1682971260,
+        "minute_open_net_usdt": -0.43560914747999924,
+        "buy": {
+          "quote_receipt_utc": "2023-05-01T00:01:00.000368+00:00",
+          "ask": 1870.77,
+          "ask_qty": 5.4507,
+          "quantity": 0.006500000000000001,
+          "debit_usdt": 12.196509335010001,
+          "minute_open": 1870.7599999999998
+        },
+        "sell": {
+          "quote_receipt_utc": "2023-05-01T20:01:00.000218+00:00",
+          "bid": 1814.79,
+          "bid_qty": 0.544,
+          "quantity": 0.006500000000000001,
+          "credit_usdt": 11.760770187270001,
+          "minute_open": 1814.7999999999997
+        },
+        "book_net_usdt": -0.43573914773999967,
+        "net_change_usdt": -0.00013000026000042908
+      },
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1685318460,
+        "exit": 1685606460,
+        "minute_open_net_usdt": -0.4335589305599985,
+        "sell": {
+          "quote_receipt_utc": "2023-06-01T08:01:00.000047+00:00",
+          "bid": 1854.01,
+          "bid_qty": 33.1097,
+          "quantity": 0.0064,
+          "credit_usdt": 11.830090739328,
+          "minute_open": 1854.02
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1703462460,
+        "exit": 1704067260,
+        "minute_open_net_usdt": -0.2613985627344011,
+        "sell": {
+          "quote_receipt_utc": "2024-01-01T00:01:00.001487+00:00",
+          "bid": 42298.61,
+          "bid_qty": 7.0805,
+          "quantity": 0.00028000000000000003,
+          "credit_usdt": 11.808103654821602,
+          "minute_open": 42298.62
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1704067260,
+        "exit": 1704672060,
+        "minute_open_net_usdt": 0.3750871421808011,
+        "buy": {
+          "quote_receipt_utc": "2024-01-01T00:01:00.001487+00:00",
+          "ask": 42298.62,
+          "ask_qty": 0.54582,
+          "quantity": 0.00028000000000000003,
+          "debit_usdt": 11.879168128027201,
+          "minute_open": 42298.62
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "entry": 1711929660,
+        "exit": 1711987260,
+        "minute_open_net_usdt": -0.5579402340797994,
+        "buy": {
+          "quote_receipt_utc": "2024-04-01T00:01:00.000894+00:00",
+          "ask": 71186.01,
+          "ask_qty": 3.46826,
+          "quantity": 0.00017,
+          "debit_usdt": 12.137950768343398,
+          "minute_open": 71186.01
+        },
+        "sell": {
+          "quote_receipt_utc": "2024-04-01T16:01:00.000423+00:00",
+          "bid": 68322.54,
+          "bid_qty": 3.54068,
+          "quantity": 0.00017,
+          "credit_usdt": 11.5800105342636,
+          "minute_open": 68322.53999999998
+        },
+        "book_net_usdt": -0.5579402340797976,
+        "net_change_usdt": 1.7763568394002505e-15
+      },
+      {
+        "symbol": "ETHUSDT",
+        "entry": 1756684860,
+        "exit": 1757188860,
+        "minute_open_net_usdt": -0.43083667060199815,
+        "buy": {
+          "quote_receipt_utc": "2025-09-01T00:01:00.020612+00:00",
+          "ask": 4389.96,
+          "ask_qty": 0.0168,
+          "quantity": 0.0027,
+          "debit_usdt": 11.888474381783999,
+          "minute_open": 4389.96
+        }
+      }
+    ]
+  }
+}

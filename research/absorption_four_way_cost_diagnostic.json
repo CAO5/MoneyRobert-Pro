@@ -1,0 +1,1431 @@
+{
+  "evaluation_start_utc_second": 1792972800,
+  "end_utc_second": 1795046400,
+  "primary_seconds": 300,
+  "quote_markout": "Same bid/ask crossing; removes simulated fee and additional slippage, not spread.",
+  "population": "Event means, not account PnL; spot ask side is a directional proxy.",
+  "totals": {
+    "absorption": {
+      "scored": 1137,
+      "groups": 6,
+      "positive_without_fees_and_slippage": 2,
+      "positive_after_base_cost": 0,
+      "positive_after_stress_cost": 0
+    },
+    "exhaustion": {
+      "scored": 233,
+      "groups": 6,
+      "positive_without_fees_and_slippage": 4,
+      "positive_after_base_cost": 0,
+      "positive_after_stress_cost": 0
+    }
+  },
+  "symbols": {
+    "BTCUSDT": {
+      "absorption": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 837,
+              "net_bps": {
+                "base": -30.865271288613762,
+                "stress": -60.818563643870625
+              },
+              "no_fee_no_extra_slippage_bps": -0.882026523030266,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 165,
+              "net_bps": {
+                "base": -28.8357523009457,
+                "stress": -58.793102681953556
+              },
+              "no_fee_no_extra_slippage_bps": 1.1515565819975038,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 0.5757451408434273
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 76,
+                "utc_days": 22,
+                "horizons": {
+                  "30": {
+                    "net_bps": -30.49053754082903,
+                    "control_net_bps": -30.326746077629963,
+                    "incremental_net_bps": -0.1637914631990698,
+                    "no_fee_no_extra_slippage_bps": -0.5065423698846772,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -30.207312876944457,
+                    "control_net_bps": -30.955122584752246,
+                    "incremental_net_bps": 0.7478097078077891,
+                    "no_fee_no_extra_slippage_bps": -0.22275054783027493,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -31.001024765943583,
+                    "control_net_bps": -31.225966572975985,
+                    "incremental_net_bps": 0.22494180703240185,
+                    "no_fee_no_extra_slippage_bps": -1.0180518470714883,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -28.93664445137396,
+                    "control_net_bps": -39.45851743797349,
+                    "incremental_net_bps": 10.521872986599531,
+                    "no_fee_no_extra_slippage_bps": 1.0504623947604763,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.5252036120480358
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 76,
+                "utc_days": 22,
+                "horizons": {
+                  "30": {
+                    "net_bps": -60.44457917668268,
+                    "control_net_bps": -60.2811152147186,
+                    "incremental_net_bps": -0.1634639619640827,
+                    "no_fee_no_extra_slippage_bps": -0.5065423698857874,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -60.16192082086729,
+                    "control_net_bps": -60.90823528223014,
+                    "incremental_net_bps": 0.7463144613628504,
+                    "no_fee_no_extra_slippage_bps": -0.22275054783138515,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -60.954045681952735,
+                    "control_net_bps": -61.1785377175611,
+                    "incremental_net_bps": 0.22449203560836564,
+                    "no_fee_no_extra_slippage_bps": -1.0180518470725985,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -58.893793098400906,
+                    "control_net_bps": -69.3946275868205,
+                    "incremental_net_bps": 10.500834488419596,
+                    "no_fee_no_extra_slippage_bps": 1.0504623947582559,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.5252036120469256
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 736,
+              "net_bps": {
+                "base": -30.420090795667566,
+                "stress": -60.46595372160914
+              },
+              "no_fee_no_extra_slippage_bps": -0.404274136929228,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 92,
+              "net_bps": {
+                "base": -33.2063989575883,
+                "stress": -63.25783589649345
+              },
+              "no_fee_no_extra_slippage_bps": -3.185016640643301,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 51,
+                "utc_days": 19,
+                "horizons": {
+                  "30": {
+                    "net_bps": -29.74557590238078,
+                    "control_net_bps": -29.934605978467545,
+                    "incremental_net_bps": 0.18903007608676797,
+                    "no_fee_no_extra_slippage_bps": 0.2688934110051111,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.1344485131185204
+                  },
+                  "60": {
+                    "net_bps": -29.622404252222747,
+                    "control_net_bps": -29.915669044342433,
+                    "incremental_net_bps": 0.29326479211968365,
+                    "no_fee_no_extra_slippage_bps": 0.39181902545371017,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.19591335085576536
+                  },
+                  "300": {
+                    "net_bps": -32.47064019121634,
+                    "control_net_bps": -30.815112801385375,
+                    "incremental_net_bps": -1.655527389830966,
+                    "no_fee_no_extra_slippage_bps": -2.4507275544283225,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -26.5451967131756,
+                    "control_net_bps": -29.969894058786362,
+                    "incremental_net_bps": 3.4246973456107628,
+                    "no_fee_no_extra_slippage_bps": 3.46287983398752,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.7317397573279283
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 51,
+                "utc_days": 19,
+                "horizons": {
+                  "30": {
+                    "net_bps": -59.79008946043485,
+                    "control_net_bps": -59.979497691425166,
+                    "incremental_net_bps": 0.18940823099031676,
+                    "no_fee_no_extra_slippage_bps": 0.2688934110051111,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.1344485131185204
+                  },
+                  "60": {
+                    "net_bps": -59.666671405236585,
+                    "control_net_bps": -59.960522873939325,
+                    "incremental_net_bps": 0.2938514687027393,
+                    "no_fee_no_extra_slippage_bps": 0.3918190254548204,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.1959133508563205
+                  },
+                  "300": {
+                    "net_bps": -62.52060524378892,
+                    "control_net_bps": -60.8617659693436,
+                    "incremental_net_bps": -1.6588392744453173,
+                    "no_fee_no_extra_slippage_bps": -2.4507275544283225,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -56.58330790865838,
+                    "control_net_bps": -60.014856365592664,
+                    "incremental_net_bps": 3.431548456934283,
+                    "no_fee_no_extra_slippage_bps": 3.46287983398863,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.7317397573284836
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 300,
+              "net_bps": {
+                "base": -31.52159994866526,
+                "stress": -61.473579973946435
+              },
+              "no_fee_no_extra_slippage_bps": -1.5396694830305258,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 41,
+              "net_bps": {
+                "base": -28.48734115372592,
+                "stress": -58.445388183257535
+              },
+              "no_fee_no_extra_slippage_bps": 1.5006654234994699,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 0.7502764160559529
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 12,
+                "utc_days": 9,
+                "horizons": {
+                  "30": {
+                    "net_bps": -28.688179790934537,
+                    "control_net_bps": -30.10142268651696,
+                    "incremental_net_bps": 1.413242895582422,
+                    "no_fee_no_extra_slippage_bps": 1.2994246063668946,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.6496700933181833
+                  },
+                  "60": {
+                    "net_bps": -28.221314668798435,
+                    "control_net_bps": -30.09719954040457,
+                    "incremental_net_bps": 1.8758848716061352,
+                    "no_fee_no_extra_slippage_bps": 1.767224627196029,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.883534243424317
+                  },
+                  "300": {
+                    "net_bps": -30.006839446527422,
+                    "control_net_bps": -24.133991161727003,
+                    "incremental_net_bps": -5.872848284800421,
+                    "no_fee_no_extra_slippage_bps": -0.021875668816395688,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -19.435988482381223,
+                    "control_net_bps": -35.12017080035894,
+                    "incremental_net_bps": 15.684182317977719,
+                    "no_fee_no_extra_slippage_bps": 10.570143453485503,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 5.282280003872631
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 12,
+                "utc_days": 9,
+                "horizons": {
+                  "30": {
+                    "net_bps": -58.64582524336065,
+                    "control_net_bps": -60.05624235800797,
+                    "incremental_net_bps": 1.4104171146473252,
+                    "no_fee_no_extra_slippage_bps": 1.2994246063646742,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.6496700933170733
+                  },
+                  "60": {
+                    "net_bps": -58.17989361861904,
+                    "control_net_bps": -60.0520276560816,
+                    "incremental_net_bps": 1.8721340374625608,
+                    "no_fee_no_extra_slippage_bps": 1.7672246271938086,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.8835342434232069
+                  },
+                  "300": {
+                    "net_bps": -59.96184823732471,
+                    "control_net_bps": -54.100742720005854,
+                    "incremental_net_bps": -5.8611055173188555,
+                    "no_fee_no_extra_slippage_bps": -0.021875668818616134,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -49.412133702885484,
+                    "control_net_bps": -65.06495547872713,
+                    "incremental_net_bps": 15.652821775841645,
+                    "no_fee_no_extra_slippage_bps": 10.570143453483283,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 5.282280003871522
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 223,
+              "net_bps": {
+                "base": -30.151761244241424,
+                "stress": -60.197087376579645
+              },
+              "no_fee_no_extra_slippage_bps": -0.13648057451964846,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 19,
+              "net_bps": {
+                "base": -32.74467943328382,
+                "stress": -62.795192701702476
+              },
+              "no_fee_no_extra_slippage_bps": -2.7242194023568977,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 5,
+                "utc_days": 5,
+                "horizons": {
+                  "30": {
+                    "net_bps": -30.471205726844424,
+                    "control_net_bps": -28.32461540225601,
+                    "incremental_net_bps": -2.146590324588413,
+                    "no_fee_no_extra_slippage_bps": -0.4552869658924763,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -29.493845407897613,
+                    "control_net_bps": -29.433657769768534,
+                    "incremental_net_bps": -0.060187638129077216,
+                    "no_fee_no_extra_slippage_bps": 0.5201210731342609,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.2600672998912858
+                  },
+                  "300": {
+                    "net_bps": -36.27773693829281,
+                    "control_net_bps": -31.43526654168992,
+                    "incremental_net_bps": -4.842470396602891,
+                    "no_fee_no_extra_slippage_bps": -6.250219615293595,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -22.52796231410629,
+                    "control_net_bps": -32.17821080970156,
+                    "incremental_net_bps": 9.650248495595273,
+                    "no_fee_no_extra_slippage_bps": 7.4720897963098665,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 3.737441222976259
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 5,
+                "utc_days": 5,
+                "horizons": {
+                  "30": {
+                    "net_bps": -60.51717090826943,
+                    "control_net_bps": -58.36628632705273,
+                    "incremental_net_bps": -2.1508845812167023,
+                    "no_fee_no_extra_slippage_bps": -0.4552869658924763,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -59.53785537878085,
+                    "control_net_bps": -59.477547335208136,
+                    "incremental_net_bps": -0.0603080435727108,
+                    "no_fee_no_extra_slippage_bps": 0.5201210731331507,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.26006729989073063
+                  },
+                  "300": {
+                    "net_bps": -66.3353180926695,
+                    "control_net_bps": -61.483160327982226,
+                    "incremental_net_bps": -4.852157764687263,
+                    "no_fee_no_extra_slippage_bps": -6.250219615293595,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -52.55803702714858,
+                    "control_net_bps": -62.22759085692999,
+                    "incremental_net_bps": 9.669553829781416,
+                    "no_fee_no_extra_slippage_bps": 7.4720897963098665,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 3.737441222976259
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ETHUSDT": {
+      "absorption": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 702,
+              "net_bps": {
+                "base": -32.240572920386555,
+                "stress": -62.19111535831275
+              },
+              "no_fee_no_extra_slippage_bps": -2.260082200106206,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 273,
+              "net_bps": {
+                "base": -34.711400384582866,
+                "stress": -64.65700239990804
+              },
+              "no_fee_no_extra_slippage_bps": -4.735857503103125,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 37,
+                "utc_days": 16,
+                "horizons": {
+                  "30": {
+                    "net_bps": -30.725758075380188,
+                    "control_net_bps": -30.095649883014516,
+                    "incremental_net_bps": -0.6301081923656717,
+                    "no_fee_no_extra_slippage_bps": -0.7422339342033624,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -32.09304396482514,
+                    "control_net_bps": -27.990842462495312,
+                    "incremental_net_bps": -4.10220150232983,
+                    "no_fee_no_extra_slippage_bps": -2.1122578174059825,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -37.10293065728794,
+                    "control_net_bps": -26.53521985320287,
+                    "incremental_net_bps": -10.567710804085076,
+                    "no_fee_no_extra_slippage_bps": -7.1321768217624815,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -33.05808556615654,
+                    "control_net_bps": -43.48472942364992,
+                    "incremental_net_bps": 10.426643857493378,
+                    "no_fee_no_extra_slippage_bps": -3.0792319172001648,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 37,
+                "utc_days": 16,
+                "horizons": {
+                  "30": {
+                    "net_bps": -60.679329387481275,
+                    "control_net_bps": -60.05048109723334,
+                    "incremental_net_bps": -0.6288482902479339,
+                    "no_fee_no_extra_slippage_bps": -0.7422339342033624,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -62.043881387082614,
+                    "control_net_bps": -57.94988224178061,
+                    "incremental_net_bps": -4.093999145302007,
+                    "no_fee_no_extra_slippage_bps": -2.1122578174070927,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -67.0437508048457,
+                    "control_net_bps": -56.497170151713604,
+                    "incremental_net_bps": -10.546580653132095,
+                    "no_fee_no_extra_slippage_bps": -7.132176821763592,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -63.006993386526624,
+                    "control_net_bps": -73.41278915660229,
+                    "incremental_net_bps": 10.405795770075663,
+                    "no_fee_no_extra_slippage_bps": -3.079231917202385,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 376,
+              "net_bps": {
+                "base": -30.51053630238322,
+                "stress": -60.556580164674045
+              },
+              "no_fee_no_extra_slippage_bps": -0.49453897849494055,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 72,
+              "net_bps": {
+                "base": -31.817308157245453,
+                "stress": -61.86596621826636
+              },
+              "no_fee_no_extra_slippage_bps": -1.7987005529884748,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 33,
+                "utc_days": 16,
+                "horizons": {
+                  "30": {
+                    "net_bps": -30.35671536783683,
+                    "control_net_bps": -28.39136877965563,
+                    "incremental_net_bps": -1.9653465881812033,
+                    "no_fee_no_extra_slippage_bps": -0.34102530169111134,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -27.47825693177917,
+                    "control_net_bps": -28.48014248311588,
+                    "incremental_net_bps": 1.0018855513367086,
+                    "no_fee_no_extra_slippage_bps": 2.531683405733176,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.266001958674108
+                  },
+                  "300": {
+                    "net_bps": -24.070574880169072,
+                    "control_net_bps": -23.764081022952706,
+                    "incremental_net_bps": -0.3064938572163688,
+                    "no_fee_no_extra_slippage_bps": 5.932558603085614,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 2.9671594439070907
+                  },
+                  "900": {
+                    "net_bps": -15.202154452457492,
+                    "control_net_bps": -13.56630532653997,
+                    "incremental_net_bps": -1.6358491259175203,
+                    "no_fee_no_extra_slippage_bps": 14.783264336629687,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 7.3970998324221995
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 33,
+                "utc_days": 16,
+                "horizons": {
+                  "30": {
+                    "net_bps": -60.40245151115595,
+                    "control_net_bps": -58.433173244666364,
+                    "incremental_net_bps": -1.9692782664895878,
+                    "no_fee_no_extra_slippage_bps": -0.34102530169111134,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -57.51823471539636,
+                    "control_net_bps": -58.522124540031506,
+                    "incremental_net_bps": 1.0038898246351464,
+                    "no_fee_no_extra_slippage_bps": 2.531683405732066,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.266001958673553
+                  },
+                  "300": {
+                    "net_bps": -54.10373559157915,
+                    "control_net_bps": -53.79662859301775,
+                    "incremental_net_bps": -0.30710699856139856,
+                    "no_fee_no_extra_slippage_bps": 5.9325586030845034,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 2.967159443906535
+                  },
+                  "900": {
+                    "net_bps": -45.21757387770909,
+                    "control_net_bps": -43.57845223356865,
+                    "incremental_net_bps": -1.6391216441404424,
+                    "no_fee_no_extra_slippage_bps": 14.783264336629687,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 7.3970998324221995
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 198,
+              "net_bps": {
+                "base": -28.4993266379461,
+                "stress": -58.457349702487136
+              },
+              "no_fee_no_extra_slippage_bps": 1.4886559383131548,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 0.74427257086746
+            },
+            "strong_refill": {
+              "scored": 42,
+              "net_bps": {
+                "base": -27.22420784950752,
+                "stress": -57.184780515658915
+              },
+              "no_fee_no_extra_slippage_bps": 2.7663281556367103,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 1.3829727899899835
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 1,
+                "utc_days": 1,
+                "horizons": {
+                  "30": {
+                    "net_bps": -37.347327837530095,
+                    "control_net_bps": -25.282032488435487,
+                    "incremental_net_bps": -12.065295349094608,
+                    "no_fee_no_extra_slippage_bps": -7.377063408031681,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -34.09924533402324,
+                    "control_net_bps": -27.137334555738054,
+                    "incremental_net_bps": -6.9619107782851835,
+                    "no_fee_no_extra_slippage_bps": -4.122476610368686,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -27.040079359740083,
+                    "control_net_bps": -47.45936417666983,
+                    "incremental_net_bps": 20.419284816929746,
+                    "no_fee_no_extra_slippage_bps": 2.950825363210452,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.4751950294597953
+                  },
+                  "900": {
+                    "net_bps": -2.441267866524655,
+                    "control_net_bps": -94.92057985187783,
+                    "incremental_net_bps": 92.47931198535318,
+                    "no_fee_no_extra_slippage_bps": 27.59889604415644,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 13.780431786861762
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 1,
+                "utc_days": 1,
+                "horizons": {
+                  "30": {
+                    "net_bps": -67.28765931262247,
+                    "control_net_bps": -55.24648853664734,
+                    "incremental_net_bps": -12.041170775975125,
+                    "no_fee_no_extra_slippage_bps": -7.3770634080339015,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -64.04607135413798,
+                    "control_net_bps": -57.0980809251485,
+                    "incremental_net_bps": -6.947990428989478,
+                    "no_fee_no_extra_slippage_bps": -4.1224766103709065,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -57.0010201910363,
+                    "control_net_bps": -77.37947662246879,
+                    "incremental_net_bps": 20.37845643143249,
+                    "no_fee_no_extra_slippage_bps": 2.950825363210452,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 1.4751950294597953
+                  },
+                  "900": {
+                    "net_bps": -32.45139405213021,
+                    "control_net_bps": -124.74579353764895,
+                    "incremental_net_bps": 92.29439948551874,
+                    "no_fee_no_extra_slippage_bps": 27.59889604415866,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 13.780431786862867
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 121,
+              "net_bps": {
+                "base": -30.245572931082545,
+                "stress": -60.291086733817664
+              },
+              "no_fee_no_extra_slippage_bps": -0.23010487225860743,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 13,
+              "net_bps": {
+                "base": -25.046499805396554,
+                "stress": -55.08161285583991
+              },
+              "no_fee_no_extra_slippage_bps": 4.958583090577395,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 2.479906386382384
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 2,
+                "utc_days": 2,
+                "horizons": {
+                  "30": {
+                    "net_bps": -30.673634836086617,
+                    "control_net_bps": -23.249342722054372,
+                    "incremental_net_bps": -7.424292114032243,
+                    "no_fee_no_extra_slippage_bps": -0.6573117224317748,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -32.69207313914384,
+                    "control_net_bps": -25.125958439627972,
+                    "incremental_net_bps": -7.566114699515866,
+                    "no_fee_no_extra_slippage_bps": -2.6717181894331254,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -30.302772759050548,
+                    "control_net_bps": -17.502164211431058,
+                    "incremental_net_bps": -12.800608547619493,
+                    "no_fee_no_extra_slippage_bps": -0.2871904434131878,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -39.29155316699892,
+                    "control_net_bps": -38.161600213789676,
+                    "incremental_net_bps": -1.1299529532092452,
+                    "no_fee_no_extra_slippage_bps": -9.25801573780305,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 2,
+                "utc_days": 2,
+                "horizons": {
+                  "30": {
+                    "net_bps": -60.72000497719819,
+                    "control_net_bps": -53.2808605575068,
+                    "incremental_net_bps": -7.439144419691395,
+                    "no_fee_no_extra_slippage_bps": -0.6573117224295544,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -62.74248116860569,
+                    "control_net_bps": -55.16123044716973,
+                    "incremental_net_bps": -7.581250721435971,
+                    "no_fee_no_extra_slippage_bps": -2.6717181894331254,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -60.34840099011205,
+                    "control_net_bps": -47.52218480908323,
+                    "incremental_net_bps": -12.826216181028823,
+                    "no_fee_no_extra_slippage_bps": -0.2871904434131878,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -69.35516346451145,
+                    "control_net_bps": -68.22295003900689,
+                    "incremental_net_bps": -1.1322134255045704,
+                    "no_fee_no_extra_slippage_bps": -9.258015737800829,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "DOGEUSDT": {
+      "absorption": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 952,
+              "net_bps": {
+                "base": -32.230914184213894,
+                "stress": -62.181475934795145
+              },
+              "no_fee_no_extra_slippage_bps": -2.2504041222881632,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 325,
+              "net_bps": {
+                "base": -36.25868525487381,
+                "stress": -66.20119347216807
+              },
+              "no_fee_no_extra_slippage_bps": -6.2862408156050265,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 12,
+                "utc_days": 10,
+                "horizons": {
+                  "30": {
+                    "net_bps": -31.974452204669664,
+                    "control_net_bps": -30.942710640572468,
+                    "incremental_net_bps": -1.031741564097195,
+                    "no_fee_no_extra_slippage_bps": -1.9934285769251936,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -31.429570376505808,
+                    "control_net_bps": -31.49114365938302,
+                    "incremental_net_bps": 0.06157328287721183,
+                    "no_fee_no_extra_slippage_bps": -1.4474556213994738,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -30.462462682176266,
+                    "control_net_bps": -24.797542173919297,
+                    "incremental_net_bps": -5.664920508256971,
+                    "no_fee_no_extra_slippage_bps": -0.47841129124925885,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -42.30793216929182,
+                    "control_net_bps": -21.45223947563624,
+                    "incremental_net_bps": -20.85569269365558,
+                    "no_fee_no_extra_slippage_bps": -12.347601363622562,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 12,
+                "utc_days": 10,
+                "horizons": {
+                  "30": {
+                    "net_bps": -61.925526751299024,
+                    "control_net_bps": -60.89584815574797,
+                    "incremental_net_bps": -1.0296785955510515,
+                    "no_fee_no_extra_slippage_bps": -1.9934285769240834,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -61.38173441503116,
+                    "control_net_bps": -61.44318458205277,
+                    "incremental_net_bps": 0.06145016702161025,
+                    "no_fee_no_extra_slippage_bps": -1.4474556213994738,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -60.41656045374531,
+                    "control_net_bps": -54.76296696112035,
+                    "incremental_net_bps": -5.65359349262496,
+                    "no_fee_no_extra_slippage_bps": -0.4784112912525895,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -72.23834490982364,
+                    "control_net_bps": -51.42435319976173,
+                    "incremental_net_bps": -20.813991710061902,
+                    "no_fee_no_extra_slippage_bps": -12.347601363622562,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 101,
+                "utc_days": 21,
+                "horizons": {
+                  "30": {
+                    "net_bps": -31.755057435775946,
+                    "control_net_bps": -32.045370662036575,
+                    "incremental_net_bps": 0.2903132262606285,
+                    "no_fee_no_extra_slippage_bps": -1.7735944694019512,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -31.570533685274945,
+                    "control_net_bps": -32.98364871054651,
+                    "incremental_net_bps": 1.4131150252715652,
+                    "no_fee_no_extra_slippage_bps": -1.5887012095827657,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -32.933628031211,
+                    "control_net_bps": -29.585012246427365,
+                    "incremental_net_bps": -3.348615784783638,
+                    "no_fee_no_extra_slippage_bps": -2.9545251556983843,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -32.33639904204359,
+                    "control_net_bps": -30.224814025459988,
+                    "incremental_net_bps": -2.1115850165836023,
+                    "no_fee_no_extra_slippage_bps": -2.356100213836143,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 101,
+                "utc_days": 21,
+                "horizons": {
+                  "30": {
+                    "net_bps": -61.70657066251998,
+                    "control_net_bps": -61.996303407122234,
+                    "incremental_net_bps": 0.2897327446022547,
+                    "no_fee_no_extra_slippage_bps": -1.7735944694030614,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -61.52241586748861,
+                    "control_net_bps": -62.932705367502265,
+                    "incremental_net_bps": 1.4102895000136524,
+                    "no_fee_no_extra_slippage_bps": -1.588701209583876,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -62.882784704577396,
+                    "control_net_bps": -59.540864481238344,
+                    "incremental_net_bps": -3.341920223339053,
+                    "no_fee_no_extra_slippage_bps": -2.9545251556994945,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -62.2867498755196,
+                    "control_net_bps": -60.17938697581465,
+                    "incremental_net_bps": -2.107362899704945,
+                    "no_fee_no_extra_slippage_bps": -2.3561002138372533,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 1050,
+              "net_bps": {
+                "base": -31.00942638957636,
+                "stress": -61.05646828211075
+              },
+              "no_fee_no_extra_slippage_bps": -0.9924325313703797,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 210,
+              "net_bps": {
+                "base": -29.315115841926893,
+                "stress": -59.35876826409124
+              },
+              "no_fee_no_extra_slippage_bps": 0.6984936263054742,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 0.3492590109123897
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 4,
+                "utc_days": 3,
+                "horizons": {
+                  "30": {
+                    "net_bps": -28.669815407116236,
+                    "control_net_bps": -32.144816911766775,
+                    "incremental_net_bps": 3.4750015046505407,
+                    "no_fee_no_extra_slippage_bps": 1.3425050717263964,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.671297596884621
+                  },
+                  "60": {
+                    "net_bps": -31.46559765875946,
+                    "control_net_bps": -33.22831541616326,
+                    "incremental_net_bps": 1.7627177574038049,
+                    "no_fee_no_extra_slippage_bps": -1.447692597189576,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -23.19547213372526,
+                    "control_net_bps": -24.15634648817108,
+                    "incremental_net_bps": 0.9608743544458225,
+                    "no_fee_no_extra_slippage_bps": 6.8059133293896235,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 3.404115070301399
+                  },
+                  "900": {
+                    "net_bps": 0.9388996989187864,
+                    "control_net_bps": -17.107386481367538,
+                    "incremental_net_bps": 18.046286180286323,
+                    "no_fee_no_extra_slippage_bps": 30.892076687997204,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 15.469933262233356
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 4,
+                "utc_days": 3,
+                "horizons": {
+                  "30": {
+                    "net_bps": -58.71217690495192,
+                    "control_net_bps": -62.194130154460055,
+                    "incremental_net_bps": 3.481953249508143,
+                    "no_fee_no_extra_slippage_bps": 1.3425050717263964,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 0.671297596884621
+                  },
+                  "60": {
+                    "net_bps": -61.51355212248731,
+                    "control_net_bps": -63.279796198972065,
+                    "incremental_net_bps": 1.7662440764847496,
+                    "no_fee_no_extra_slippage_bps": -1.447692597189576,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -53.22688220099563,
+                    "control_net_bps": -54.189678785791756,
+                    "incremental_net_bps": 0.9627965847961182,
+                    "no_fee_no_extra_slippage_bps": 6.805913329387403,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 3.4041150703002874
+                  },
+                  "900": {
+                    "net_bps": -29.044229527311757,
+                    "control_net_bps": -47.1266173256763,
+                    "incremental_net_bps": 18.082387798364543,
+                    "no_fee_no_extra_slippage_bps": 30.892076687998316,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 15.469933262233916
+                  }
+                }
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 87,
+                "utc_days": 23,
+                "horizons": {
+                  "30": {
+                    "net_bps": -31.962842782697354,
+                    "control_net_bps": -31.055391097461083,
+                    "incremental_net_bps": -0.9074516852362737,
+                    "no_fee_no_extra_slippage_bps": -1.9439444726265798,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -31.816955411340675,
+                    "control_net_bps": -30.333854750660628,
+                    "incremental_net_bps": -1.4831006606800508,
+                    "no_fee_no_extra_slippage_bps": -1.7983485116945808,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -33.34970746971504,
+                    "control_net_bps": -33.697369591806556,
+                    "incremental_net_bps": 0.3476621220915129,
+                    "no_fee_no_extra_slippage_bps": -3.3280388936218763,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -31.23569813192093,
+                    "control_net_bps": -37.797020871116224,
+                    "incremental_net_bps": 6.56132273919529,
+                    "no_fee_no_extra_slippage_bps": -1.2182522952897124,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 87,
+                "utc_days": 23,
+                "horizons": {
+                  "30": {
+                    "net_bps": -62.01179198591858,
+                    "control_net_bps": -61.10252494245116,
+                    "incremental_net_bps": -0.9092670434674145,
+                    "no_fee_no_extra_slippage_bps": -1.9439444726288002,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -61.86561276669298,
+                    "control_net_bps": -60.379545161286465,
+                    "incremental_net_bps": -1.4860676054065176,
+                    "no_fee_no_extra_slippage_bps": -1.7983485116968012,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -63.401431097477435,
+                    "control_net_bps": -63.749788718079365,
+                    "incremental_net_bps": 0.3483576206019336,
+                    "no_fee_no_extra_slippage_bps": -3.3280388936240968,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -61.28319268135874,
+                    "control_net_bps": -67.85764135490146,
+                    "incremental_net_bps": 6.574448673542714,
+                    "no_fee_no_extra_slippage_bps": -1.218252295287492,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "bid": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 281,
+              "net_bps": {
+                "base": -31.003753205248334,
+                "stress": -60.95676866574001
+              },
+              "no_fee_no_extra_slippage_bps": -1.020785750084352,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 73,
+              "net_bps": {
+                "base": -33.18992867725829,
+                "stress": -63.13857287716282
+              },
+              "no_fee_no_extra_slippage_bps": -3.2113390444954426,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 14,
+                "utc_days": 11,
+                "horizons": {
+                  "30": {
+                    "net_bps": -31.443729470941005,
+                    "control_net_bps": -31.533330373551216,
+                    "incremental_net_bps": 0.08960090261021111,
+                    "no_fee_no_extra_slippage_bps": -1.4616430694602833,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -31.629590181023755,
+                    "control_net_bps": -34.21115915184403,
+                    "incremental_net_bps": 2.5815689708202734,
+                    "no_fee_no_extra_slippage_bps": -1.6478759661264775,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -30.54912909289306,
+                    "control_net_bps": -28.035011195455454,
+                    "incremental_net_bps": -2.5141178974376093,
+                    "no_fee_no_extra_slippage_bps": -0.5652512516918229,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -24.66558146287734,
+                    "control_net_bps": -32.12974177984771,
+                    "incremental_net_bps": 7.464160316970369,
+                    "no_fee_no_extra_slippage_bps": 5.3300781986487245,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 2.6643290452164656
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 14,
+                "utc_days": 11,
+                "horizons": {
+                  "30": {
+                    "net_bps": -61.39586519834,
+                    "control_net_bps": -61.485286943832904,
+                    "incremental_net_bps": 0.08942174549290424,
+                    "no_fee_no_extra_slippage_bps": -1.4616430694625038,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -61.581354279700584,
+                    "control_net_bps": -64.15776140013826,
+                    "incremental_net_bps": 2.5764071204376764,
+                    "no_fee_no_extra_slippage_bps": -1.6478759661275877,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -60.5030535748654,
+                    "control_net_bps": -57.993962659304124,
+                    "incremental_net_bps": -2.5090909155612726,
+                    "no_fee_no_extra_slippage_bps": -0.5652512516940433,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -54.63127010568503,
+                    "control_net_bps": -62.080505824778115,
+                    "incremental_net_bps": 7.449235719093078,
+                    "no_fee_no_extra_slippage_bps": 5.330078198646504,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": 2.664329045215356
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ask": {
+          "primary": {
+            "without_refill_filter": {
+              "scored": 347,
+              "net_bps": {
+                "base": -30.0573240600034,
+                "stress": -60.10246127063649
+              },
+              "no_fee_no_extra_slippage_bps": -0.042232028816258094,
+              "zero_extra_slippage_break_even_fee_per_side_bps": null
+            },
+            "strong_refill": {
+              "scored": 45,
+              "net_bps": {
+                "base": -28.557162586414492,
+                "stress": -58.599298722143175
+              },
+              "no_fee_no_extra_slippage_bps": 1.4549328681079388,
+              "zero_extra_slippage_break_even_fee_per_side_bps": 0.7275193586453232
+            }
+          },
+          "common_horizon_pairs": {
+            "no_observed_refill": {
+              "base": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              },
+              "stress": {
+                "pairs": 0,
+                "utc_days": 0,
+                "horizons": {}
+              }
+            },
+            "calibration_bottom_quartile": {
+              "base": {
+                "pairs": 8,
+                "utc_days": 7,
+                "horizons": {
+                  "30": {
+                    "net_bps": -31.46159938262059,
+                    "control_net_bps": -30.91169058084198,
+                    "incremental_net_bps": -0.5499088017786105,
+                    "no_fee_no_extra_slippage_bps": -1.4437023076174782,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -32.189923278616824,
+                    "control_net_bps": -32.31899941682388,
+                    "incremental_net_bps": 0.12907613820705865,
+                    "no_fee_no_extra_slippage_bps": -2.1705713746311694,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -32.38786003209975,
+                    "control_net_bps": -41.41959820939821,
+                    "incremental_net_bps": 9.031738177298456,
+                    "no_fee_no_extra_slippage_bps": -2.368112748905027,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -50.56587932960273,
+                    "control_net_bps": -57.49614967799328,
+                    "incremental_net_bps": 6.930270348390549,
+                    "no_fee_no_extra_slippage_bps": -20.509821402925343,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              },
+              "stress": {
+                "pairs": 8,
+                "utc_days": 7,
+                "horizons": {
+                  "30": {
+                    "net_bps": -61.50954584779372,
+                    "control_net_bps": -60.95853695276866,
+                    "incremental_net_bps": -0.5510088950250527,
+                    "no_fee_no_extra_slippage_bps": -1.4437023076196986,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "60": {
+                    "net_bps": -62.239326756655196,
+                    "control_net_bps": -62.36866111183714,
+                    "incremental_net_bps": 0.1293343551819488,
+                    "no_fee_no_extra_slippage_bps": -2.17057137463339,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "300": {
+                    "net_bps": -62.43765948286036,
+                    "control_net_bps": -71.48746566367952,
+                    "incremental_net_bps": 9.049806180819157,
+                    "no_fee_no_extra_slippage_bps": -2.3681127489072473,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  },
+                  "900": {
+                    "net_bps": -80.65204393070681,
+                    "control_net_bps": -87.59617829359738,
+                    "incremental_net_bps": 6.944134362890569,
+                    "no_fee_no_extra_slippage_bps": -20.509821402925343,
+                    "zero_extra_slippage_break_even_fee_per_side_bps": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

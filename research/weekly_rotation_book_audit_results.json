@@ -1,0 +1,974 @@
+{
+  "period": "2026-01-01/2026-11-01",
+  "source_ledger_rows": 13,
+  "download_audit": {
+    "binance_spot/2026-01-05/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 21183883,
+      "sha256": "26e14e14f85f72dfedbcde42270b9df8049f4c4f77ab7adf62c0e43db46037e8",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "f2c7437c9ae2fa4bc6a193563e37df16b5c47046556a88df91d689b3d0677daa",
+      "wire_bytes": 7508764,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-01-07/16/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 16634850,
+      "sha256": "03ccb155b86327964524126cf2f2435438d87100dc8d2ed43b9ed6c2134aa795",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "531017721e4a38511e522792e019104d26aec7b57fb9fb2294e4349b6d14e5a5",
+      "wire_bytes": 5931887,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-01-12/00/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 20727859,
+      "sha256": "f28b9bd29634e5f6ee838ac731c8a38c61f6a70ac19ae18c770293f4d0312a0c",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "f415e72d5e7fb989e5b464bf7905da427551b405ee9b52b6e866351129f423db",
+      "wire_bytes": 6469839,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-01-19/00/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 61180807,
+      "sha256": "ee57e3bd5043c2827ec027d0c19b8ec895b1cb522bb6df88d536f9366c6eaa73",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "1fadf427dab6cef7bbdc2eb23b5875d9223e40d2eb632417d1ec8f4b7462510e",
+      "wire_bytes": 15237587,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-01-19/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 46736300,
+      "sha256": "0acf511fb29f53a9d5fd2cf5b727fc8638cc76c330cf3437d401f2a5a20becad",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "79e63171546672a892191ec38306fb01731f9bcba372cc0fc254c92b1de10ec6",
+      "wire_bytes": 15839800,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-01-20/08/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 23405537,
+      "sha256": "198923d82c1181d37d0baaa16194acbdfe7e62686bd6243b5175efa0e9142914",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "0970e805b337593e5473e6304fccc3083bacf81b9ed287819800b6117d11498d",
+      "wire_bytes": 8018258,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-03-16/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 17706471,
+      "sha256": "cfa0b4edef90b578eeba52c957edc4b934ad335fe85316a34f7787ce7b36a1d8",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "25764fbe8fcd7ccead6963558c983b70dfa520128cc4377308f7b3d35c7101ce",
+      "wire_bytes": 6159539,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-03-18/16/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 22771657,
+      "sha256": "6536a780c800601a7422c340370e0429cf83b5546890aa7f9bc51a9fa0d5d147",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "843ce181a70e086c69897548a6f9c2fa1631adca18d155bca1a94087156c9c85",
+      "wire_bytes": 7790533,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-03-23/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 22134776,
+      "sha256": "5f7749edd703a1a623d4062cfcd66b7f1fa4f0d9562665f1737fe0b4138e8b1b",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "8fc1d95f4fba370fd8ecba327748fa5d6bec18bde70d2864c6e3f98cf5735a8e",
+      "wire_bytes": 7479701,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-03-26/12/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 11316760,
+      "sha256": "4fca28dc032bca1c4faa52e0336b1b2d7b0836f9294b74641ce14e2884821b16",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "75a460286010415af35f4cb5c5ef43b12b0cace0106a7e5ed54c8b21d4b3a51b",
+      "wire_bytes": 3761298,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-03-30/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 25317508,
+      "sha256": "91a1feb6bd3ab002ad558cfa0ad73c2b497216cf83dc8388d05bb2b5654f6195",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "89550318349ed19a189fe0e9fd56ba17325d6e8d4fcc25f613062e0b062edfff",
+      "wire_bytes": 8199908,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-05-04/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 14450137,
+      "sha256": "728c6259b279d9ea1373c352957209aaa1b75c84f93669e290654861659e1d11",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "3b50d9a3f0913f5e07cf9ea3da350b98ff26164deac474f9c4c11d2efef0456c",
+      "wire_bytes": 4612721,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-05-04/00/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 12950235,
+      "sha256": "8660780da06be1941d0cce6393330931294c2ca0aba5e9f7297aa3dd7562587e",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "8f50533565dd2b124bae3f2e71d0b41e777a0adb45a6790a166a6551dfbac994",
+      "wire_bytes": 5347693,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-05-07/16/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 17806625,
+      "sha256": "165b98a770566f3814cf98cae59a92a0f89cd319151ecdbb7ce7a4e1c5100a71",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "9dc64c794f0141730656405e7017321e2703b25c36e24a34ae17a6425db00510",
+      "wire_bytes": 6863002,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-05-11/00/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 34172257,
+      "sha256": "ebfc7040b75b7b544fb8023d0e59b2615a385b50a578e5d1599751a5834bd735",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "6ca97ccde7bea536ec133e2dbf863e5c9ec0d0ee27d317635aa6e916271ab4f0",
+      "wire_bytes": 8767341,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-05-13/16/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 20602577,
+      "sha256": "f0540fedf79b07c787a2593d52dc5372719a418374adb55c931820b4cccbf654",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "b30335e0fbdb261b7284907d7849fcda02154b6ef6c157999ebc225c4a031af8",
+      "wire_bytes": 6722001,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-06/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 17011200,
+      "sha256": "e4053660dcf9bbd9b8804baf92be3d0269f5e66d202e8dfe250f94f3a3c864cf",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "4889b1fc10324b85ac77a94e34e66a6ba6180a84e9a2c2d71b8a5d3cbb18a1a2",
+      "wire_bytes": 5470755,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-08/16/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 15041622,
+      "sha256": "433129369028e77f7f44e2343381a45c81281047092d12f0ca92b26dd01cb936",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "d0c279e50ed41555bc25989bf3d0eb7455a341f5c30d56d1e4e90f4ff140a922",
+      "wire_bytes": 4782958,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-20/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 18686410,
+      "sha256": "e7a379952be3f24884d7511e3a59ccd9088d6fa06a9d0c0c5bf20b58668b7f9c",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "93a0dae1076150500f0ef6210f79c56a5cd77460e23fb8648d7a96a41f5e914f",
+      "wire_bytes": 6388350,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-23/16/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 11483866,
+      "sha256": "5d70eb297fc6565a48162d7e70d0d77905d9d5f0a17e77f0d0b0677f94c821e6",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "6fe29da9484effb54c7bb3b08185da223214cad73d84fb8c63d87c14b3f73750",
+      "wire_bytes": 3762839,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-27/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 13023928,
+      "sha256": "858e7aacee1426651e47cdc530b4dc002dbb33ba95cfcffd0ed0e903d74b05af",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "3fc7c6a999b978e07cb72244a7d8bc4b71fe362096c1f86079b5c9c9594ce48e",
+      "wire_bytes": 4216500,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-07-28/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 17357492,
+      "sha256": "84a8e06881e2d1b4d5e5be6f175dcea120a48d97bcff555bb98a2535d1b85f4b",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "ce286f0f358d373b086393349d0b40b3ad55decb251aa27fc05b55960b7af2d0",
+      "wire_bytes": 5608936,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-08-10/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 14640540,
+      "sha256": "8c9b706b7cbdc7bafb9324b1de59617aff57e7f6cdee71b1758845b20823c958",
+      "error": "",
+      "outer_codec": "zstd",
+      "wire_sha256": "5bb72bd69f3ffc175e070bce44ef90847c39b703d1f0c079a883e101ada4368d",
+      "wire_bytes": 4649618,
+      "source_events": {},
+      "quotes": 0,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-10-12/00/ETHUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 3639672,
+      "sha256": "d721e382724939e6b92cbd475883ab9d4a530e84afef6b11f254c8e8d57cc02f",
+      "error": "",
+      "source_events": {
+        "snapshots": 1
+      },
+      "quotes": 3510,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-10-12/00/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 3839740,
+      "sha256": "1c60af4c3d2132aa30d4e7c2fa5e0192f163fb9b84baf378f0a742956cf700f3",
+      "error": "",
+      "source_events": {
+        "snapshots": 1
+      },
+      "quotes": 3592,
+      "gap_buckets": 0
+    },
+    "binance_spot/2026-10-15/04/BTCUSDT_orderbook.parquet": {
+      "status": "ok",
+      "bytes": 7664540,
+      "sha256": "d6f4b91c395922ec14a0e6d9c2f220d6f33f725245798b7c0d9f00ee7dd6f67d",
+      "error": "",
+      "source_events": {
+        "snapshots": 1
+      },
+      "quotes": 3600,
+      "gap_buckets": 0
+    }
+  },
+  "scenarios": {
+    "1s/base": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.43622005481880066,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83773.12,
+          "sell_bid": 80904.28,
+          "buy_receipt_us": 1791763201935547,
+          "sell_receipt_us": 1792036801973185,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.43622005481880066,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    },
+    "1s/stress": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.4708029112752019,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83773.12,
+          "sell_bid": 80904.28,
+          "buy_receipt_us": 1791763201935547,
+          "sell_receipt_us": 1792036801973185,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.4708029112752019,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    },
+    "3s/base": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.4397339046806952,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83762.01,
+          "sell_bid": 80868.0,
+          "buy_receipt_us": 1791763203930933,
+          "sell_receipt_us": 1792036803948994,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.4397339046806952,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    },
+    "3s/stress": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.474306814522798,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83762.01,
+          "sell_bid": 80868.0,
+          "buy_receipt_us": 1791763203930933,
+          "sell_receipt_us": 1792036803948994,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.474306814522798,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    },
+    "60s/base": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.43306564674030135,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83768.02,
+          "sell_bid": 80921.73,
+          "buy_receipt_us": 1791763260830837,
+          "sell_receipt_us": 1792036860948897,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.43306564674030135,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    },
+    "60s/stress": {
+      "priced": 1,
+      "wins": 0,
+      "net_usdt": -0.46765109196120136,
+      "reference_net_usdt": -0.4329042343584,
+      "rows": [
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1767571200,
+          "exit": 1767801600,
+          "pnl": 0.04003634400000067
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1768176000,
+          "exit": 1768780800,
+          "pnl": 0.30971864686620343
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1768780800,
+          "exit": 1768896000,
+          "pnl": -0.6300404227394978
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1773619200,
+          "exit": 1773849600,
+          "pnl": 0.01585396226400171
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774224000,
+          "exit": 1774526400,
+          "pnl": 0.04936224542250045
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1774828800,
+          "exit": 1777852800,
+          "pnl": 2.022389235900002
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1777852800,
+          "exit": 1778169600,
+          "pnl": 0.16255991860650099
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "BTCUSDT",
+          "entry": 1778457600,
+          "exit": 1778688000,
+          "pnl": -0.5074184656001997
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1783296000,
+          "exit": 1783526400,
+          "pnl": -0.4620800351459984
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1784505600,
+          "exit": 1784822400,
+          "pnl": 0.11270224221750169
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1785110400,
+          "exit": 1785196800,
+          "pnl": -0.42135761778899905
+        },
+        {
+          "status": "no_entry_quote",
+          "symbol": "ETHUSDT",
+          "entry": 1786320000,
+          "exit": 1791763200,
+          "pnl": 3.9655611401280026
+        },
+        {
+          "status": "priced",
+          "quantity": 0.00014000000000000001,
+          "buy_ask": 83768.02,
+          "sell_bid": 80921.73,
+          "buy_receipt_us": 1791763260830837,
+          "sell_receipt_us": 1792036860948897,
+          "sell_wait_sec": 0,
+          "net_usdt": -0.46765109196120136,
+          "symbol": "BTCUSDT",
+          "entry": 1791763200,
+          "exit": 1792036800,
+          "pnl": -0.4329042343584
+        }
+      ]
+    }
+  },
+  "previous_hour_sample": {
+    "binance_spot/2026-01-04/23/ETHUSDT_orderbook.parquet": {
+      "events": {
+        "update": 910217
+      },
+      "sha256": "05525c0dfd8a82bc8ea1e4f62d6f745ffadbc8dda2eeb3b0ef87b0a783f42526"
+    },
+    "binance_spot/2026-03-15/23/ETHUSDT_orderbook.parquet": {
+      "events": {
+        "update": 1978953
+      },
+      "sha256": "297519e12d91fff032cd683054e16643f640b43f3bd6f49a6b20cf66ec0360db"
+    },
+    "binance_spot/2026-08-09/23/ETHUSDT_orderbook.parquet": {
+      "events": {
+        "update": 612786
+      },
+      "sha256": "7e96a4c8854fa7f366952829851f77b4dff48bb333b776c2215f97508240c8c7"
+    }
+  },
+  "cache": "F:\\temp\\weekly-rotation-history-quotes-2026"
+}

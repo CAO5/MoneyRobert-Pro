@@ -1,0 +1,119 @@
+{
+  "coverage_gate": 0.9,
+  "method": "Treat every other second as usable; only proven trade-ID gap hours are excluded.",
+  "source_fixed_window": [
+    1794787200,
+    1794873600,
+    1795046400
+  ],
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "days": {
+        "2026-11-16": {
+          "role": "calibration",
+          "contaminated_utc_hours": [],
+          "maximum_fresh_seconds": 86400,
+          "maximum_fresh_fraction": 1.0,
+          "can_reach_gate": true
+        },
+        "2026-11-17": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            6,
+            8,
+            16,
+            20
+          ],
+          "maximum_fresh_seconds": 72000,
+          "maximum_fresh_fraction": 0.8333333333333334,
+          "can_reach_gate": false
+        },
+        "2026-11-18": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            3,
+            8
+          ],
+          "maximum_fresh_seconds": 79200,
+          "maximum_fresh_fraction": 0.9166666666666666,
+          "can_reach_gate": true
+        }
+      },
+      "can_reach_gate_all_days": false
+    },
+    "ETH-USDT-SWAP": {
+      "days": {
+        "2026-11-16": {
+          "role": "calibration",
+          "contaminated_utc_hours": [
+            3,
+            17
+          ],
+          "maximum_fresh_seconds": 79200,
+          "maximum_fresh_fraction": 0.9166666666666666,
+          "can_reach_gate": true
+        },
+        "2026-11-17": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            6,
+            8,
+            11,
+            16,
+            20
+          ],
+          "maximum_fresh_seconds": 68400,
+          "maximum_fresh_fraction": 0.7916666666666666,
+          "can_reach_gate": false
+        },
+        "2026-11-18": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            3,
+            8
+          ],
+          "maximum_fresh_seconds": 79200,
+          "maximum_fresh_fraction": 0.9166666666666666,
+          "can_reach_gate": true
+        }
+      },
+      "can_reach_gate_all_days": false
+    },
+    "DOGE-USDT-SWAP": {
+      "days": {
+        "2026-11-16": {
+          "role": "calibration",
+          "contaminated_utc_hours": [
+            3,
+            17
+          ],
+          "maximum_fresh_seconds": 79200,
+          "maximum_fresh_fraction": 0.9166666666666666,
+          "can_reach_gate": true
+        },
+        "2026-11-17": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            7,
+            8,
+            16
+          ],
+          "maximum_fresh_seconds": 75600,
+          "maximum_fresh_fraction": 0.875,
+          "can_reach_gate": false
+        },
+        "2026-11-18": {
+          "role": "evaluation",
+          "contaminated_utc_hours": [
+            3
+          ],
+          "maximum_fresh_seconds": 82800,
+          "maximum_fresh_fraction": 0.9583333333333334,
+          "can_reach_gate": true
+        }
+      },
+      "can_reach_gate_all_days": false
+    }
+  },
+  "diagnostic_sha256": "26821f91cb7967c89d5098c658bb776c1387d2bcc29e836a2eb203fd85b1f3d7"
+}

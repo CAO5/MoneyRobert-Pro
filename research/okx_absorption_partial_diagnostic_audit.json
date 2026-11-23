@@ -1,0 +1,1603 @@
+{
+  "start_utc": "2026-11-17",
+  "end_utc_exclusive": "2026-11-19",
+  "horizon_seconds": 300,
+  "block_days": 3,
+  "min_pair_days": 12,
+  "diagnostic_only": true,
+  "promotion_allowed": false,
+  "balance_note": "OFI is descriptive, not a matching input; part of it can reflect refilling itself.",
+  "before_fee_and_slippage": null,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -33.45579685323863,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -30.37282762995391
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -63.4039094493933,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -60.32710462692129
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -23.462531486298513,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -20.378019235374406
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -38.51589517455152,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -33.21925978476839
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -68.57795376727934,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -63.27072245177355
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -28.506646475663008,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -23.212656757903062
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -0.8874343308090928,
+              "strong_net_mean_bps": -35.90118297058633,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 4500,
+                "farthest_gap_seconds": 4500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.348523070307763,
+                    "control_mean": 15.325815328538038,
+                    "difference": 0.02270774176972523,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.119759824442782,
+                    "control_mean": 5.31600493123029,
+                    "difference": -0.19624510678750795,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.015514338894681103,
+                    "control_mean": 0.015451573513189508,
+                    "difference": 6.276538149159461e-05,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.384671093303051,
+                    "control_mean": 6.505537662548457,
+                    "difference": 0.8791334307545933,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.623743654765912,
+                    "control_mean": 13.31257752578483,
+                    "difference": 0.31116612898108187,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -4.5586007658927095,
+                    "control_mean": -2.317106994113789,
+                    "difference": -2.2414937717789205,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -33.45579685323863,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -30.37282762995391
+            },
+            "stress": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -0.8856599047564941,
+              "strong_net_mean_bps": -65.84440601414454,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 4500,
+                "farthest_gap_seconds": 4500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.348523070307763,
+                    "control_mean": 15.325815328538038,
+                    "difference": 0.02270774176972523,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.119759824442782,
+                    "control_mean": 5.31600493123029,
+                    "difference": -0.19624510678750795,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.015514338894681103,
+                    "control_mean": 0.015451573513189508,
+                    "difference": 6.276538149159461e-05,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.384671093303051,
+                    "control_mean": 6.505537662548457,
+                    "difference": 0.8791334307545933,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.623743654765912,
+                    "control_mean": 13.31257752578483,
+                    "difference": 0.31116612898108187,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -4.5586007658927095,
+                    "control_mean": -2.317106994113789,
+                    "difference": -2.2414937717789205,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -63.4039094493933,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -60.32710462692129
+            },
+            "okx_level1_example": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -0.8878784921366005,
+              "strong_net_mean_bps": -25.909141520622033,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 4500,
+                "farthest_gap_seconds": 4500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.348523070307763,
+                    "control_mean": 15.325815328538038,
+                    "difference": 0.02270774176972523,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.119759824442782,
+                    "control_mean": 5.31600493123029,
+                    "difference": -0.19624510678750795,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.015514338894681103,
+                    "control_mean": 0.015451573513189508,
+                    "difference": 6.276538149159461e-05,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.384671093303051,
+                    "control_mean": 6.505537662548457,
+                    "difference": 0.8791334307545933,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.623743654765912,
+                    "control_mean": 13.31257752578483,
+                    "difference": 0.31116612898108187,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -4.5586007658927095,
+                    "control_mean": -2.317106994113789,
+                    "difference": -2.2414937717789205,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -23.462531486298513,
+              "pressure_standalone_count": 24,
+              "pressure_standalone_net_bps": -20.378019235374406
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -38.51589517455152,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -33.21925978476839
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -68.57795376727934,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -63.27072245177355
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 8,
+              "strong_standalone_net_bps": -28.506646475663008,
+              "pressure_standalone_count": 21,
+              "pressure_standalone_net_bps": -23.212656757903062
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -60.01420677498044,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -35.8718720798896
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -89.9092157973216,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -65.81515373061006
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -50.03423390549874,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -25.87981595980928
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -34.7377494425133,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -21.031497384331775
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -64.79224984997886,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -51.05857841740986
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -24.730387929304513,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -11.030982150872978
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -60.01420677498044,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -35.8718720798896
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -89.9092157973216,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -65.81515373061006
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -50.03423390549874,
+              "pressure_standalone_count": 9,
+              "pressure_standalone_net_bps": -25.87981595980928
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -34.7377494425133,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -21.031497384331775
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -64.79224984997886,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -51.05857841740986
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 1,
+              "strong_standalone_net_bps": -24.730387929304513,
+              "pressure_standalone_count": 7,
+              "pressure_standalone_net_bps": -11.030982150872978
+            }
+          }
+        }
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -24.33831472625923,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -26.015474362541685
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -54.30465773931569,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -55.9784638928104
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -14.340486054951405,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -16.018485110470962
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -29.18923871824382,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -30.552398390432998
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -59.23263932306508,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -60.598525997883584
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -19.184648688914255,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -20.547127462166305
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": 42.937408925834035,
+              "strong_net_mean_bps": -23.56787321331439,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 5520,
+                "farthest_gap_seconds": 5520,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.246739073769342,
+                    "control_mean": 15.971273709298377,
+                    "difference": -0.7245346355290341,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 3.4067712655152267,
+                    "control_mean": -5.22242024315264,
+                    "difference": 8.629191508667866,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.054951419634548485,
+                    "control_mean": 0.054945566760649996,
+                    "difference": 5.852873898488931e-06,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 9.727306468192435,
+                    "control_mean": 15.333043232648688,
+                    "difference": -5.605736764456253,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 12.959553566989115,
+                    "control_mean": 12.876070066328362,
+                    "difference": 0.08348350066075305,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -5.146441473066679,
+                    "control_mean": 11.782967261365474,
+                    "difference": -16.929408734432155,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -24.33831472625923,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -26.015474362541685
+            },
+            "stress": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": 42.85155552305175,
+              "strong_net_mean_bps": -53.535756725138405,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 5520,
+                "farthest_gap_seconds": 5520,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.246739073769342,
+                    "control_mean": 15.971273709298377,
+                    "difference": -0.7245346355290341,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 3.4067712655152267,
+                    "control_mean": -5.22242024315264,
+                    "difference": 8.629191508667866,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.054951419634548485,
+                    "control_mean": 0.054945566760649996,
+                    "difference": 5.852873898488931e-06,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 9.727306468192435,
+                    "control_mean": 15.333043232648688,
+                    "difference": -5.605736764456253,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 12.959553566989115,
+                    "control_mean": 12.876070066328362,
+                    "difference": 0.08348350066075305,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -5.146441473066679,
+                    "control_mean": 11.782967261365474,
+                    "difference": -16.929408734432155,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -54.30465773931569,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -55.9784638928104
+            },
+            "okx_level1_example": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": 42.95889912049225,
+              "strong_net_mean_bps": -13.569658935642414,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 5520,
+                "farthest_gap_seconds": 5520,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 15.246739073769342,
+                    "control_mean": 15.971273709298377,
+                    "difference": -0.7245346355290341,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": 3.4067712655152267,
+                    "control_mean": -5.22242024315264,
+                    "difference": 8.629191508667866,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.054951419634548485,
+                    "control_mean": 0.054945566760649996,
+                    "difference": 5.852873898488931e-06,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 9.727306468192435,
+                    "control_mean": 15.333043232648688,
+                    "difference": -5.605736764456253,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 12.959553566989115,
+                    "control_mean": 12.876070066328362,
+                    "difference": 0.08348350066075305,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -5.146441473066679,
+                    "control_mean": 11.782967261365474,
+                    "difference": -16.929408734432155,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 11,
+              "strong_standalone_net_bps": -14.340486054951405,
+              "pressure_standalone_count": 17,
+              "pressure_standalone_net_bps": -16.018485110470962
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -29.18923871824382,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -30.552398390432998
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -59.23263932306508,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -60.598525997883584
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -19.184648688914255,
+              "pressure_standalone_count": 5,
+              "pressure_standalone_net_bps": -20.547127462166305
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": 1.9455511784186594,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -24.6522697319982
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": -28.073346457346098,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -54.61798499162824
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": 11.956534937767124,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -14.654598195327884
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -40.6989197085183
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -70.76534544455593
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -30.688580587783107
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": 1.9455511784186594,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -24.6522697319982
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": -28.073346457346098,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -54.61798499162824
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 2,
+              "strong_standalone_net_bps": 11.956534937767124,
+              "pressure_standalone_count": 6,
+              "pressure_standalone_net_bps": -14.654598195327884
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -40.6989197085183
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -70.76534544455593
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 0,
+              "strong_standalone_net_bps": null,
+              "pressure_standalone_count": 1,
+              "pressure_standalone_net_bps": -30.688580587783107
+            }
+          }
+        }
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -26.570952670298976,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -31.244783410364203
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -56.532831520996766,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -61.197316930659156
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -16.574241435399124,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -21.250411430089063
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -12.531369245548728,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -31.03974090638881
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -42.54144576165271,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -61.086843443151764
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -2.535099830340863,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -21.034226550291542
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 2,
+              "pair_days": 1,
+              "delta_mean_bps": 9.424386686527615,
+              "strong_net_mean_bps": -14.752274300134875,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 2280,
+                "farthest_gap_seconds": 4680,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.062758325383188,
+                    "control_mean": 12.440000349235227,
+                    "difference": -0.3772420238520393,
+                    "standardized_difference": -1.5593843176124966
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.101142561605308,
+                    "control_mean": 3.39177512602749,
+                    "difference": 1.7093674355778181,
+                    "standardized_difference": 1.4028075445947825
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.697866392348017,
+                    "control_mean": 1.6958886639218633,
+                    "difference": 0.0019777284261537353,
+                    "standardized_difference": 0.17485357667553791
+                  },
+                  "range_bps": {
+                    "treated_mean": 8.497681462895962,
+                    "control_mean": 5.942064587943687,
+                    "difference": 2.5556168749522747,
+                    "standardized_difference": 1.8468165743281486
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.208712872012779,
+                    "control_mean": 11.295895761126445,
+                    "difference": -0.08718288911366656,
+                    "standardized_difference": -0.8321672239241722
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -1.7590553552705563,
+                    "control_mean": -1.3322898589442913,
+                    "difference": -0.42676549632626504,
+                    "standardized_difference": -0.17578787618092645
+                  }
+                }
+              },
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -26.570952670298976,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -31.244783410364203
+            },
+            "stress": {
+              "pairs": 2,
+              "pair_days": 1,
+              "delta_mean_bps": 9.405542613576198,
+              "strong_net_mean_bps": -44.73778461299667,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 2280,
+                "farthest_gap_seconds": 4680,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.062758325383188,
+                    "control_mean": 12.440000349235227,
+                    "difference": -0.3772420238520393,
+                    "standardized_difference": -1.5593843176124966
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.101142561605308,
+                    "control_mean": 3.39177512602749,
+                    "difference": 1.7093674355778181,
+                    "standardized_difference": 1.4028075445947825
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.697866392348017,
+                    "control_mean": 1.6958886639218633,
+                    "difference": 0.0019777284261537353,
+                    "standardized_difference": 0.17485357667553791
+                  },
+                  "range_bps": {
+                    "treated_mean": 8.497681462895962,
+                    "control_mean": 5.942064587943687,
+                    "difference": 2.5556168749522747,
+                    "standardized_difference": 1.8468165743281486
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.208712872012779,
+                    "control_mean": 11.295895761126445,
+                    "difference": -0.08718288911366656,
+                    "standardized_difference": -0.8321672239241722
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -1.7590553552705563,
+                    "control_mean": -1.3322898589442913,
+                    "difference": -0.42676549632626504,
+                    "standardized_difference": -0.17578787618092645
+                  }
+                }
+              },
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -56.532831520996766,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -61.197316930659156
+            },
+            "okx_level1_example": {
+              "pairs": 2,
+              "pair_days": 1,
+              "delta_mean_bps": 9.429103596781935,
+              "strong_net_mean_bps": -4.7496478107951265,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 2280,
+                "farthest_gap_seconds": 4680,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.062758325383188,
+                    "control_mean": 12.440000349235227,
+                    "difference": -0.3772420238520393,
+                    "standardized_difference": -1.5593843176124966
+                  },
+                  "impact_bps": {
+                    "treated_mean": 5.101142561605308,
+                    "control_mean": 3.39177512602749,
+                    "difference": 1.7093674355778181,
+                    "standardized_difference": 1.4028075445947825
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.697866392348017,
+                    "control_mean": 1.6958886639218633,
+                    "difference": 0.0019777284261537353,
+                    "standardized_difference": 0.17485357667553791
+                  },
+                  "range_bps": {
+                    "treated_mean": 8.497681462895962,
+                    "control_mean": 5.942064587943687,
+                    "difference": 2.5556168749522747,
+                    "standardized_difference": 1.8468165743281486
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.208712872012779,
+                    "control_mean": 11.295895761126445,
+                    "difference": -0.08718288911366656,
+                    "standardized_difference": -0.8321672239241722
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -1.7590553552705563,
+                    "control_mean": -1.3322898589442913,
+                    "difference": -0.42676549632626504,
+                    "standardized_difference": -0.17578787618092645
+                  }
+                }
+              },
+              "strong_standalone_count": 7,
+              "strong_standalone_net_bps": -16.574241435399124,
+              "pressure_standalone_count": 20,
+              "pressure_standalone_net_bps": -21.250411430089063
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -8.80303787220776,
+              "strong_net_mean_bps": -4.414560371651244,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 1500,
+                "farthest_gap_seconds": 1500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 11.598820747941911,
+                    "control_mean": 12.088592822400226,
+                    "difference": -0.4897720744583154,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": -11.916923439580973,
+                    "control_mean": -5.14756360028061,
+                    "difference": -6.769359839300363,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.702601153982682,
+                    "control_mean": 1.7151777661088952,
+                    "difference": -0.012576612126213194,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 11.916923439579993,
+                    "control_mean": 12.006862505935608,
+                    "difference": -0.08993906635561544,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.001568295903507,
+                    "control_mean": 11.099944829604462,
+                    "difference": -0.09837653370095545,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -6.822196230244548,
+                    "control_mean": -2.8200523419185934,
+                    "difference": -4.002143888325954,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -12.531369245548728,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -31.03974090638881
+            },
+            "stress": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -8.820648360482046,
+              "strong_net_mean_bps": -34.40839920144973,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 1500,
+                "farthest_gap_seconds": 1500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 11.598820747941911,
+                    "control_mean": 12.088592822400226,
+                    "difference": -0.4897720744583154,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": -11.916923439580973,
+                    "control_mean": -5.14756360028061,
+                    "difference": -6.769359839300363,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.702601153982682,
+                    "control_mean": 1.7151777661088952,
+                    "difference": -0.012576612126213194,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 11.916923439579993,
+                    "control_mean": 12.006862505935608,
+                    "difference": -0.08993906635561544,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.001568295903507,
+                    "control_mean": 11.099944829604462,
+                    "difference": -0.09837653370095545,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -6.822196230244548,
+                    "control_mean": -2.8200523419185934,
+                    "difference": -4.002143888325954,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -42.54144576165271,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -61.086843443151764
+            },
+            "okx_level1_example": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": -8.798640750393051,
+              "strong_net_mean_bps": 5.57765469347034,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 1500,
+                "farthest_gap_seconds": 1500,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 11.598820747941911,
+                    "control_mean": 12.088592822400226,
+                    "difference": -0.4897720744583154,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": -11.916923439580973,
+                    "control_mean": -5.14756360028061,
+                    "difference": -6.769359839300363,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.702601153982682,
+                    "control_mean": 1.7151777661088952,
+                    "difference": -0.012576612126213194,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 11.916923439579993,
+                    "control_mean": 12.006862505935608,
+                    "difference": -0.08993906635561544,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.001568295903507,
+                    "control_mean": 11.099944829604462,
+                    "difference": -0.09837653370095545,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -6.822196230244548,
+                    "control_mean": -2.8200523419185934,
+                    "difference": -4.002143888325954,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 5,
+              "strong_standalone_net_bps": -2.535099830340863,
+              "pressure_standalone_count": 35,
+              "pressure_standalone_net_bps": -21.034226550291542
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -17.31002817981878,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -32.35214365069582
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -47.29042426060409,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -62.302463002807386
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -7.308681847576635,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -22.358325904775253
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -17.254438194274464,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -31.33171498917883
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -47.27396321571769,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -61.3794016204595
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -7.2558096037673865,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -21.326054791881415
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -17.31002817981878,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -32.35214365069582
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -47.29042426060409,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -62.302463002807386
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -7.308681847576635,
+              "pressure_standalone_count": 8,
+              "pressure_standalone_net_bps": -22.358325904775253
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -17.254438194274464,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -31.33171498917883
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -47.27396321571769,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -61.3794016204595
+            },
+            "okx_level1_example": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 3,
+              "strong_standalone_net_bps": -7.2558096037673865,
+              "pressure_standalone_count": 15,
+              "pressure_standalone_net_bps": -21.326054791881415
+            }
+          }
+        }
+      }
+    }
+  }
+}

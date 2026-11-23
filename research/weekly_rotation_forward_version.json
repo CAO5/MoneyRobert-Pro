@@ -1,0 +1,38 @@
+{
+  "frozen_utc": "2026-11-20T00:10:46.066234+00:00",
+  "candidate": "weekly BTC/ETH rotation with half position and a seven-day cooldown",
+  "start_utc_day": "2026-11-21",
+  "first_evaluation": "First sealed end with at least 30 days and 100 full baseline trades",
+  "initial_usdt": 100,
+  "notional_target_usdt": 12.25,
+  "cost_per_side": {
+    "base": {
+      "fee": 0.001,
+      "extra_slippage": 0.0005
+    },
+    "stress": {
+      "fee": 0.002,
+      "extra_slippage": 0.001
+    }
+  },
+  "book_archive": "F:/temp/flow-portfolio-forward-20261120",
+  "candle_archive": "F:/temp/weekly-rotation-candles-20261120",
+  "files": {
+    "research/flow_forward.py": "af9c05e7c8e576d5ef3eced8a02603f89e8388e154c7a246018e91be829262c9",
+    "research/flow_forward_review.py": "35ea34b361b115b795ff1ace27b06be7d5fe1f50cbba4b497adcd5aa09d2d95f",
+    "research/flow_path.py": "cfebf38a134272dd5eada1860c65fad1b4a4fb33bc217865ee53f6de0ad19d6c",
+    "research/flow_portfolio.py": "8c1245fa2565b56f38eb3151279705d979df93292f1de39a626e7b84280f3a3f",
+    "research/flow_sector.py": "6c105549c31de58dfde31e757b6aeff4a6a9d588579e556aebc9dd7dd22a06b7",
+    "research/forward_tape.py": "cecc79416a6a1116a33aabedbb9623ad5aba5e068f7c0253c441d75d1b2103fc",
+    "research/hf_pressure.py": "0befe775fd58efeaf0fec6c17ec5ce63aedb66deb2e32d29e27f5b87f222356c",
+    "research/independent_round.py": "f306dbb9a116b8f9df8abf54f5dd1833b4ce34f6c885b962373cb550f1671c96",
+    "research/participant_traces.py": "d06b6f518d483874a16e9f0a3e19b56b49ec2f4fbbc2ffee89b5a87b5ce08b17",
+    "research/position_divergence.py": "e6b762d22912915167f06a679017b0060205f23265c7dd6741eb10d5091c8659",
+    "research/sell_pressure.py": "4f56c87f7702a17b1d7a380cdb7d9e34d1090ea76efdd5f60d2d95d9a868637c",
+    "research/slow_spot_replay.py": "07c54e609df7e08324b226340410e902a1c2c65b85612d845b288f4b8340ee5d",
+    "research/spot_pullback.py": "872bb4c4eca63b56d8c5e16c20e97e04017c3f4cc505c359da4a0cc35ba4b8d8",
+    "research/weekly_rotation_candle_tape.py": "cc5d84121451849c5a9e730237ebc94fd77df62f2450967c24e390476ae93030",
+    "research/weekly_rotation_forward.py": "0d055c3c9e47f66c7eb6baa3dffd1faac3ddb29d938b05e6d67495309721f840",
+    "research/weekly_rotation_review.py": "4ad8278e30e28eeb20d871df0a42ec107771d5439632e6c358c0d75d325193aa"
+  }
+}

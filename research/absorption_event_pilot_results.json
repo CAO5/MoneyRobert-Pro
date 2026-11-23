@@ -1,0 +1,1209 @@
+{
+  "start_utc_second": 1792454400,
+  "calibration_end_utc_second": 1792497600,
+  "end_utc_second": 1792540800,
+  "primary_seconds": 300,
+  "all_horizons_seconds": [
+    30,
+    60,
+    300,
+    900
+  ],
+  "delay_seconds": 1,
+  "costs": {
+    "base": [
+      0.001,
+      0.0005
+    ],
+    "stress": [
+      0.002,
+      0.001
+    ]
+  },
+  "spot_ask_absorption": "Downward price response and hypothetical symmetric cost benchmark. Not a tradable spot short.",
+  "symbols": {
+    "BTCUSDT": {
+      "book_audit": {
+        "snapshots": 3,
+        "trades": 3112470,
+        "snapshot_reanchors": 2,
+        "trade_sequence_gaps": 2
+      },
+      "invalid_seconds": 4,
+      "valid_update_seconds": 86263,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/BTCUSDT_orderbook.parquet",
+          "b2c90c3fd3285ae516e93670d78f7b603f8938f053cd5c2d5933ff1be2d5c659"
+        ],
+        [
+          "binance_spot/2026-10-20/00/BTCUSDT_trades.parquet",
+          "859f8818d5d5adf1a4d5e8abf901d3d29f3b64b1c7dd7eec24ef1111a4889188"
+        ],
+        [
+          "binance_spot/2026-10-20/01/BTCUSDT_orderbook.parquet",
+          "b6e1b253791655e6746cffceeebc72f9fb71f83413c6858d831fab043e536f8c"
+        ],
+        [
+          "binance_spot/2026-10-20/01/BTCUSDT_trades.parquet",
+          "b97d899598e02ed2f68471fba68a3961421093180231f128de08bd179f4d033d"
+        ],
+        [
+          "binance_spot/2026-10-20/02/BTCUSDT_orderbook.parquet",
+          "741e304a32ab88c1d08bb2c4a96f750ca82eff34bd6f0781b8d02f31dc09405e"
+        ],
+        [
+          "binance_spot/2026-10-20/02/BTCUSDT_trades.parquet",
+          "ea3f41c45d9692eda5c85673181cfe1e264e6134d98870de5def7c1b367c3647"
+        ],
+        [
+          "binance_spot/2026-10-20/03/BTCUSDT_orderbook.parquet",
+          "728969bb85bc3f138828968ae147fab42b2fe6fb4fd154f63488c299878a2c07"
+        ],
+        [
+          "binance_spot/2026-10-20/03/BTCUSDT_trades.parquet",
+          "dafc96abc28a493718a208b651fd59f5f22807c7d66b976fde8ce2504753ea91"
+        ],
+        [
+          "binance_spot/2026-10-20/04/BTCUSDT_orderbook.parquet",
+          "610228de6a164d7726aa942f86f8820b5703e6a759bcc0a99ae0d34d3cd9ccce"
+        ],
+        [
+          "binance_spot/2026-10-20/04/BTCUSDT_trades.parquet",
+          "f24cf05b813d8fbd7a8ea3093e9982fc93196875ffd9f567ca3960adda373250"
+        ],
+        [
+          "binance_spot/2026-10-20/05/BTCUSDT_orderbook.parquet",
+          "fe678b73bbd2c6cf88942994a876af8c66495de140a629329fd093e534d67e57"
+        ],
+        [
+          "binance_spot/2026-10-20/05/BTCUSDT_trades.parquet",
+          "54f9daf2af0e7b780ce480cfd18e1a5e9638f059c8375659b6c17e50691f4cc9"
+        ],
+        [
+          "binance_spot/2026-10-20/06/BTCUSDT_orderbook.parquet",
+          "87897d4c7a16594ccc025d1ffe8f69b69ea9d205a5834d451cd6d74ca150ddb7"
+        ],
+        [
+          "binance_spot/2026-10-20/06/BTCUSDT_trades.parquet",
+          "ac6f9932b1ff44de27231a9373c2c088211b28e13e2b8a1c70eba3643a383ab1"
+        ],
+        [
+          "binance_spot/2026-10-20/07/BTCUSDT_orderbook.parquet",
+          "c8c33701de560a6f824d31df2d70401ee8da43d3e79197e40ea716a840f3a5bd"
+        ],
+        [
+          "binance_spot/2026-10-20/07/BTCUSDT_trades.parquet",
+          "ad78d5f930a5df16908220b9afb17d3a567b2c078bc58c1aba80a0f0315613e7"
+        ],
+        [
+          "binance_spot/2026-10-20/08/BTCUSDT_orderbook.parquet",
+          "218d509ce7046dbce0dacf1d3db7aa085704a7b4c974a82e6ba8fb96ba15d499"
+        ],
+        [
+          "binance_spot/2026-10-20/08/BTCUSDT_trades.parquet",
+          "a2f7dbf755497b53fe66a9e399f2716e128bb3a929d4c47f1efa281c2b982acc"
+        ],
+        [
+          "binance_spot/2026-10-20/09/BTCUSDT_orderbook.parquet",
+          "6a52b081c3a50fb303ee0e86235c6040da3e65b9004e8157b8ba76f4e81e0140"
+        ],
+        [
+          "binance_spot/2026-10-20/09/BTCUSDT_trades.parquet",
+          "8765d5c6189fce7f400e3c008f9ab38ea25f22d6d393f352c45f3f1e8b2e2142"
+        ],
+        [
+          "binance_spot/2026-10-20/10/BTCUSDT_orderbook.parquet",
+          "aacffe83d7163461cfad24b410a3f5f8852c027c39022975926996579e1af0f5"
+        ],
+        [
+          "binance_spot/2026-10-20/10/BTCUSDT_trades.parquet",
+          "4a63f2cbf1d12293b57086b41b041e502b90f9129c2cd60f094c0b31d0a2d1d1"
+        ],
+        [
+          "binance_spot/2026-10-20/11/BTCUSDT_orderbook.parquet",
+          "1805092d6daefe7a5b07da3a655e2be567649125c19ecf1ac7ed3a1497f9c808"
+        ],
+        [
+          "binance_spot/2026-10-20/11/BTCUSDT_trades.parquet",
+          "192d8f33b75207607f2f6a4fecbc84152030d9af815f665802c754b715fdac9d"
+        ],
+        [
+          "binance_spot/2026-10-20/12/BTCUSDT_orderbook.parquet",
+          "42ceda659f69e01d907bfbb31ee51d0985b9920f745db262307ea0aab6c50e7b"
+        ],
+        [
+          "binance_spot/2026-10-20/12/BTCUSDT_trades.parquet",
+          "14a4b2e9ce98a3b2f08ce0c48cc995dcdff83f51c41df64841de3d834852c0ea"
+        ],
+        [
+          "binance_spot/2026-10-20/13/BTCUSDT_orderbook.parquet",
+          "cb836f08569f4a7e358200bf74a06d0329b60446e6b0ab3d14183fff52d03120"
+        ],
+        [
+          "binance_spot/2026-10-20/13/BTCUSDT_trades.parquet",
+          "3b05b6f567f9a41e9b6186a865d43ac9f4f95010f7c72e1b563c92a61293f487"
+        ],
+        [
+          "binance_spot/2026-10-20/14/BTCUSDT_orderbook.parquet",
+          "dd494ebcdb8c7785914392dbf813cefe7d581614cf99a0e0367d7ac268c11aca"
+        ],
+        [
+          "binance_spot/2026-10-20/14/BTCUSDT_trades.parquet",
+          "8619e7df0e0a9b8f61c03f29c1fff82860b14ed19da26ffeb0b228cee7989885"
+        ],
+        [
+          "binance_spot/2026-10-20/15/BTCUSDT_orderbook.parquet",
+          "533b643515a3e55b27093ab5eed135c81b879762af27ea3aeef327f5020697b6"
+        ],
+        [
+          "binance_spot/2026-10-20/15/BTCUSDT_trades.parquet",
+          "4c1aa861f9f9b8058802f6232b9243bc6a09856b4f8f1db05c0b5a75988c229a"
+        ],
+        [
+          "binance_spot/2026-10-20/16/BTCUSDT_orderbook.parquet",
+          "fb507b57a495775c4cfa9f4a67a312f94ca718618ffff74e0e123bc38526dd19"
+        ],
+        [
+          "binance_spot/2026-10-20/16/BTCUSDT_trades.parquet",
+          "6446cceb2d8a4d19ab641450448e28c1e0041cbc634867156658e3ddb87fae4d"
+        ],
+        [
+          "binance_spot/2026-10-20/17/BTCUSDT_orderbook.parquet",
+          "74fa76952ff216cfa01885a6b36e1dafe042309e7e57f0233fb71eb7e538ea04"
+        ],
+        [
+          "binance_spot/2026-10-20/17/BTCUSDT_trades.parquet",
+          "d67be5cef7553f66e53cfbd655027b169799e98f2b045c996a94769f9ab6791e"
+        ],
+        [
+          "binance_spot/2026-10-20/18/BTCUSDT_orderbook.parquet",
+          "5327940ad0857dc51e90f894799a0e3b993d5ed01968c342de8f4a09535dccd5"
+        ],
+        [
+          "binance_spot/2026-10-20/18/BTCUSDT_trades.parquet",
+          "bf9af7dfa6fa99799aedaba63910b7d5688bce757d7650deff4fc6b68e53322a"
+        ],
+        [
+          "binance_spot/2026-10-20/19/BTCUSDT_orderbook.parquet",
+          "dc08f57a623deaf46deaa70f5a66a3071973eb2fa255ce1535c6558ba9f09631"
+        ],
+        [
+          "binance_spot/2026-10-20/19/BTCUSDT_trades.parquet",
+          "8a63096514d1b2f55357e66e8c7fddc31d3c42633d1af0d9988d12ee32c637c0"
+        ],
+        [
+          "binance_spot/2026-10-20/20/BTCUSDT_orderbook.parquet",
+          "99201bdb8f8f679e2ac97d44c818f7aa2a5206f24b1255b6b1fa5118b87b6fd3"
+        ],
+        [
+          "binance_spot/2026-10-20/20/BTCUSDT_trades.parquet",
+          "26a8f65750c2bdde68e19641412d9cb3b519447dc09878dd8c88cc371f0a5379"
+        ],
+        [
+          "binance_spot/2026-10-20/21/BTCUSDT_orderbook.parquet",
+          "8348289ca05b2ed8b037f97fe5555cbdd43a744a5673fc3cb4b3437c39732556"
+        ],
+        [
+          "binance_spot/2026-10-20/21/BTCUSDT_trades.parquet",
+          "6a24da4c5e70a671e286a0f4c10779fae0e65337f083153c58e5b1d220cc14a5"
+        ],
+        [
+          "binance_spot/2026-10-20/22/BTCUSDT_orderbook.parquet",
+          "a80100459a00e286ab0d0780507d8d7b2043f1bda2df72f8472041272b4ec64d"
+        ],
+        [
+          "binance_spot/2026-10-20/22/BTCUSDT_trades.parquet",
+          "0773eec52030d0562c5b3373f67ec797061efe3ec7284db49bf58dce8ac15d16"
+        ],
+        [
+          "binance_spot/2026-10-20/23/BTCUSDT_orderbook.parquet",
+          "39fd36c8bbf584a72550e159da95a24414c49d47125de66670a348faae572a4d"
+        ],
+        [
+          "binance_spot/2026-10-20/23/BTCUSDT_trades.parquet",
+          "c9dff34a72f48e4e13a7ac21c37100a3b2c31080042a004336c098b39bfd0339"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 393,
+          "candidates": 2,
+          "controls": 0,
+          "pressure_cut_usdt": 563716.5523536999,
+          "impact_cut_bps": 2.7302960986478517,
+          "refill_cut": 0.43431419746914673,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        },
+        "ask": {
+          "training_events": 530,
+          "candidates": 0,
+          "controls": 0,
+          "pressure_cut_usdt": 621766.7212089002,
+          "impact_cut_bps": 2.126593496521533,
+          "refill_cut": 0.4216184194414475,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        }
+      }
+    },
+    "ETHUSDT": {
+      "book_audit": {
+        "snapshots": 3,
+        "trades": 3822121,
+        "snapshot_reanchors": 2,
+        "trade_sequence_gaps": 2
+      },
+      "invalid_seconds": 4,
+      "valid_update_seconds": 86263,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/ETHUSDT_orderbook.parquet",
+          "171fb1b17e856293cb4d0e7c17bdd3464325bad59d67128fd833e2f98aeceda7"
+        ],
+        [
+          "binance_spot/2026-10-20/00/ETHUSDT_trades.parquet",
+          "b4fd76ba4610077e25539321b921d5eb9bbb7dee0443166d905ae5a242a07c67"
+        ],
+        [
+          "binance_spot/2026-10-20/01/ETHUSDT_orderbook.parquet",
+          "f344463eb294bd18a16893502cd722d3483e0d48963755f36cdd6686e5458a94"
+        ],
+        [
+          "binance_spot/2026-10-20/01/ETHUSDT_trades.parquet",
+          "e8292a5b4a7cca6ccbfc95a99c41bd9d077600ee6e5475bd851986e32400b115"
+        ],
+        [
+          "binance_spot/2026-10-20/02/ETHUSDT_orderbook.parquet",
+          "b87a3e88677f921adcc0cbdd44bdcfef193f7ebdd348877a236b9029713ca363"
+        ],
+        [
+          "binance_spot/2026-10-20/02/ETHUSDT_trades.parquet",
+          "25a26566e9ccfbaef84b5a5505a7452a12cb5dbac4270421763442a9d667e03c"
+        ],
+        [
+          "binance_spot/2026-10-20/03/ETHUSDT_orderbook.parquet",
+          "b6cdfef6fd6af6765550219ef72125ef95dc125faf10b236b9e195ff7bcf2511"
+        ],
+        [
+          "binance_spot/2026-10-20/03/ETHUSDT_trades.parquet",
+          "a2b2d87e22a788e6ae7b7f74364ed0a299aa7a0ce195ecc96d559c06d6632d67"
+        ],
+        [
+          "binance_spot/2026-10-20/04/ETHUSDT_orderbook.parquet",
+          "6a4bc095233186b1fb5a5ba066162b9840057ed32853869c3584e3a6fb2fb6b6"
+        ],
+        [
+          "binance_spot/2026-10-20/04/ETHUSDT_trades.parquet",
+          "5a93e2b3cbb40e70d9889cd0528dd0e1635e1eb897604b701597c41805796dca"
+        ],
+        [
+          "binance_spot/2026-10-20/05/ETHUSDT_orderbook.parquet",
+          "ec90d7be3770938303429b1c9992bc611f0c862f2417e981ecb2838eaa027250"
+        ],
+        [
+          "binance_spot/2026-10-20/05/ETHUSDT_trades.parquet",
+          "ca9801945fe69ac5622bb57e8f5b6000aea4d9f3128c3bd8345ee2fd3315d46a"
+        ],
+        [
+          "binance_spot/2026-10-20/06/ETHUSDT_orderbook.parquet",
+          "88b9b4c9c766657ae42a010cbbd60f87432fd44c6191557faf180e02626cf999"
+        ],
+        [
+          "binance_spot/2026-10-20/06/ETHUSDT_trades.parquet",
+          "7974034f51b3957b0999d4d52e1a8284a92666122f7b31fddf15e1777756b31d"
+        ],
+        [
+          "binance_spot/2026-10-20/07/ETHUSDT_orderbook.parquet",
+          "fc7342fe4b34c5419e419d7992f212cefe068bf4d04e1f23f37b49d39696a98a"
+        ],
+        [
+          "binance_spot/2026-10-20/07/ETHUSDT_trades.parquet",
+          "0db3e01374ab90be657b453bffb45130653a14abf19ae599bd992b3a79f3cd70"
+        ],
+        [
+          "binance_spot/2026-10-20/08/ETHUSDT_orderbook.parquet",
+          "dbd7c3621988118d536b5446fba5c7e370e1dd049d98f4d1a63b8c23660ac7a5"
+        ],
+        [
+          "binance_spot/2026-10-20/08/ETHUSDT_trades.parquet",
+          "1adb3edcec57e37949218ffe3a2177b6a042568f18ed9fe0a0d4efd41228080e"
+        ],
+        [
+          "binance_spot/2026-10-20/09/ETHUSDT_orderbook.parquet",
+          "71b5b6209997d70656e90136accf154b4ec4c21ecc40f0d12a52890638c6dc35"
+        ],
+        [
+          "binance_spot/2026-10-20/09/ETHUSDT_trades.parquet",
+          "1509c37bd036be2b680c10cbf4a8f3409c89b00081a4d86aca2e1cdfc0cd348c"
+        ],
+        [
+          "binance_spot/2026-10-20/10/ETHUSDT_orderbook.parquet",
+          "4376bdd20f3f24c235eaa6e11dfe984c07288652672f8370072b4afeadfa6e04"
+        ],
+        [
+          "binance_spot/2026-10-20/10/ETHUSDT_trades.parquet",
+          "18603852c105c118ed60f7a396c76cd4e54519382dcf261ec0a8209584c64d50"
+        ],
+        [
+          "binance_spot/2026-10-20/11/ETHUSDT_orderbook.parquet",
+          "c58a808cb360cf63facd5d9a390909da24c1d04da1d95f5795ce50e2e28a5816"
+        ],
+        [
+          "binance_spot/2026-10-20/11/ETHUSDT_trades.parquet",
+          "01efd5680211ba3de84164d6325cb794d926d926a2ba4338187e559762e81d5a"
+        ],
+        [
+          "binance_spot/2026-10-20/12/ETHUSDT_orderbook.parquet",
+          "f8c9ffb9d77689c08712c039c1f896e2429a1770286a7dd38f127fcdb23b0326"
+        ],
+        [
+          "binance_spot/2026-10-20/12/ETHUSDT_trades.parquet",
+          "0b2de96a6b2ebd148c531cb00c086fc694f7c606b7b3e8f4a1a5ff44ea125295"
+        ],
+        [
+          "binance_spot/2026-10-20/13/ETHUSDT_orderbook.parquet",
+          "abd7efcc80bd16d02d44155dd37837d8c303eb46d10f4b10914e680050b0e736"
+        ],
+        [
+          "binance_spot/2026-10-20/13/ETHUSDT_trades.parquet",
+          "df39cd7b6e58955939816ab999c6296d3bd601f3969ce75a932ef02b08a8cf77"
+        ],
+        [
+          "binance_spot/2026-10-20/14/ETHUSDT_orderbook.parquet",
+          "bd5edd24c46929d8b1598332f1620cd04c706703a9146ee94c928db399cafab2"
+        ],
+        [
+          "binance_spot/2026-10-20/14/ETHUSDT_trades.parquet",
+          "ad16487be83b8e4bc885ebad5e348783ff82a3a000c0ebde4e2d61acbe6ca5ce"
+        ],
+        [
+          "binance_spot/2026-10-20/15/ETHUSDT_orderbook.parquet",
+          "a9175376d63d2b4e85326f74a9815501d4eb1bf73fd2850b02593b5313bd9f63"
+        ],
+        [
+          "binance_spot/2026-10-20/15/ETHUSDT_trades.parquet",
+          "78dc2838825e8faf3cdec9c0ce44e0556eeecd877c8a371eef67a0396a3e2b31"
+        ],
+        [
+          "binance_spot/2026-10-20/16/ETHUSDT_orderbook.parquet",
+          "85f08dcdcbcabb8a13a5c25e84dc3a131c3d12e1e33eecc1c8e833567986d6f4"
+        ],
+        [
+          "binance_spot/2026-10-20/16/ETHUSDT_trades.parquet",
+          "1b4659f4f8ef4b87e512d7307e925d4c60504a0c12c0a737252253caf22fd4c5"
+        ],
+        [
+          "binance_spot/2026-10-20/17/ETHUSDT_orderbook.parquet",
+          "ca76e0b67257594df3594b65269691154cf430498c202ce8f6127254adcfb5e9"
+        ],
+        [
+          "binance_spot/2026-10-20/17/ETHUSDT_trades.parquet",
+          "0c6e185aa1d3a38d5bb49aa2ed74dcc9d774b18e104fbb303cbad6eff3e44508"
+        ],
+        [
+          "binance_spot/2026-10-20/18/ETHUSDT_orderbook.parquet",
+          "52a33e811a1ffa68820acc205e299df7ffac7ad8a85d146a80cd7676d063484c"
+        ],
+        [
+          "binance_spot/2026-10-20/18/ETHUSDT_trades.parquet",
+          "198ec3b534c6355a4502e924dcbfff32f63ee32bae9eb5a1c81755f94bf5ba87"
+        ],
+        [
+          "binance_spot/2026-10-20/19/ETHUSDT_orderbook.parquet",
+          "a23d0a260719bad0d45ea8fbf5c9e895674e3ac108303d7e7464cff1d1b7bac7"
+        ],
+        [
+          "binance_spot/2026-10-20/19/ETHUSDT_trades.parquet",
+          "64015a00f181ca9676f16543366f9df2feb4fe46d5a37ffd3a499fdf67be1f76"
+        ],
+        [
+          "binance_spot/2026-10-20/20/ETHUSDT_orderbook.parquet",
+          "c26808e2d180a1c3a4408eabc623ca0566ad99e8fcb642d04f624eee83ea104f"
+        ],
+        [
+          "binance_spot/2026-10-20/20/ETHUSDT_trades.parquet",
+          "b3468fe5aa0bbe0009e239b69a4a7debbabceb59d28f30e6008b7d5866fc9ca2"
+        ],
+        [
+          "binance_spot/2026-10-20/21/ETHUSDT_orderbook.parquet",
+          "39995c78d825fb0553203825a79f176968faa599f6fbb7a5680b67c8d5364eb2"
+        ],
+        [
+          "binance_spot/2026-10-20/21/ETHUSDT_trades.parquet",
+          "f55c8eb800daefb67f6fde8d531e6310c0e17108a2ad5cfabb3033ab7e90f4d0"
+        ],
+        [
+          "binance_spot/2026-10-20/22/ETHUSDT_orderbook.parquet",
+          "3cb55001cfd1693fe79da541a63a5ddbe1c2f7ff4baba1c98aa3ec4424750f57"
+        ],
+        [
+          "binance_spot/2026-10-20/22/ETHUSDT_trades.parquet",
+          "c7fa5b4f84c3b5647e1adc288ed0242a67292e99f9d391fd6708ec72fd2593f8"
+        ],
+        [
+          "binance_spot/2026-10-20/23/ETHUSDT_orderbook.parquet",
+          "ad60abe901cb135fa0a036dc725f1c438ac3b95134301a9fb40baa2478a50149"
+        ],
+        [
+          "binance_spot/2026-10-20/23/ETHUSDT_trades.parquet",
+          "72c07b008143d57730e72d252d1a540ef7bbe95f26e8d82f1df4df9c69d95f8f"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 386,
+          "candidates": 11,
+          "controls": 0,
+          "pressure_cut_usdt": 226613.4992459999,
+          "impact_cut_bps": 2.7838866520644046,
+          "refill_cut": 0.1387126894634063,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        },
+        "ask": {
+          "training_events": 441,
+          "candidates": 5,
+          "controls": 0,
+          "pressure_cut_usdt": 326510.3787350001,
+          "impact_cut_bps": 2.7178571745182656,
+          "refill_cut": 0.1621244819935227,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        }
+      }
+    },
+    "DOGEUSDT": {
+      "book_audit": {
+        "snapshots": 3,
+        "trades": 271681,
+        "snapshot_reanchors": 2,
+        "trade_sequence_gaps": 1
+      },
+      "invalid_seconds": 3,
+      "valid_update_seconds": 85488,
+      "source_digests": [
+        [
+          "binance_spot/2026-10-20/00/DOGEUSDT_orderbook.parquet",
+          "e575d6b626995cc8b112497257da3c0ce2ca5bf6133761ee0340c74dc1b428c8"
+        ],
+        [
+          "binance_spot/2026-10-20/00/DOGEUSDT_trades.parquet",
+          "815b93b19deba865ea63c5308e82b4f7a6c536014ca76b784de8009d3182f8c3"
+        ],
+        [
+          "binance_spot/2026-10-20/01/DOGEUSDT_orderbook.parquet",
+          "e27b7839fb571fe47c1cea0af296a1d6bffbaa816684b7f24275aa246f9b2bfa"
+        ],
+        [
+          "binance_spot/2026-10-20/01/DOGEUSDT_trades.parquet",
+          "1ea1b8c0c62aebd28e726274ad6315783a958e9f7b10f4d737a857b800e4a936"
+        ],
+        [
+          "binance_spot/2026-10-20/02/DOGEUSDT_orderbook.parquet",
+          "869bdfd9ca84395a5ba2d6d6f239162aa382ca2f9286008597ffc9b9ec190a54"
+        ],
+        [
+          "binance_spot/2026-10-20/02/DOGEUSDT_trades.parquet",
+          "19efb534d4ab702de601a0dc72d0f214be4e7d4ec0c734d57e0b9c96d335209e"
+        ],
+        [
+          "binance_spot/2026-10-20/03/DOGEUSDT_orderbook.parquet",
+          "5b4ed814a78888ac8724c31c5aa9bf10dcb828d25828a6767cf4cfeaad5931b8"
+        ],
+        [
+          "binance_spot/2026-10-20/03/DOGEUSDT_trades.parquet",
+          "7f626517856f928f0bd88d65ada95e3e4b122b4bef0a7105a67cd67533f6a0bf"
+        ],
+        [
+          "binance_spot/2026-10-20/04/DOGEUSDT_orderbook.parquet",
+          "da52a5f3df61810f92bb800de93abfe49df19560df83d7a19945a181196f4c62"
+        ],
+        [
+          "binance_spot/2026-10-20/04/DOGEUSDT_trades.parquet",
+          "e54097fda09ef3072145dfba7055bdf1b74946d9bc52f89e18e7b9a12aedaee3"
+        ],
+        [
+          "binance_spot/2026-10-20/05/DOGEUSDT_orderbook.parquet",
+          "aaf76324e18ca798c35bdb2561145957f68c6f7b637f50111cc9d8fc0df115a8"
+        ],
+        [
+          "binance_spot/2026-10-20/05/DOGEUSDT_trades.parquet",
+          "1cb0728098f66b03e1680bdcda027d46078e29013cd1707a502afeb8d9e5df89"
+        ],
+        [
+          "binance_spot/2026-10-20/06/DOGEUSDT_orderbook.parquet",
+          "36a6f4f08499967aa3316e1e429440b3e44413cab674f61e07d29bb35592987c"
+        ],
+        [
+          "binance_spot/2026-10-20/06/DOGEUSDT_trades.parquet",
+          "52d54b33c5dad444556a4be65ac1334f72e087ce7bfc8339ffbfb61f67031f71"
+        ],
+        [
+          "binance_spot/2026-10-20/07/DOGEUSDT_orderbook.parquet",
+          "22ffafc5322ad2495f6687a4389f36140408f613ab506e667d363c15f8abc951"
+        ],
+        [
+          "binance_spot/2026-10-20/07/DOGEUSDT_trades.parquet",
+          "603ec4f6efbe6f7a9e1666060070552a43ff88f5adb44d9013eb8b485ab926a2"
+        ],
+        [
+          "binance_spot/2026-10-20/08/DOGEUSDT_orderbook.parquet",
+          "fb1fdb38a117fd89736923a266fc40a29b7b208812523d965cf32526c8b0e4a5"
+        ],
+        [
+          "binance_spot/2026-10-20/08/DOGEUSDT_trades.parquet",
+          "388d04ea148b7fb32c333cba36344b14b9aad6d15c498ab4efe0f5ed52b492d9"
+        ],
+        [
+          "binance_spot/2026-10-20/09/DOGEUSDT_orderbook.parquet",
+          "fe9e5c114b723fdb16331a468d74dd5c981d986b2393c68d3d72e7f32dcb142d"
+        ],
+        [
+          "binance_spot/2026-10-20/09/DOGEUSDT_trades.parquet",
+          "c6181f555fb3f7130e35997a7a26d42a8a3184a73ab178c0673b3f78cbe21eb6"
+        ],
+        [
+          "binance_spot/2026-10-20/10/DOGEUSDT_orderbook.parquet",
+          "d726bbd80d483149bc7b8f00a9f1ef3e17fe1f2ff7afff69705755e40d4258f2"
+        ],
+        [
+          "binance_spot/2026-10-20/10/DOGEUSDT_trades.parquet",
+          "038371b034c22413d883330ae048bc707be2dac89fec333d3fac4c9a706270fc"
+        ],
+        [
+          "binance_spot/2026-10-20/11/DOGEUSDT_orderbook.parquet",
+          "a7c1140e4fd47c9b5b11a1f224d464d7fbced724f47d984833dd2a37eab7b811"
+        ],
+        [
+          "binance_spot/2026-10-20/11/DOGEUSDT_trades.parquet",
+          "9823745c043bfb06ecc956d17374926fdc2587e1a1c6bff0bad96f9c2c1c9b05"
+        ],
+        [
+          "binance_spot/2026-10-20/12/DOGEUSDT_orderbook.parquet",
+          "eb86ccba11aaab59744410beb3db4f32e15f4491f776a4d69987d798d55fb95b"
+        ],
+        [
+          "binance_spot/2026-10-20/12/DOGEUSDT_trades.parquet",
+          "34dc5720e3b7ab4c2cc00f6ec6c9eb9afd514f965475c765450dcbca9470870b"
+        ],
+        [
+          "binance_spot/2026-10-20/13/DOGEUSDT_orderbook.parquet",
+          "6a043e46f88d112d261572aa9d94178a75b47bce37163a3dd6cdf6a13e288b05"
+        ],
+        [
+          "binance_spot/2026-10-20/13/DOGEUSDT_trades.parquet",
+          "15bba3ea9c94ca4184157b8f675f8c5286b552d2bd67a69c45ef5503d99f4641"
+        ],
+        [
+          "binance_spot/2026-10-20/14/DOGEUSDT_orderbook.parquet",
+          "8781d852db1f52b40aa1d95d0ea9f7cc0620d222ac56e4732af6c96e41db8c27"
+        ],
+        [
+          "binance_spot/2026-10-20/14/DOGEUSDT_trades.parquet",
+          "4136281c022132e4505fa99464239b3c5829e865ec4e438cf0ffbbfe9fbf115c"
+        ],
+        [
+          "binance_spot/2026-10-20/15/DOGEUSDT_orderbook.parquet",
+          "75040683ab268da0533d05db1b84e4dbae40ffaa3651f540c99252584f7df9a7"
+        ],
+        [
+          "binance_spot/2026-10-20/15/DOGEUSDT_trades.parquet",
+          "4026052a572811055ce9c5e8d37b678820c5f3f3faed9f690a8a9520122529fe"
+        ],
+        [
+          "binance_spot/2026-10-20/16/DOGEUSDT_orderbook.parquet",
+          "f2e76e1c257b363287c6131a8f92a6a3d58b9e9c84b059286eb4158ac4b0804b"
+        ],
+        [
+          "binance_spot/2026-10-20/16/DOGEUSDT_trades.parquet",
+          "d3822eea792f1adce0b480969bf797a4234980ced7ff66f1fe697540161be415"
+        ],
+        [
+          "binance_spot/2026-10-20/17/DOGEUSDT_orderbook.parquet",
+          "c3296e3c4375641b6a63a6248d822dd2c4722ef846757ef58901122073378afd"
+        ],
+        [
+          "binance_spot/2026-10-20/17/DOGEUSDT_trades.parquet",
+          "85cff65926f93bdad04b2d3dec7c214ca73fc5cce976ca5d58bf0857c7801d1f"
+        ],
+        [
+          "binance_spot/2026-10-20/18/DOGEUSDT_orderbook.parquet",
+          "cdce0d4f06dd5f82f7ee6ece9cf6181aa78e62365cb3a6d980a0a481fe21c8c8"
+        ],
+        [
+          "binance_spot/2026-10-20/18/DOGEUSDT_trades.parquet",
+          "9ca23582784afc86ed9591f48b8b501f2d6bafbc16b47f87525ee86c4f48a04c"
+        ],
+        [
+          "binance_spot/2026-10-20/19/DOGEUSDT_orderbook.parquet",
+          "008c39308707ae20f9a0f97c9af639521503fe9b8f1daa1c1adf5a3dbc66b4d7"
+        ],
+        [
+          "binance_spot/2026-10-20/19/DOGEUSDT_trades.parquet",
+          "b33a2f363345f764af06ccf584a213077bfc8e669650a7a29423036c8e5d01ad"
+        ],
+        [
+          "binance_spot/2026-10-20/20/DOGEUSDT_orderbook.parquet",
+          "467e92b38dea01b498560c57ae3435e577602b75581f1d0a7a45764ee173cd93"
+        ],
+        [
+          "binance_spot/2026-10-20/20/DOGEUSDT_trades.parquet",
+          "00d1361253a231941fd2dab1c12255a017ed789c7fb53fe3bace0992126594f3"
+        ],
+        [
+          "binance_spot/2026-10-20/21/DOGEUSDT_orderbook.parquet",
+          "331a557009b0e9c08a7143d02f5c1e263543a13451a5837ed274bf04e25e93d0"
+        ],
+        [
+          "binance_spot/2026-10-20/21/DOGEUSDT_trades.parquet",
+          "887bb33a0b1ab9d44272732c2ea9ac6276f9e3c1db32e7b6e73610bbc20524c9"
+        ],
+        [
+          "binance_spot/2026-10-20/22/DOGEUSDT_orderbook.parquet",
+          "d2559540f9bb8f4eea4a3d14304998bbb1a4f8eec98974db4b4ec24cd11ffcb5"
+        ],
+        [
+          "binance_spot/2026-10-20/22/DOGEUSDT_trades.parquet",
+          "0acf88507d129e8b0d3bbb81a05b75bbd5329ad0419e34449b12855a3fab3ee0"
+        ],
+        [
+          "binance_spot/2026-10-20/23/DOGEUSDT_orderbook.parquet",
+          "7bccb1a6062ba4d7dd313ec55f2231189a6fcf5f3b9649c34f438298ee16eb12"
+        ],
+        [
+          "binance_spot/2026-10-20/23/DOGEUSDT_trades.parquet",
+          "229ef36552ad3f614e8c523d1b3d68fa85c6a12a6383d98aa23de0485207e1c6"
+        ]
+      ],
+      "sides": {
+        "bid": {
+          "training_events": 575,
+          "candidates": 4,
+          "controls": 0,
+          "pressure_cut_usdt": 11794.1145,
+          "impact_cut_bps": 1.2656625760487599,
+          "refill_cut": 0.4306546105430743,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              },
+              "stress": {
+                "pairs": 0,
+                "missing": 0,
+                "treated_mean_bps": null,
+                "control_mean_bps": null,
+                "paired_difference_bps": null
+              }
+            }
+          },
+          "ledger": []
+        },
+        "ask": {
+          "training_events": 451,
+          "candidates": 17,
+          "controls": 2,
+          "pressure_cut_usdt": 9890.19451,
+          "impact_cut_bps": 1.8947631621243546,
+          "refill_cut": 0.23535027377443096,
+          "scores": {
+            "30": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -37.381335673988616,
+                "control_mean_bps": -29.404477708022092,
+                "paired_difference_bps": -7.9768579659665235
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -67.44112457901625,
+                "control_mean_bps": -59.44830889870997,
+                "paired_difference_bps": -7.992815680306286
+              }
+            },
+            "60": {
+              "base": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -37.987115778930146,
+                "control_mean_bps": -30.62553729947948,
+                "paired_difference_bps": -7.361578479450671
+              },
+              "stress": {
+                "pairs": 2,
+                "missing": 0,
+                "treated_mean_bps": -68.04811654781592,
+                "control_mean_bps": -60.67181122140834,
+                "paired_difference_bps": -7.376305326407582
+              }
+            },
+            "300": {
+              "base": {
+                "pairs": 1,
+                "missing": 1,
+                "treated_mean_bps": -54.6070188118943,
+                "control_mean_bps": -26.337487926737627,
+                "paired_difference_bps": -28.269530885156673
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 1,
+                "treated_mean_bps": -84.70126771758797,
+                "control_mean_bps": -56.37518360053144,
+                "paired_difference_bps": -28.326084117056524
+              }
+            },
+            "900": {
+              "base": {
+                "pairs": 1,
+                "missing": 1,
+                "treated_mean_bps": -43.54061372322959,
+                "control_mean_bps": -39.82172637578842,
+                "paired_difference_bps": -3.718887347441168
+              },
+              "stress": {
+                "pairs": 1,
+                "missing": 1,
+                "treated_mean_bps": -73.61272427169953,
+                "control_mean_bps": -69.88639728546792,
+                "paired_difference_bps": -3.726326986231612
+              }
+            }
+          },
+          "ledger": [
+            {
+              "candidate": {
+                "time": 1792525500,
+                "side": "ask",
+                "pressure": 10268.131250000002,
+                "impact_bps": -3.680981636655224,
+                "spread_bps": 1.2270390609319028,
+                "range_bps": 4.908276679924508,
+                "depth": 24051.483818,
+                "refill": 0.675734738976968,
+                "ofi": -2.758827423792503
+              },
+              "control": {
+                "time": 1792532070,
+                "side": "ask",
+                "pressure": 10901.91082,
+                "impact_bps": 1.223391242044676,
+                "spread_bps": 1.2233363666057542,
+                "range_bps": 1.223391242044676,
+                "depth": 14388.206672333332,
+                "refill": 0.0,
+                "ofi": 1.2243133481584383
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -38.62221146159932,
+                  "stress": -68.68448274019241
+                },
+                "60": {
+                  "base": -34.93340976538003,
+                  "stress": -64.98830159156464
+                },
+                "300": {
+                  "base": -54.6070188118943,
+                  "stress": -84.70126771758797
+                },
+                "900": {
+                  "base": -43.54061372322959,
+                  "stress": -73.61272427169953
+                }
+              },
+              "control_bps": {
+                "30": {
+                  "base": -30.01500750375071,
+                  "stress": -60.06006006005943
+                },
+                "60": {
+                  "base": -30.01500750375071,
+                  "stress": -60.06006006005943
+                },
+                "300": {
+                  "base": -26.337487926737627,
+                  "stress": -56.37518360053144
+                },
+                "900": {
+                  "base": -39.82172637578842,
+                  "stress": -69.88639728546792
+                }
+              }
+            },
+            {
+              "candidate": {
+                "time": 1792533780,
+                "side": "ask",
+                "pressure": 13776.15119,
+                "impact_bps": -2.4454362168703794,
+                "spread_bps": 1.2227330740620834,
+                "range_bps": 6.11321696504834,
+                "depth": 17774.267734333334,
+                "refill": 0.4834467935307263,
+                "ofi": -3.4502617138224494
+              },
+              "control": {
+                "time": 1792537020,
+                "side": "ask",
+                "pressure": 15969.453150000001,
+                "impact_bps": 0.0,
+                "spread_bps": 1.218467100118892,
+                "range_bps": 2.4370925606534155,
+                "depth": 36784.95580933333,
+                "refill": 0.0,
+                "ofi": 0.736756565658932
+              },
+              "treated_bps": {
+                "30": {
+                  "base": -36.14045988637791,
+                  "stress": -66.1977664178401
+                },
+                "60": {
+                  "base": -41.04082179248027,
+                  "stress": -71.10793150406721
+                },
+                "300": null,
+                "900": null
+              },
+              "control_bps": {
+                "30": {
+                  "base": -28.793947912293476,
+                  "stress": -58.83655773736051
+                },
+                "60": {
+                  "base": -31.23606709520825,
+                  "stress": -61.28356238275725
+                },
+                "300": {
+                  "base": -19.025471180629292,
+                  "stress": -49.04853915577519
+                },
+                "900": {
+                  "base": -8.03593485750687,
+                  "stress": -38.03701825149405
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

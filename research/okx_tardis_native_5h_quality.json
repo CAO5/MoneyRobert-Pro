@@ -1,0 +1,211 @@
+{
+  "diagnostic_only": true,
+  "source": "https://api.tardis.dev/v1/data-feeds/okex-swap",
+  "receiver": "Tardis collection clock, not the local device",
+  "start_utc": "2026-11-01T00:00:00+00:00",
+  "interval_seconds": 18000,
+  "observed_receipt_ns": [
+    1793491200008768400,
+    1793509199909827900
+  ],
+  "provider_disconnect_markers": 0,
+  "slice_sha256": {
+    "0000.ndjson.gz": "41db36094d47b18d9d8275997779eae6342d74d744d924efb42f2e48d569a501",
+    "0010.ndjson.gz": "9c333eb98540c40be7db6f5d8abb77415b7cf1b7abc2476b561f0539c1468db2",
+    "0020.ndjson.gz": "a2246518b08bd059eb323971a9f2a63d56004be4e212e035d589cc38824c42de",
+    "0030.ndjson.gz": "90bb4230b9dfd1b87fde538d8802da0cf352040bc1eb54ddacb71e2757e532d3",
+    "0040.ndjson.gz": "4b5eae2113278defb7aae2f3771adb00fbc4bb378727f85058c41d19e7cae9db",
+    "0050.ndjson.gz": "f746f7473cbdea2c2cdd7c458c0f49a0d41b1b7ca7b5687660b60837a9b80033",
+    "0060.ndjson.gz": "edd80d1d85de65b6f4c17d671a73908e2f2a5b35418fec48dce5dd0b614c450a",
+    "0070.ndjson.gz": "d420f81c3cbff55973952bf6f4f317d6ff78d07fc0fee28719a041fca3eb41b1",
+    "0080.ndjson.gz": "ae77486cabdb33fb28aefb48fc9300f0faac3992a0001135f5cb61fbc0a66065",
+    "0090.ndjson.gz": "0c70fe8ea4249eb56ccec1eeca4be7e20383bfd5e3ec90ce49d36230fc68e4ca",
+    "0100.ndjson.gz": "829a03ca7e081b54793a101e2dcb9ede59a7cca059344ddd1f27ad286e3d0185",
+    "0110.ndjson.gz": "568ac93ebbd92732754990e05b8de194217b51e23db0412df20e173481edb61d",
+    "0120.ndjson.gz": "f44e378f812a6d396c13039a828f555ac5d3a6ef37a8a4dc00747056cc875f80",
+    "0130.ndjson.gz": "5b6ca8d669ebb610451b268993eeffe9ac868321d3ffa8b5a5161896381c6923",
+    "0140.ndjson.gz": "f2e606441afd3c309b02ebb480f33d5a9e715da54c7f1f0f998f83a9396d233f",
+    "0150.ndjson.gz": "249b9b370daf1fc5bcaecde2bd86a4c27acdc4c35946e118181fdd607475b4d0",
+    "0160.ndjson.gz": "e7f48a12a2394bcea491300d3400071c9c584ee5f3db3d6a886232f1088c7d07",
+    "0170.ndjson.gz": "a7016a764d02b1ae43e11f8d3e05ac9f96156c86ab53f91b7b2c8a6aa320a709",
+    "0180.ndjson.gz": "588d83d8c3140b8e5477b4b91e44b806603f042817a31797c874590fdc83779b",
+    "0190.ndjson.gz": "e233506a5185b06cabcd968d0c321845ec00405291e7ea7cadc5f0f21c57847c",
+    "0200.ndjson.gz": "8a904cfcefa6a512a025ec953b650c8512f8a6a0eebbcd9aa0eedc81f1fbc7ff",
+    "0210.ndjson.gz": "ca7151b267e22c33327cf226ca754be197c8b046f4362fea15b8044458a62dca",
+    "0220.ndjson.gz": "3daf5968a5dab16b1738e0066dbd7f358ac987af69f34bcdab8cece9b177f9d6",
+    "0230.ndjson.gz": "6138ea88cb75918d707c607396c6dca18d87c1be3caf2b5e93ccd7f171a6ede8",
+    "0240.ndjson.gz": "5c29acc82e7f40e33b6ce3caeb4377fe68866b52995e107a26c0c990e25cca40",
+    "0250.ndjson.gz": "9e2777bea48f578bf86be7427a01d9711f997a43745fac095d55c11d397a82dc",
+    "0260.ndjson.gz": "5932afc577095774836ec26dd02428be165696b1676887d4a8aaa81bf81b4502",
+    "0270.ndjson.gz": "0db1ce0a924ba849be6f028a7fa99f51d743eec441b4838072c9c63ef0cff041",
+    "0280.ndjson.gz": "12fe66042f555d3899ab6389b37e3d376d292062cf7fdc7c8459dc42c49ab300",
+    "0290.ndjson.gz": "01dc56668aa4c90083f0c6c27650847ec84c4fce2e95e0c63299212d73a0e705"
+  },
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "usable": 17939,
+      "received": 18000,
+      "fresh": 17940,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 174673,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 89492,
+        "trades": 61433,
+        "funding-rate": 301
+      },
+      "audit": {
+        "book_sequence": 1,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 591,
+        "trade_not_ready": 658,
+        "trade_messages": 60775
+      },
+      "hourly": {
+        "2026-11-01T00:00:00+00:00": {
+          "usable": 3539,
+          "received": 3600,
+          "fresh": 3540,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T01:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T02:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T03:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T04:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        }
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "usable": 17939,
+      "received": 18000,
+      "fresh": 17940,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 177349,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 88974,
+        "trades": 114943,
+        "funding-rate": 301
+      },
+      "audit": {
+        "book_sequence": 1,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 596,
+        "trade_not_ready": 419,
+        "trade_messages": 114524
+      },
+      "hourly": {
+        "2026-11-01T00:00:00+00:00": {
+          "usable": 3539,
+          "received": 3600,
+          "fresh": 3540,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T01:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T02:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T03:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T04:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        }
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "usable": 17939,
+      "received": 18000,
+      "fresh": 17940,
+      "trade_discontinuity": false,
+      "counts": {
+        "books": 156139,
+        "trades": 10462,
+        "books_unsubscribe": 1,
+        "books_subscribe": 1,
+        "mark-price": 89492,
+        "funding-rate": 301
+      },
+      "audit": {
+        "book_sequence": 1,
+        "trade_not_ready": 65,
+        "provider_books_unsubscribe": 1,
+        "provider_books_subscribe": 1,
+        "snapshots": 1,
+        "book_not_ready": 562,
+        "trade_messages": 10397
+      },
+      "hourly": {
+        "2026-11-01T00:00:00+00:00": {
+          "usable": 3539,
+          "received": 3600,
+          "fresh": 3540,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T01:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T02:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T03:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        },
+        "2026-11-01T04:00:00+00:00": {
+          "usable": 3600,
+          "received": 3600,
+          "fresh": 3600,
+          "trade_discontinuity": false
+        }
+      }
+    }
+  }
+}

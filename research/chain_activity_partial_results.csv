@@ -1,0 +1,7 @@
+period,rule,fee,trades,wins,net_usdt,dd_pct,blocks_available
+2024-10-06_to_09_partial,activity_burst,0,40,21,0.77157,0.6448,5479
+2024-10-06_to_09_partial,activity_burst,0.001,40,15,-1.22561,1.7774,5479
+2024-10-06_to_09_partial,activity_burst,0.002,40,11,-3.22278,3.4785,5479
+2024-10-06_to_09_partial,issuance_burst,0,0,0,0.0,0,5479
+2024-10-06_to_09_partial,issuance_burst,0.001,0,0,0.0,0,5479
+2024-10-06_to_09_partial,issuance_burst,0.002,0,0,0.0,0,5479

@@ -1,0 +1,2233 @@
+{
+  "start_utc": "2026-10-26",
+  "end_utc_exclusive": "2026-11-19",
+  "horizon_seconds": 300,
+  "block_days": 3,
+  "min_pair_days": 12,
+  "balance_note": "OFI is descriptive, not a matching input; part of it can reflect refilling itself.",
+  "before_fee_and_slippage": "Still includes the visible bid/ask spread; no funding.",
+  "symbols": {
+    "BTCUSDT": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 165,
+              "strong_standalone_net_bps": -28.8357523009457,
+              "strong_standalone_before_fee_and_slippage_bps": 1.1515565819975038,
+              "pressure_standalone_count": 837,
+              "pressure_standalone_net_bps": -30.865271288613762,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.882026523030266
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 165,
+              "strong_standalone_net_bps": -58.793102681953556,
+              "strong_standalone_before_fee_and_slippage_bps": 1.1515565819975038,
+              "pressure_standalone_count": 837,
+              "pressure_standalone_net_bps": -60.818563643870625,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.8820265230313762
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 92,
+              "strong_standalone_net_bps": -33.2063989575883,
+              "strong_standalone_before_fee_and_slippage_bps": -3.185016640643301,
+              "pressure_standalone_count": 736,
+              "pressure_standalone_net_bps": -30.420090795667566,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.404274136929228
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 92,
+              "strong_standalone_net_bps": -63.25783589649345,
+              "strong_standalone_before_fee_and_slippage_bps": -3.1850166406410807,
+              "pressure_standalone_count": 736,
+              "pressure_standalone_net_bps": -60.46595372160914,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.4042741369314484
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 77,
+              "pair_days": 22,
+              "delta_mean_bps": 0.3823158567847089,
+              "strong_net_mean_bps": -30.887101148019873,
+              "delta_calendar_block_95_bps": [
+                -3.743338071935111,
+                5.561018948893989
+              ],
+              "strong_calendar_block_95_bps": [
+                -32.830693264371284,
+                -28.900444419418022
+              ],
+              "positive_delta_days": 11,
+              "balance": {
+                "closest_gap_seconds": 420,
+                "farthest_gap_seconds": 7200,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.879675404243144,
+                    "control_mean": 14.001748158236998,
+                    "difference": -0.12207275399385331,
+                    "standardized_difference": -0.3063290764037816
+                  },
+                  "impact_bps": {
+                    "treated_mean": 0.015178526421484146,
+                    "control_mean": 0.9569258777080752,
+                    "difference": -0.9417473512865912,
+                    "standardized_difference": -0.40476795580933034
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.0014182508055288654,
+                    "control_mean": 0.001398687588092861,
+                    "difference": 1.9563217436004317e-05,
+                    "standardized_difference": 0.05812766454508456
+                  },
+                  "range_bps": {
+                    "treated_mean": 4.055941960140749,
+                    "control_mean": 3.804598806225383,
+                    "difference": 0.2513431539153661,
+                    "standardized_difference": 0.11145913972819478
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.157317372943321,
+                    "control_mean": 13.197161545291522,
+                    "difference": -0.039844172348200146,
+                    "standardized_difference": -0.1016169085549928
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -0.2945275963030148,
+                    "control_mean": -1.3517308196686961,
+                    "difference": 1.0572032233656814,
+                    "standardized_difference": 0.12477818191756777
+                  }
+                }
+              },
+              "strong_standalone_count": 165,
+              "strong_standalone_net_bps": -28.8357523009457,
+              "strong_standalone_before_fee_and_slippage_bps": 1.1515565819975038,
+              "pressure_standalone_count": 837,
+              "pressure_standalone_net_bps": -30.865271288613762,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.882026523030266
+            },
+            "stress": {
+              "pairs": 77,
+              "pair_days": 22,
+              "delta_mean_bps": 0.3815514157515447,
+              "strong_net_mean_bps": -60.84034985444541,
+              "delta_calendar_block_95_bps": [
+                -3.735853262784263,
+                5.549899684558887
+              ],
+              "strong_calendar_block_95_bps": [
+                -62.78005575593226,
+                -58.85766544845418
+              ],
+              "positive_delta_days": 11,
+              "balance": {
+                "closest_gap_seconds": 420,
+                "farthest_gap_seconds": 7200,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.879675404243144,
+                    "control_mean": 14.001748158236998,
+                    "difference": -0.12207275399385331,
+                    "standardized_difference": -0.3063290764037816
+                  },
+                  "impact_bps": {
+                    "treated_mean": 0.015178526421484146,
+                    "control_mean": 0.9569258777080752,
+                    "difference": -0.9417473512865912,
+                    "standardized_difference": -0.40476795580933034
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.0014182508055288654,
+                    "control_mean": 0.001398687588092861,
+                    "difference": 1.9563217436004317e-05,
+                    "standardized_difference": 0.05812766454508456
+                  },
+                  "range_bps": {
+                    "treated_mean": 4.055941960140749,
+                    "control_mean": 3.804598806225383,
+                    "difference": 0.2513431539153661,
+                    "standardized_difference": 0.11145913972819478
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.157317372943321,
+                    "control_mean": 13.197161545291522,
+                    "difference": -0.039844172348200146,
+                    "standardized_difference": -0.1016169085549928
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -0.2945275963030148,
+                    "control_mean": -1.3517308196686961,
+                    "difference": 1.0572032233656814,
+                    "standardized_difference": 0.12477818191756777
+                  }
+                }
+              },
+              "strong_standalone_count": 165,
+              "strong_standalone_net_bps": -58.793102681953556,
+              "strong_standalone_before_fee_and_slippage_bps": 1.1515565819975038,
+              "pressure_standalone_count": 837,
+              "pressure_standalone_net_bps": -60.818563643870625,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.8820265230313762
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 51,
+              "pair_days": 19,
+              "delta_mean_bps": -1.655527389830966,
+              "strong_net_mean_bps": -32.47064019121634,
+              "delta_calendar_block_95_bps": [
+                -7.190301171762617,
+                3.77942007724916
+              ],
+              "strong_calendar_block_95_bps": [
+                -36.51525312305534,
+                -27.950264369013233
+              ],
+              "positive_delta_days": 9,
+              "balance": {
+                "closest_gap_seconds": 540,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.728539702884179,
+                    "control_mean": 13.935914079337433,
+                    "difference": -0.20737437645325407,
+                    "standardized_difference": -0.6566145796325248
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.5992460472515707,
+                    "control_mean": -0.05905872865829073,
+                    "difference": -0.54018731859328,
+                    "standardized_difference": -0.25475199647057445
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.001344589394903619,
+                    "control_mean": 0.0013954594957264923,
+                    "difference": -5.087010082287344e-05,
+                    "standardized_difference": -0.1620464438444365
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.834930264977728,
+                    "control_mean": 3.6257612866235225,
+                    "difference": 0.20916897835420567,
+                    "standardized_difference": 0.09132233822683847
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.267494925730059,
+                    "control_mean": 13.205304746022312,
+                    "difference": 0.06219017970774665,
+                    "standardized_difference": 0.19337589873478003
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.1219225878517216,
+                    "control_mean": -1.0755728004362186,
+                    "difference": -1.046349787415503,
+                    "standardized_difference": -0.136268121987862
+                  }
+                }
+              },
+              "strong_standalone_count": 92,
+              "strong_standalone_net_bps": -33.2063989575883,
+              "strong_standalone_before_fee_and_slippage_bps": -3.185016640643301,
+              "pressure_standalone_count": 736,
+              "pressure_standalone_net_bps": -30.420090795667566,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.404274136929228
+            },
+            "stress": {
+              "pairs": 51,
+              "pair_days": 19,
+              "delta_mean_bps": -1.6588392744453173,
+              "strong_net_mean_bps": -62.52060524378892,
+              "delta_calendar_block_95_bps": [
+                -7.204685378251319,
+                3.786980811841176
+              ],
+              "strong_calendar_block_95_bps": [
+                -66.5733094288574,
+                -57.99118640409873
+              ],
+              "positive_delta_days": 9,
+              "balance": {
+                "closest_gap_seconds": 540,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.728539702884179,
+                    "control_mean": 13.935914079337433,
+                    "difference": -0.20737437645325407,
+                    "standardized_difference": -0.6566145796325248
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.5992460472515707,
+                    "control_mean": -0.05905872865829073,
+                    "difference": -0.54018731859328,
+                    "standardized_difference": -0.25475199647057445
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.001344589394903619,
+                    "control_mean": 0.0013954594957264923,
+                    "difference": -5.087010082287344e-05,
+                    "standardized_difference": -0.1620464438444365
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.834930264977728,
+                    "control_mean": 3.6257612866235225,
+                    "difference": 0.20916897835420567,
+                    "standardized_difference": 0.09132233822683847
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.267494925730059,
+                    "control_mean": 13.205304746022312,
+                    "difference": 0.06219017970774665,
+                    "standardized_difference": 0.19337589873478003
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.1219225878517216,
+                    "control_mean": -1.0755728004362186,
+                    "difference": -1.046349787415503,
+                    "standardized_difference": -0.136268121987862
+                  }
+                }
+              },
+              "strong_standalone_count": 92,
+              "strong_standalone_net_bps": -63.25783589649345,
+              "strong_standalone_before_fee_and_slippage_bps": -3.1850166406410807,
+              "pressure_standalone_count": 736,
+              "pressure_standalone_net_bps": -60.46595372160914,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.4042741369314484
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 41,
+              "strong_standalone_net_bps": -28.48734115372592,
+              "strong_standalone_before_fee_and_slippage_bps": 1.5006654234994699,
+              "pressure_standalone_count": 300,
+              "pressure_standalone_net_bps": -31.52159994866526,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.5396694830305258
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 41,
+              "strong_standalone_net_bps": -58.445388183257535,
+              "strong_standalone_before_fee_and_slippage_bps": 1.5006654234972494,
+              "pressure_standalone_count": 300,
+              "pressure_standalone_net_bps": -61.473579973946435,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.539669483031636
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 19,
+              "strong_standalone_net_bps": -32.74467943328382,
+              "strong_standalone_before_fee_and_slippage_bps": -2.7242194023568977,
+              "pressure_standalone_count": 223,
+              "pressure_standalone_net_bps": -30.151761244241424,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.13648057451964846
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 19,
+              "strong_standalone_net_bps": -62.795192701702476,
+              "strong_standalone_before_fee_and_slippage_bps": -2.7242194023568977,
+              "pressure_standalone_count": 223,
+              "pressure_standalone_net_bps": -60.197087376579645,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.13648057451964846
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 12,
+              "pair_days": 9,
+              "delta_mean_bps": -5.872848284800421,
+              "strong_net_mean_bps": -30.006839446527422,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 2,
+              "balance": {
+                "closest_gap_seconds": 1770,
+                "farthest_gap_seconds": 5430,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.810546462213035,
+                    "control_mean": 14.127623165615633,
+                    "difference": -0.3170767034025985,
+                    "standardized_difference": -0.7455317607739759
+                  },
+                  "impact_bps": {
+                    "treated_mean": 0.5587653416314178,
+                    "control_mean": 1.1194540289956327,
+                    "difference": -0.560688687364215,
+                    "standardized_difference": -0.29026749490982734
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.001334241701934687,
+                    "control_mean": 0.0013318229990229426,
+                    "difference": 2.4187029117443432e-06,
+                    "standardized_difference": 0.02307846688176162
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.0501844412617243,
+                    "control_mean": 3.5300825424901556,
+                    "difference": -0.47989810122843135,
+                    "standardized_difference": -0.36178105412705047
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.16166712536835,
+                    "control_mean": 13.330183313456516,
+                    "difference": -0.16851618808816582,
+                    "standardized_difference": -0.6052835205593303
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 0.47174298933269637,
+                    "control_mean": 1.19381850492291,
+                    "difference": -0.7220755155902137,
+                    "standardized_difference": -0.10261130720917006
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.156630907873273,
+                    "control_mean": 0.04835239383839443,
+                    "difference": 0.10827851403487856,
+                    "standardized_difference": 1.3531361240490392
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 1.8429024139565673,
+                    "control_mean": 2.6611962015153154,
+                    "difference": -0.8182937875587482,
+                    "standardized_difference": -0.5286776413799701
+                  }
+                }
+              },
+              "strong_standalone_count": 41,
+              "strong_standalone_net_bps": -28.48734115372592,
+              "strong_standalone_before_fee_and_slippage_bps": 1.5006654234994699,
+              "pressure_standalone_count": 300,
+              "pressure_standalone_net_bps": -31.52159994866526,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.5396694830305258
+            },
+            "stress": {
+              "pairs": 12,
+              "pair_days": 9,
+              "delta_mean_bps": -5.8611055173188555,
+              "strong_net_mean_bps": -59.96184823732471,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 2,
+              "balance": {
+                "closest_gap_seconds": 1770,
+                "farthest_gap_seconds": 5430,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.810546462213035,
+                    "control_mean": 14.127623165615633,
+                    "difference": -0.3170767034025985,
+                    "standardized_difference": -0.7455317607739759
+                  },
+                  "impact_bps": {
+                    "treated_mean": 0.5587653416314178,
+                    "control_mean": 1.1194540289956327,
+                    "difference": -0.560688687364215,
+                    "standardized_difference": -0.29026749490982734
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.001334241701934687,
+                    "control_mean": 0.0013318229990229426,
+                    "difference": 2.4187029117443432e-06,
+                    "standardized_difference": 0.02307846688176162
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.0501844412617243,
+                    "control_mean": 3.5300825424901556,
+                    "difference": -0.47989810122843135,
+                    "standardized_difference": -0.36178105412705047
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.16166712536835,
+                    "control_mean": 13.330183313456516,
+                    "difference": -0.16851618808816582,
+                    "standardized_difference": -0.6052835205593303
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 0.47174298933269637,
+                    "control_mean": 1.19381850492291,
+                    "difference": -0.7220755155902137,
+                    "standardized_difference": -0.10261130720917006
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.156630907873273,
+                    "control_mean": 0.04835239383839443,
+                    "difference": 0.10827851403487856,
+                    "standardized_difference": 1.3531361240490392
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 1.8429024139565673,
+                    "control_mean": 2.6611962015153154,
+                    "difference": -0.8182937875587482,
+                    "standardized_difference": -0.5286776413799701
+                  }
+                }
+              },
+              "strong_standalone_count": 41,
+              "strong_standalone_net_bps": -58.445388183257535,
+              "strong_standalone_before_fee_and_slippage_bps": 1.5006654234972494,
+              "pressure_standalone_count": 300,
+              "pressure_standalone_net_bps": -61.473579973946435,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.539669483031636
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 5,
+              "pair_days": 5,
+              "delta_mean_bps": -4.842470396602891,
+              "strong_net_mean_bps": -36.27773693829281,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 2,
+              "balance": {
+                "closest_gap_seconds": 1440,
+                "farthest_gap_seconds": 6570,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.562873024335204,
+                    "control_mean": 13.93945176888071,
+                    "difference": -0.37657874454550644,
+                    "standardized_difference": -2.740585510156124
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.2869704116013152,
+                    "control_mean": 0.23129254330279084,
+                    "difference": -0.518262954904106,
+                    "standardized_difference": -0.33643814440961206
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.0014018003173324866,
+                    "control_mean": 0.0014022724403679723,
+                    "difference": -4.7212303548572164e-07,
+                    "standardized_difference": -0.0037735222626492167
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.270554451260068,
+                    "control_mean": 3.1830192717177943,
+                    "difference": 0.08753517954227386,
+                    "standardized_difference": 0.06966135081636958
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.286578162650283,
+                    "control_mean": 13.184460834553347,
+                    "difference": 0.10211732809693608,
+                    "standardized_difference": 0.49404915626353935
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.9965795844091643,
+                    "control_mean": -0.9399923136248216,
+                    "difference": -2.056587270784343,
+                    "standardized_difference": -0.41553036901907275
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.14497088610754505,
+                    "control_mean": 0.0677916234723327,
+                    "difference": 0.07717926263521235,
+                    "standardized_difference": 0.9528060804740839
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 2.7312545751502517,
+                    "control_mean": 1.9006596104458404,
+                    "difference": 0.8305949647044113,
+                    "standardized_difference": 0.415129636925882
+                  }
+                }
+              },
+              "strong_standalone_count": 19,
+              "strong_standalone_net_bps": -32.74467943328382,
+              "strong_standalone_before_fee_and_slippage_bps": -2.7242194023568977,
+              "pressure_standalone_count": 223,
+              "pressure_standalone_net_bps": -30.151761244241424,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.13648057451964846
+            },
+            "stress": {
+              "pairs": 5,
+              "pair_days": 5,
+              "delta_mean_bps": -4.852157764687263,
+              "strong_net_mean_bps": -66.3353180926695,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 2,
+              "balance": {
+                "closest_gap_seconds": 1440,
+                "farthest_gap_seconds": 6570,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.562873024335204,
+                    "control_mean": 13.93945176888071,
+                    "difference": -0.37657874454550644,
+                    "standardized_difference": -2.740585510156124
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.2869704116013152,
+                    "control_mean": 0.23129254330279084,
+                    "difference": -0.518262954904106,
+                    "standardized_difference": -0.33643814440961206
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.0014018003173324866,
+                    "control_mean": 0.0014022724403679723,
+                    "difference": -4.7212303548572164e-07,
+                    "standardized_difference": -0.0037735222626492167
+                  },
+                  "range_bps": {
+                    "treated_mean": 3.270554451260068,
+                    "control_mean": 3.1830192717177943,
+                    "difference": 0.08753517954227386,
+                    "standardized_difference": 0.06966135081636958
+                  },
+                  "log_depth": {
+                    "treated_mean": 13.286578162650283,
+                    "control_mean": 13.184460834553347,
+                    "difference": 0.10211732809693608,
+                    "standardized_difference": 0.49404915626353935
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.9965795844091643,
+                    "control_mean": -0.9399923136248216,
+                    "difference": -2.056587270784343,
+                    "standardized_difference": -0.41553036901907275
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.14497088610754505,
+                    "control_mean": 0.0677916234723327,
+                    "difference": 0.07717926263521235,
+                    "standardized_difference": 0.9528060804740839
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 2.7312545751502517,
+                    "control_mean": 1.9006596104458404,
+                    "difference": 0.8305949647044113,
+                    "standardized_difference": 0.415129636925882
+                  }
+                }
+              },
+              "strong_standalone_count": 19,
+              "strong_standalone_net_bps": -62.795192701702476,
+              "strong_standalone_before_fee_and_slippage_bps": -2.7242194023568977,
+              "pressure_standalone_count": 223,
+              "pressure_standalone_net_bps": -60.197087376579645,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.13648057451964846
+            }
+          }
+        }
+      }
+    },
+    "ETHUSDT": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 273,
+              "strong_standalone_net_bps": -34.711400384582866,
+              "strong_standalone_before_fee_and_slippage_bps": -4.735857503103125,
+              "pressure_standalone_count": 702,
+              "pressure_standalone_net_bps": -32.240572920386555,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.260082200106206
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 273,
+              "strong_standalone_net_bps": -64.65700239990804,
+              "strong_standalone_before_fee_and_slippage_bps": -4.735857503103125,
+              "pressure_standalone_count": 702,
+              "pressure_standalone_net_bps": -62.19111535831275,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2600822001084264
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 72,
+              "strong_standalone_net_bps": -31.817308157245453,
+              "strong_standalone_before_fee_and_slippage_bps": -1.7987005529884748,
+              "pressure_standalone_count": 376,
+              "pressure_standalone_net_bps": -30.51053630238322,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.49453897849494055
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 72,
+              "strong_standalone_net_bps": -61.86596621826636,
+              "strong_standalone_before_fee_and_slippage_bps": -1.7987005529884748,
+              "pressure_standalone_count": 376,
+              "pressure_standalone_net_bps": -60.556580164674045,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.494538978497161
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 40,
+              "pair_days": 16,
+              "delta_mean_bps": -10.45268614838629,
+              "strong_net_mean_bps": -36.92370229486414,
+              "delta_calendar_block_95_bps": [
+                -19.110604060519876,
+                -1.8782626624207897
+              ],
+              "strong_calendar_block_95_bps": [
+                -48.90609899448809,
+                -26.50460904861346
+              ],
+              "positive_delta_days": 5,
+              "balance": {
+                "closest_gap_seconds": 390,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.967059129979218,
+                    "control_mean": 13.207565132504577,
+                    "difference": -0.24050600252535936,
+                    "standardized_difference": -0.5017611090015289
+                  },
+                  "impact_bps": {
+                    "treated_mean": -1.4666121559218244,
+                    "control_mean": -0.9045071500494309,
+                    "difference": -0.5621050058723934,
+                    "standardized_difference": -0.1455177339092135
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04842268662077697,
+                    "control_mean": 0.048312582128426575,
+                    "difference": 0.00011010449235039632,
+                    "standardized_difference": 0.02238282925544147
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.590216642792527,
+                    "control_mean": 5.971373804040324,
+                    "difference": 0.6188428387522027,
+                    "standardized_difference": 0.14218845479712153
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.821896165620595,
+                    "control_mean": 11.96876983479153,
+                    "difference": -0.14687366917093492,
+                    "standardized_difference": -0.43188853384288534
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 4.5770829776372315,
+                    "control_mean": 3.0034099006875494,
+                    "difference": 1.573673076949682,
+                    "standardized_difference": 0.13983174945064644
+                  }
+                }
+              },
+              "strong_standalone_count": 273,
+              "strong_standalone_net_bps": -34.711400384582866,
+              "strong_standalone_before_fee_and_slippage_bps": -4.735857503103125,
+              "pressure_standalone_count": 702,
+              "pressure_standalone_net_bps": -32.240572920386555,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.260082200106206
+            },
+            "stress": {
+              "pairs": 40,
+              "pair_days": 16,
+              "delta_mean_bps": -10.431785989375998,
+              "strong_net_mean_bps": -66.86488080975636,
+              "delta_calendar_block_95_bps": [
+                -19.072392383829452,
+                -1.8745070738816474
+              ],
+              "strong_calendar_block_95_bps": [
+                -78.82331869221194,
+                -56.466620553466356
+              ],
+              "positive_delta_days": 5,
+              "balance": {
+                "closest_gap_seconds": 390,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.967059129979218,
+                    "control_mean": 13.207565132504577,
+                    "difference": -0.24050600252535936,
+                    "standardized_difference": -0.5017611090015289
+                  },
+                  "impact_bps": {
+                    "treated_mean": -1.4666121559218244,
+                    "control_mean": -0.9045071500494309,
+                    "difference": -0.5621050058723934,
+                    "standardized_difference": -0.1455177339092135
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04842268662077697,
+                    "control_mean": 0.048312582128426575,
+                    "difference": 0.00011010449235039632,
+                    "standardized_difference": 0.02238282925544147
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.590216642792527,
+                    "control_mean": 5.971373804040324,
+                    "difference": 0.6188428387522027,
+                    "standardized_difference": 0.14218845479712153
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.821896165620595,
+                    "control_mean": 11.96876983479153,
+                    "difference": -0.14687366917093492,
+                    "standardized_difference": -0.43188853384288534
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 4.5770829776372315,
+                    "control_mean": 3.0034099006875494,
+                    "difference": 1.573673076949682,
+                    "standardized_difference": 0.13983174945064644
+                  }
+                }
+              },
+              "strong_standalone_count": 273,
+              "strong_standalone_net_bps": -64.65700239990804,
+              "strong_standalone_before_fee_and_slippage_bps": -4.735857503103125,
+              "pressure_standalone_count": 702,
+              "pressure_standalone_net_bps": -62.19111535831275,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2600822001084264
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 37,
+              "pair_days": 17,
+              "delta_mean_bps": -0.2228262421442196,
+              "strong_net_mean_bps": -25.996630398805472,
+              "delta_calendar_block_95_bps": [
+                -11.3412477954874,
+                8.29758144155777
+              ],
+              "strong_calendar_block_95_bps": [
+                -33.0748703934888,
+                -20.312602601226267
+              ],
+              "positive_delta_days": 8,
+              "balance": {
+                "closest_gap_seconds": 420,
+                "farthest_gap_seconds": 7080,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.319835506890819,
+                    "control_mean": 13.469294188106925,
+                    "difference": -0.14945868121610673,
+                    "standardized_difference": -0.3067821558459454
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.17336217491363434,
+                    "control_mean": 0.00971630144738596,
+                    "difference": -0.18307847636102031,
+                    "standardized_difference": -0.06102838519006938
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04779705526862539,
+                    "control_mean": 0.04788114522319181,
+                    "difference": -8.408995456642143e-05,
+                    "standardized_difference": -0.01430750095002744
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.112880607600319,
+                    "control_mean": 5.885983812819167,
+                    "difference": 0.226896794781152,
+                    "standardized_difference": 0.06274147389077296
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.891906850465748,
+                    "control_mean": 11.911461393963098,
+                    "difference": -0.01955454349734964,
+                    "standardized_difference": -0.048589156790615415
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -0.3295314295991003,
+                    "control_mean": 1.5938800440435368,
+                    "difference": -1.923411473642637,
+                    "standardized_difference": -0.2724758719949357
+                  }
+                }
+              },
+              "strong_standalone_count": 72,
+              "strong_standalone_net_bps": -31.817308157245453,
+              "strong_standalone_before_fee_and_slippage_bps": -1.7987005529884748,
+              "pressure_standalone_count": 376,
+              "pressure_standalone_net_bps": -30.51053630238322,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.49453897849494055
+            },
+            "stress": {
+              "pairs": 37,
+              "pair_days": 17,
+              "delta_mean_bps": -0.22327200632051925,
+              "strong_net_mean_bps": -56.03364418668979,
+              "delta_calendar_block_95_bps": [
+                -11.363935975889218,
+                8.314180763611247
+              ],
+              "strong_calendar_block_95_bps": [
+                -63.12604420933632,
+                -50.33824548439169
+              ],
+              "positive_delta_days": 8,
+              "balance": {
+                "closest_gap_seconds": 420,
+                "farthest_gap_seconds": 7080,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.319835506890819,
+                    "control_mean": 13.469294188106925,
+                    "difference": -0.14945868121610673,
+                    "standardized_difference": -0.3067821558459454
+                  },
+                  "impact_bps": {
+                    "treated_mean": -0.17336217491363434,
+                    "control_mean": 0.00971630144738596,
+                    "difference": -0.18307847636102031,
+                    "standardized_difference": -0.06102838519006938
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04779705526862539,
+                    "control_mean": 0.04788114522319181,
+                    "difference": -8.408995456642143e-05,
+                    "standardized_difference": -0.01430750095002744
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.112880607600319,
+                    "control_mean": 5.885983812819167,
+                    "difference": 0.226896794781152,
+                    "standardized_difference": 0.06274147389077296
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.891906850465748,
+                    "control_mean": 11.911461393963098,
+                    "difference": -0.01955454349734964,
+                    "standardized_difference": -0.048589156790615415
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -0.3295314295991003,
+                    "control_mean": 1.5938800440435368,
+                    "difference": -1.923411473642637,
+                    "standardized_difference": -0.2724758719949357
+                  }
+                }
+              },
+              "strong_standalone_count": 72,
+              "strong_standalone_net_bps": -61.86596621826636,
+              "strong_standalone_before_fee_and_slippage_bps": -1.7987005529884748,
+              "pressure_standalone_count": 376,
+              "pressure_standalone_net_bps": -60.556580164674045,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.494538978497161
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 42,
+              "strong_standalone_net_bps": -27.22420784950752,
+              "strong_standalone_before_fee_and_slippage_bps": 2.7663281556367103,
+              "pressure_standalone_count": 198,
+              "pressure_standalone_net_bps": -28.4993266379461,
+              "pressure_standalone_before_fee_and_slippage_bps": 1.4886559383131548
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 42,
+              "strong_standalone_net_bps": -57.184780515658915,
+              "strong_standalone_before_fee_and_slippage_bps": 2.76632815563449,
+              "pressure_standalone_count": 198,
+              "pressure_standalone_net_bps": -58.457349702487136,
+              "pressure_standalone_before_fee_and_slippage_bps": 1.4886559383109343
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 13,
+              "strong_standalone_net_bps": -25.046499805396554,
+              "strong_standalone_before_fee_and_slippage_bps": 4.958583090577395,
+              "pressure_standalone_count": 121,
+              "pressure_standalone_net_bps": -30.245572931082545,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.23010487225860743
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 13,
+              "strong_standalone_net_bps": -55.08161285583991,
+              "strong_standalone_before_fee_and_slippage_bps": 4.958583090575175,
+              "pressure_standalone_count": 121,
+              "pressure_standalone_net_bps": -60.291086733817664,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.23010487225638698
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": 20.419284816929746,
+              "strong_net_mean_bps": -27.040079359740083,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 1590,
+                "farthest_gap_seconds": 1590,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.718963465979712,
+                    "control_mean": 12.838141230734852,
+                    "difference": -0.11917776475513975,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": -6.1670088705236195,
+                    "control_mean": 0.5620868122951211,
+                    "difference": -6.72909568281874,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.043427773411957686,
+                    "control_mean": 0.0432358955269471,
+                    "difference": 0.00019187788501058567,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.775229846080547,
+                    "control_mean": 1.513238679540015,
+                    "difference": 5.261991166540533,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.693932613444588,
+                    "control_mean": 11.581101787503403,
+                    "difference": 0.11283082594118454,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -6.881950869601979,
+                    "control_mean": -0.12602762717128177,
+                    "difference": -6.755923242430697,
+                    "standardized_difference": null
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.10078313538609675,
+                    "control_mean": 0.003913823240662923,
+                    "difference": 0.09686931214543383,
+                    "standardized_difference": null
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.991622858499123,
+                    "control_mean": 1.297075744558191,
+                    "difference": 3.694547113940932,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 42,
+              "strong_standalone_net_bps": -27.22420784950752,
+              "strong_standalone_before_fee_and_slippage_bps": 2.7663281556367103,
+              "pressure_standalone_count": 198,
+              "pressure_standalone_net_bps": -28.4993266379461,
+              "pressure_standalone_before_fee_and_slippage_bps": 1.4886559383131548
+            },
+            "stress": {
+              "pairs": 1,
+              "pair_days": 1,
+              "delta_mean_bps": 20.37845643143249,
+              "strong_net_mean_bps": -57.0010201910363,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 1,
+              "balance": {
+                "closest_gap_seconds": 1590,
+                "farthest_gap_seconds": 1590,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 12.718963465979712,
+                    "control_mean": 12.838141230734852,
+                    "difference": -0.11917776475513975,
+                    "standardized_difference": null
+                  },
+                  "impact_bps": {
+                    "treated_mean": -6.1670088705236195,
+                    "control_mean": 0.5620868122951211,
+                    "difference": -6.72909568281874,
+                    "standardized_difference": null
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.043427773411957686,
+                    "control_mean": 0.0432358955269471,
+                    "difference": 0.00019187788501058567,
+                    "standardized_difference": null
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.775229846080547,
+                    "control_mean": 1.513238679540015,
+                    "difference": 5.261991166540533,
+                    "standardized_difference": null
+                  },
+                  "log_depth": {
+                    "treated_mean": 11.693932613444588,
+                    "control_mean": 11.581101787503403,
+                    "difference": 0.11283082594118454,
+                    "standardized_difference": null
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -6.881950869601979,
+                    "control_mean": -0.12602762717128177,
+                    "difference": -6.755923242430697,
+                    "standardized_difference": null
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.10078313538609675,
+                    "control_mean": 0.003913823240662923,
+                    "difference": 0.09686931214543383,
+                    "standardized_difference": null
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.991622858499123,
+                    "control_mean": 1.297075744558191,
+                    "difference": 3.694547113940932,
+                    "standardized_difference": null
+                  }
+                }
+              },
+              "strong_standalone_count": 42,
+              "strong_standalone_net_bps": -57.184780515658915,
+              "strong_standalone_before_fee_and_slippage_bps": 2.76632815563449,
+              "pressure_standalone_count": 198,
+              "pressure_standalone_net_bps": -58.457349702487136,
+              "pressure_standalone_before_fee_and_slippage_bps": 1.4886559383109343
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 3,
+              "pair_days": 3,
+              "delta_mean_bps": -12.55960725456845,
+              "strong_net_mean_bps": -24.003129533984385,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 6300,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.541875886294484,
+                    "control_mean": 13.587725136408112,
+                    "difference": -0.04584925011362806,
+                    "standardized_difference": -0.07111289456943787
+                  },
+                  "impact_bps": {
+                    "treated_mean": 2.3255522666138555,
+                    "control_mean": 0.5027201107338245,
+                    "difference": 1.8228321558800311,
+                    "standardized_difference": 3.105296877085683
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04531272322978981,
+                    "control_mean": 0.045268393531207034,
+                    "difference": 4.432969858277763e-05,
+                    "standardized_difference": 0.014518132103109874
+                  },
+                  "range_bps": {
+                    "treated_mean": 4.872964085578728,
+                    "control_mean": 2.866290330316817,
+                    "difference": 2.006673755261911,
+                    "standardized_difference": 1.2266510955888112
+                  },
+                  "log_depth": {
+                    "treated_mean": 12.217245138888176,
+                    "control_mean": 12.371479634135707,
+                    "difference": -0.15423449524753075,
+                    "standardized_difference": -0.24392167271314488
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 5.923896230754855,
+                    "control_mean": 6.960966177441336,
+                    "difference": -1.037069946686481,
+                    "standardized_difference": -0.18262267884124164
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.10229637010602007,
+                    "control_mean": 0.13984775441642847,
+                    "difference": -0.0375513843104084,
+                    "standardized_difference": -0.46395359953817344
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.023719128544105,
+                    "control_mean": 7.13093917602492,
+                    "difference": -3.1072200474808147,
+                    "standardized_difference": -1.5709693495130033
+                  }
+                }
+              },
+              "strong_standalone_count": 13,
+              "strong_standalone_net_bps": -25.046499805396554,
+              "strong_standalone_before_fee_and_slippage_bps": 4.958583090577395,
+              "pressure_standalone_count": 121,
+              "pressure_standalone_net_bps": -30.245572931082545,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.23010487225860743
+            },
+            "stress": {
+              "pairs": 3,
+              "pair_days": 3,
+              "delta_mean_bps": -12.584732764589585,
+              "strong_net_mean_bps": -54.036155320894714,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 6300,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 13.541875886294484,
+                    "control_mean": 13.587725136408112,
+                    "difference": -0.04584925011362806,
+                    "standardized_difference": -0.07111289456943787
+                  },
+                  "impact_bps": {
+                    "treated_mean": 2.3255522666138555,
+                    "control_mean": 0.5027201107338245,
+                    "difference": 1.8228321558800311,
+                    "standardized_difference": 3.105296877085683
+                  },
+                  "spread_bps": {
+                    "treated_mean": 0.04531272322978981,
+                    "control_mean": 0.045268393531207034,
+                    "difference": 4.432969858277763e-05,
+                    "standardized_difference": 0.014518132103109874
+                  },
+                  "range_bps": {
+                    "treated_mean": 4.872964085578728,
+                    "control_mean": 2.866290330316817,
+                    "difference": 2.006673755261911,
+                    "standardized_difference": 1.2266510955888112
+                  },
+                  "log_depth": {
+                    "treated_mean": 12.217245138888176,
+                    "control_mean": 12.371479634135707,
+                    "difference": -0.15423449524753075,
+                    "standardized_difference": -0.24392167271314488
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 5.923896230754855,
+                    "control_mean": 6.960966177441336,
+                    "difference": -1.037069946686481,
+                    "standardized_difference": -0.18262267884124164
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.10229637010602007,
+                    "control_mean": 0.13984775441642847,
+                    "difference": -0.0375513843104084,
+                    "standardized_difference": -0.46395359953817344
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.023719128544105,
+                    "control_mean": 7.13093917602492,
+                    "difference": -3.1072200474808147,
+                    "standardized_difference": -1.5709693495130033
+                  }
+                }
+              },
+              "strong_standalone_count": 13,
+              "strong_standalone_net_bps": -55.08161285583991,
+              "strong_standalone_before_fee_and_slippage_bps": 4.958583090575175,
+              "pressure_standalone_count": 121,
+              "pressure_standalone_net_bps": -60.291086733817664,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.23010487225638698
+            }
+          }
+        }
+      }
+    },
+    "DOGEUSDT": {
+      "absorption": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 13,
+              "pair_days": 10,
+              "delta_mean_bps": -4.1296643156774335,
+              "strong_net_mean_bps": -29.816938008110398,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 4,
+              "balance": {
+                "closest_gap_seconds": 1500,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.028571318858443,
+                    "control_mean": 10.205596181044019,
+                    "difference": -0.17702486218557567,
+                    "standardized_difference": -0.612043674803287
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.737231477321231,
+                    "control_mean": -0.9515657185021252,
+                    "difference": -1.7856657588191056,
+                    "standardized_difference": -0.6709170528391212
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3962478606170752,
+                    "control_mean": 1.3962875996351252,
+                    "difference": -3.973901804998903e-05,
+                    "standardized_difference": -0.0003499555612356465
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.29094378621117,
+                    "control_mean": 4.877083694548521,
+                    "difference": 1.4138600916626496,
+                    "standardized_difference": 0.49842895944017773
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.808361829548618,
+                    "control_mean": 9.847574902666933,
+                    "difference": -0.03921307311831512,
+                    "standardized_difference": -0.12181039212586796
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 3.0218391689179893,
+                    "control_mean": 0.1855235541139266,
+                    "difference": 2.8363156148040627,
+                    "standardized_difference": 0.8522330274588228
+                  }
+                }
+              },
+              "strong_standalone_count": 325,
+              "strong_standalone_net_bps": -36.25868525487381,
+              "strong_standalone_before_fee_and_slippage_bps": -6.2862408156050265,
+              "pressure_standalone_count": 952,
+              "pressure_standalone_net_bps": -32.230914184213894,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2504041222881632
+            },
+            "stress": {
+              "pairs": 13,
+              "pair_days": 10,
+              "delta_mean_bps": -4.121407046720362,
+              "strong_net_mean_bps": -59.772326507071725,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 4,
+              "balance": {
+                "closest_gap_seconds": 1500,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.028571318858443,
+                    "control_mean": 10.205596181044019,
+                    "difference": -0.17702486218557567,
+                    "standardized_difference": -0.612043674803287
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.737231477321231,
+                    "control_mean": -0.9515657185021252,
+                    "difference": -1.7856657588191056,
+                    "standardized_difference": -0.6709170528391212
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3962478606170752,
+                    "control_mean": 1.3962875996351252,
+                    "difference": -3.973901804998903e-05,
+                    "standardized_difference": -0.0003499555612356465
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.29094378621117,
+                    "control_mean": 4.877083694548521,
+                    "difference": 1.4138600916626496,
+                    "standardized_difference": 0.49842895944017773
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.808361829548618,
+                    "control_mean": 9.847574902666933,
+                    "difference": -0.03921307311831512,
+                    "standardized_difference": -0.12181039212586796
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 3.0218391689179893,
+                    "control_mean": 0.1855235541139266,
+                    "difference": 2.8363156148040627,
+                    "standardized_difference": 0.8522330274588228
+                  }
+                }
+              },
+              "strong_standalone_count": 325,
+              "strong_standalone_net_bps": -66.20119347216807,
+              "strong_standalone_before_fee_and_slippage_bps": -6.286240815607247,
+              "pressure_standalone_count": 952,
+              "pressure_standalone_net_bps": -62.181475934795145,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2504041222892734
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 5,
+              "pair_days": 4,
+              "delta_mean_bps": 4.770338438773314,
+              "strong_net_mean_bps": -24.292570127514622,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 3,
+              "balance": {
+                "closest_gap_seconds": 2520,
+                "farthest_gap_seconds": 6930,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.123350242464978,
+                    "control_mean": 10.148328994985203,
+                    "difference": -0.024978752520224745,
+                    "standardized_difference": -0.09518473678026043
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.978263135077052,
+                    "control_mean": 1.3742148610978506,
+                    "difference": -4.352477996174903,
+                    "standardized_difference": -2.3658257665190794
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3661141592337733,
+                    "control_mean": 1.365107214625467,
+                    "difference": 0.0010069446083063038,
+                    "standardized_difference": 0.031355226836968876
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.819944370460008,
+                    "control_mean": 3.8266171903530912,
+                    "difference": 2.993327180106917,
+                    "standardized_difference": 1.7063892780351932
+                  },
+                  "log_depth": {
+                    "treated_mean": 10.147507192970593,
+                    "control_mean": 10.181388979100898,
+                    "difference": -0.0338817861303049,
+                    "standardized_difference": -0.25079561145397683
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.983901677962801,
+                    "control_mean": 0.3536419053774889,
+                    "difference": -3.33754358334029,
+                    "standardized_difference": -2.076832314349763
+                  }
+                }
+              },
+              "strong_standalone_count": 210,
+              "strong_standalone_net_bps": -29.315115841926893,
+              "strong_standalone_before_fee_and_slippage_bps": 0.6984936263054742,
+              "pressure_standalone_count": 1050,
+              "pressure_standalone_net_bps": -31.00942638957636,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.9924325313703797
+            },
+            "stress": {
+              "pairs": 5,
+              "pair_days": 4,
+              "delta_mean_bps": 4.779881506789264,
+              "strong_net_mean_bps": -54.32617494069391,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 3,
+              "balance": {
+                "closest_gap_seconds": 2520,
+                "farthest_gap_seconds": 6930,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.123350242464978,
+                    "control_mean": 10.148328994985203,
+                    "difference": -0.024978752520224745,
+                    "standardized_difference": -0.09518473678026043
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.978263135077052,
+                    "control_mean": 1.3742148610978506,
+                    "difference": -4.352477996174903,
+                    "standardized_difference": -2.3658257665190794
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3661141592337733,
+                    "control_mean": 1.365107214625467,
+                    "difference": 0.0010069446083063038,
+                    "standardized_difference": 0.031355226836968876
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.819944370460008,
+                    "control_mean": 3.8266171903530912,
+                    "difference": 2.993327180106917,
+                    "standardized_difference": 1.7063892780351932
+                  },
+                  "log_depth": {
+                    "treated_mean": 10.147507192970593,
+                    "control_mean": 10.181388979100898,
+                    "difference": -0.0338817861303049,
+                    "standardized_difference": -0.25079561145397683
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.983901677962801,
+                    "control_mean": 0.3536419053774889,
+                    "difference": -3.33754358334029,
+                    "standardized_difference": -2.076832314349763
+                  }
+                }
+              },
+              "strong_standalone_count": 210,
+              "strong_standalone_net_bps": -59.35876826409124,
+              "strong_standalone_before_fee_and_slippage_bps": 0.6984936263065844,
+              "pressure_standalone_count": 1050,
+              "pressure_standalone_net_bps": -61.05646828211075,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.9924325313703797
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 127,
+              "pair_days": 23,
+              "delta_mean_bps": -2.8678755740574835,
+              "strong_net_mean_bps": -33.98007819691368,
+              "delta_calendar_block_95_bps": [
+                -8.862055890220274,
+                2.541479656892775
+              ],
+              "strong_calendar_block_95_bps": [
+                -38.36494810031937,
+                -30.40578531087105
+              ],
+              "positive_delta_days": 11,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.159014295750524,
+                    "control_mean": 10.248912125076457,
+                    "difference": -0.08989782932593293,
+                    "standardized_difference": -0.20547106084059927
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.7664843581774927,
+                    "control_mean": -1.6178047069488473,
+                    "difference": -1.1486796512286455,
+                    "standardized_difference": -0.3227946461425786
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4121454283188277,
+                    "control_mean": 1.4116436817122129,
+                    "difference": 0.000501746606614839,
+                    "standardized_difference": 0.003716784271656365
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.18258145130847,
+                    "control_mean": 5.772106079463169,
+                    "difference": 1.4104753718453003,
+                    "standardized_difference": 0.31117033987232
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.907226157920155,
+                    "control_mean": 9.939667433944697,
+                    "difference": -0.032441276024542276,
+                    "standardized_difference": -0.10039780660276103
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 3.125005218882704,
+                    "control_mean": 1.6672738015888426,
+                    "difference": 1.4577314172938616,
+                    "standardized_difference": 0.3393982614220915
+                  }
+                }
+              },
+              "strong_standalone_count": 325,
+              "strong_standalone_net_bps": -36.25868525487381,
+              "strong_standalone_before_fee_and_slippage_bps": -6.2862408156050265,
+              "pressure_standalone_count": 952,
+              "pressure_standalone_net_bps": -32.230914184213894,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2504041222881632
+            },
+            "stress": {
+              "pairs": 127,
+              "pair_days": 23,
+              "delta_mean_bps": -2.8621412532647663,
+              "strong_net_mean_bps": -63.92714249186657,
+              "delta_calendar_block_95_bps": [
+                -8.844336198397988,
+                2.5363979651442903
+              ],
+              "strong_calendar_block_95_bps": [
+                -68.3032448424233,
+                -60.35999640891441
+              ],
+              "positive_delta_days": 11,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.159014295750524,
+                    "control_mean": 10.248912125076457,
+                    "difference": -0.08989782932593293,
+                    "standardized_difference": -0.20547106084059927
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.7664843581774927,
+                    "control_mean": -1.6178047069488473,
+                    "difference": -1.1486796512286455,
+                    "standardized_difference": -0.3227946461425786
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4121454283188277,
+                    "control_mean": 1.4116436817122129,
+                    "difference": 0.000501746606614839,
+                    "standardized_difference": 0.003716784271656365
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.18258145130847,
+                    "control_mean": 5.772106079463169,
+                    "difference": 1.4104753718453003,
+                    "standardized_difference": 0.31117033987232
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.907226157920155,
+                    "control_mean": 9.939667433944697,
+                    "difference": -0.032441276024542276,
+                    "standardized_difference": -0.10039780660276103
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 3.125005218882704,
+                    "control_mean": 1.6672738015888426,
+                    "difference": 1.4577314172938616,
+                    "standardized_difference": 0.3393982614220915
+                  }
+                }
+              },
+              "strong_standalone_count": 325,
+              "strong_standalone_net_bps": -66.20119347216807,
+              "strong_standalone_before_fee_and_slippage_bps": -6.286240815607247,
+              "pressure_standalone_count": 952,
+              "pressure_standalone_net_bps": -62.181475934795145,
+              "pressure_standalone_before_fee_and_slippage_bps": -2.2504041222892734
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 103,
+              "pair_days": 23,
+              "delta_mean_bps": 0.3080327216272556,
+              "strong_net_mean_bps": -32.761859449978296,
+              "delta_calendar_block_95_bps": [
+                -5.862482688450869,
+                5.316424830135486
+              ],
+              "strong_calendar_block_95_bps": [
+                -35.40674933007813,
+                -29.823503802038392
+              ],
+              "positive_delta_days": 6,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.161122705644733,
+                    "control_mean": 10.213289329542299,
+                    "difference": -0.05216662389756621,
+                    "standardized_difference": -0.15273154949125745
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.6535982390871946,
+                    "control_mean": -0.5067882077223225,
+                    "difference": -2.146810031364872,
+                    "standardized_difference": -0.5243938823615756
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3922945486736882,
+                    "control_mean": 1.391671436067725,
+                    "difference": 0.0006231126059632608,
+                    "standardized_difference": 0.0058816425896069885
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.186354538500011,
+                    "control_mean": 6.025789444331062,
+                    "difference": 1.1605650941689492,
+                    "standardized_difference": 0.332992387072789
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.921676340012223,
+                    "control_mean": 9.994652830176989,
+                    "difference": -0.07297649016476626,
+                    "standardized_difference": -0.25899150710011315
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.6479063068144564,
+                    "control_mean": -0.8859298948155736,
+                    "difference": -1.7619764119988828,
+                    "standardized_difference": -0.4157843592374544
+                  }
+                }
+              },
+              "strong_standalone_count": 210,
+              "strong_standalone_net_bps": -29.315115841926893,
+              "strong_standalone_before_fee_and_slippage_bps": 0.6984936263054742,
+              "pressure_standalone_count": 1050,
+              "pressure_standalone_net_bps": -31.00942638957636,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.9924325313703797
+            },
+            "stress": {
+              "pairs": 103,
+              "pair_days": 23,
+              "delta_mean_bps": 0.30864894147241634,
+              "strong_net_mean_bps": -62.812407087041926,
+              "delta_calendar_block_95_bps": [
+                -5.8742105924022505,
+                5.327060344658647
+              ],
+              "strong_calendar_block_95_bps": [
+                -65.46258807265525,
+                -59.86817325495257
+              ],
+              "positive_delta_days": 6,
+              "balance": {
+                "closest_gap_seconds": 300,
+                "farthest_gap_seconds": 7170,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.161122705644733,
+                    "control_mean": 10.213289329542299,
+                    "difference": -0.05216662389756621,
+                    "standardized_difference": -0.15273154949125745
+                  },
+                  "impact_bps": {
+                    "treated_mean": -2.6535982390871946,
+                    "control_mean": -0.5067882077223225,
+                    "difference": -2.146810031364872,
+                    "standardized_difference": -0.5243938823615756
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.3922945486736882,
+                    "control_mean": 1.391671436067725,
+                    "difference": 0.0006231126059632608,
+                    "standardized_difference": 0.0058816425896069885
+                  },
+                  "range_bps": {
+                    "treated_mean": 7.186354538500011,
+                    "control_mean": 6.025789444331062,
+                    "difference": 1.1605650941689492,
+                    "standardized_difference": 0.332992387072789
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.921676340012223,
+                    "control_mean": 9.994652830176989,
+                    "difference": -0.07297649016476626,
+                    "standardized_difference": -0.25899150710011315
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -2.6479063068144564,
+                    "control_mean": -0.8859298948155736,
+                    "difference": -1.7619764119988828,
+                    "standardized_difference": -0.4157843592374544
+                  }
+                }
+              },
+              "strong_standalone_count": 210,
+              "strong_standalone_net_bps": -59.35876826409124,
+              "strong_standalone_before_fee_and_slippage_bps": 0.6984936263065844,
+              "pressure_standalone_count": 1050,
+              "pressure_standalone_net_bps": -61.05646828211075,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.9924325313703797
+            }
+          }
+        }
+      },
+      "exhaustion": {
+        "no_observed_refill": {
+          "bid": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 73,
+              "strong_standalone_net_bps": -33.18992867725829,
+              "strong_standalone_before_fee_and_slippage_bps": -3.2113390444954426,
+              "pressure_standalone_count": 281,
+              "pressure_standalone_net_bps": -31.003753205248334,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.020785750084352
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 73,
+              "strong_standalone_net_bps": -63.13857287716282,
+              "strong_standalone_before_fee_and_slippage_bps": -3.211339044496553,
+              "pressure_standalone_count": 281,
+              "pressure_standalone_net_bps": -60.95676866574001,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.0207857500854622
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 45,
+              "strong_standalone_net_bps": -28.557162586414492,
+              "strong_standalone_before_fee_and_slippage_bps": 1.4549328681079388,
+              "pressure_standalone_count": 347,
+              "pressure_standalone_net_bps": -30.0573240600034,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.042232028816258094
+            },
+            "stress": {
+              "pairs": 0,
+              "pair_days": 0,
+              "delta_mean_bps": null,
+              "strong_net_mean_bps": null,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 0,
+              "balance": null,
+              "strong_standalone_count": 45,
+              "strong_standalone_net_bps": -58.599298722143175,
+              "strong_standalone_before_fee_and_slippage_bps": 1.4549328681068285,
+              "pressure_standalone_count": 347,
+              "pressure_standalone_net_bps": -60.10246127063649,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.042232028816258094
+            }
+          }
+        },
+        "calibration_bottom_quartile": {
+          "bid": {
+            "base": {
+              "pairs": 14,
+              "pair_days": 11,
+              "delta_mean_bps": -2.5141178974376093,
+              "strong_net_mean_bps": -30.54912909289306,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 6,
+              "balance": {
+                "closest_gap_seconds": 360,
+                "farthest_gap_seconds": 5970,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.165705015239261,
+                    "control_mean": 10.06868937342979,
+                    "difference": 0.09701564180947209,
+                    "standardized_difference": 0.2792712306157684
+                  },
+                  "impact_bps": {
+                    "treated_mean": -1.551636485316763,
+                    "control_mean": -0.9480245710121428,
+                    "difference": -0.6036119143046202,
+                    "standardized_difference": -0.22911804259846555
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4160384026564095,
+                    "control_mean": 1.4145886125569098,
+                    "difference": 0.001449790099499637,
+                    "standardized_difference": 0.01256384638268907
+                  },
+                  "range_bps": {
+                    "treated_mean": 5.68701216379354,
+                    "control_mean": 4.675940181031118,
+                    "difference": 1.011071982762422,
+                    "standardized_difference": 0.2938119157260746
+                  },
+                  "log_depth": {
+                    "treated_mean": 10.035734455130383,
+                    "control_mean": 10.097562792654355,
+                    "difference": -0.061828337523971655,
+                    "standardized_difference": -0.263309785447095
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 0.7331038394209752,
+                    "control_mean": 1.3769602390103137,
+                    "difference": -0.6438563995893385,
+                    "standardized_difference": -0.27272013149042995
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.027228606640947,
+                    "control_mean": 0.024104795525347472,
+                    "difference": 0.003123811115599527,
+                    "standardized_difference": 0.10571799252744418
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.381248839036862,
+                    "control_mean": 4.546632102362631,
+                    "difference": -0.16538326332576947,
+                    "standardized_difference": -0.05295107943493127
+                  }
+                }
+              },
+              "strong_standalone_count": 73,
+              "strong_standalone_net_bps": -33.18992867725829,
+              "strong_standalone_before_fee_and_slippage_bps": -3.2113390444954426,
+              "pressure_standalone_count": 281,
+              "pressure_standalone_net_bps": -31.003753205248334,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.020785750084352
+            },
+            "stress": {
+              "pairs": 14,
+              "pair_days": 11,
+              "delta_mean_bps": -2.5090909155612726,
+              "strong_net_mean_bps": -60.5030535748654,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 6,
+              "balance": {
+                "closest_gap_seconds": 360,
+                "farthest_gap_seconds": 5970,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.165705015239261,
+                    "control_mean": 10.06868937342979,
+                    "difference": 0.09701564180947209,
+                    "standardized_difference": 0.2792712306157684
+                  },
+                  "impact_bps": {
+                    "treated_mean": -1.551636485316763,
+                    "control_mean": -0.9480245710121428,
+                    "difference": -0.6036119143046202,
+                    "standardized_difference": -0.22911804259846555
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4160384026564095,
+                    "control_mean": 1.4145886125569098,
+                    "difference": 0.001449790099499637,
+                    "standardized_difference": 0.01256384638268907
+                  },
+                  "range_bps": {
+                    "treated_mean": 5.68701216379354,
+                    "control_mean": 4.675940181031118,
+                    "difference": 1.011071982762422,
+                    "standardized_difference": 0.2938119157260746
+                  },
+                  "log_depth": {
+                    "treated_mean": 10.035734455130383,
+                    "control_mean": 10.097562792654355,
+                    "difference": -0.061828337523971655,
+                    "standardized_difference": -0.263309785447095
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": 0.7331038394209752,
+                    "control_mean": 1.3769602390103137,
+                    "difference": -0.6438563995893385,
+                    "standardized_difference": -0.27272013149042995
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.027228606640947,
+                    "control_mean": 0.024104795525347472,
+                    "difference": 0.003123811115599527,
+                    "standardized_difference": 0.10571799252744418
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.381248839036862,
+                    "control_mean": 4.546632102362631,
+                    "difference": -0.16538326332576947,
+                    "standardized_difference": -0.05295107943493127
+                  }
+                }
+              },
+              "strong_standalone_count": 73,
+              "strong_standalone_net_bps": -63.13857287716282,
+              "strong_standalone_before_fee_and_slippage_bps": -3.211339044496553,
+              "pressure_standalone_count": 281,
+              "pressure_standalone_net_bps": -60.95676866574001,
+              "pressure_standalone_before_fee_and_slippage_bps": -1.0207857500854622
+            }
+          },
+          "ask": {
+            "base": {
+              "pairs": 9,
+              "pair_days": 8,
+              "delta_mean_bps": 4.541754983891849,
+              "strong_net_mean_bps": -33.72070108335434,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 3,
+              "balance": {
+                "closest_gap_seconds": 600,
+                "farthest_gap_seconds": 5760,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.115746528176153,
+                    "control_mean": 10.295818947579976,
+                    "difference": -0.1800724194038228,
+                    "standardized_difference": -0.5695869105915456
+                  },
+                  "impact_bps": {
+                    "treated_mean": -3.7583742268444733,
+                    "control_mean": -1.5801287296194442,
+                    "difference": -2.178245497225029,
+                    "standardized_difference": -0.5992969104468876
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4207315168836223,
+                    "control_mean": 1.4284719190673896,
+                    "difference": -0.007740402183767259,
+                    "standardized_difference": -0.04828283849428627
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.432454136314106,
+                    "control_mean": 6.333896062211477,
+                    "difference": 0.09855807410262862,
+                    "standardized_difference": 0.03216213314340529
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.844407156916073,
+                    "control_mean": 9.831617038374,
+                    "difference": 0.012790118542072904,
+                    "standardized_difference": 0.08985630715104051
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -3.786378439590903,
+                    "control_mean": -2.2681722916697202,
+                    "difference": -1.5182061479211826,
+                    "standardized_difference": -0.4322976217256556
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.08652624057434431,
+                    "control_mean": 0.03741406507306591,
+                    "difference": 0.0491121755012784,
+                    "standardized_difference": 0.5248327242079944
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.190778391311407,
+                    "control_mean": 5.373350570566832,
+                    "difference": -1.1825721792554251,
+                    "standardized_difference": -0.46326392210014494
+                  }
+                }
+              },
+              "strong_standalone_count": 45,
+              "strong_standalone_net_bps": -28.557162586414492,
+              "strong_standalone_before_fee_and_slippage_bps": 1.4549328681079388,
+              "pressure_standalone_count": 347,
+              "pressure_standalone_net_bps": -30.0573240600034,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.042232028816258094
+            },
+            "stress": {
+              "pairs": 9,
+              "pair_days": 8,
+              "delta_mean_bps": 4.550840770418052,
+              "strong_net_mean_bps": -63.77316688430514,
+              "delta_calendar_block_95_bps": null,
+              "strong_calendar_block_95_bps": null,
+              "positive_delta_days": 3,
+              "balance": {
+                "closest_gap_seconds": 600,
+                "farthest_gap_seconds": 5760,
+                "features": {
+                  "log_pressure": {
+                    "treated_mean": 10.115746528176153,
+                    "control_mean": 10.295818947579976,
+                    "difference": -0.1800724194038228,
+                    "standardized_difference": -0.5695869105915456
+                  },
+                  "impact_bps": {
+                    "treated_mean": -3.7583742268444733,
+                    "control_mean": -1.5801287296194442,
+                    "difference": -2.178245497225029,
+                    "standardized_difference": -0.5992969104468876
+                  },
+                  "spread_bps": {
+                    "treated_mean": 1.4207315168836223,
+                    "control_mean": 1.4284719190673896,
+                    "difference": -0.007740402183767259,
+                    "standardized_difference": -0.04828283849428627
+                  },
+                  "range_bps": {
+                    "treated_mean": 6.432454136314106,
+                    "control_mean": 6.333896062211477,
+                    "difference": 0.09855807410262862,
+                    "standardized_difference": 0.03216213314340529
+                  },
+                  "log_depth": {
+                    "treated_mean": 9.844407156916073,
+                    "control_mean": 9.831617038374,
+                    "difference": 0.012790118542072904,
+                    "standardized_difference": 0.08985630715104051
+                  },
+                  "normalized_ofi": {
+                    "treated_mean": -3.786378439590903,
+                    "control_mean": -2.2681722916697202,
+                    "difference": -1.5182061479211826,
+                    "standardized_difference": -0.4322976217256556
+                  },
+                  "remaining_pressure": {
+                    "treated_mean": 0.08652624057434431,
+                    "control_mean": 0.03741406507306591,
+                    "difference": 0.0491121755012784,
+                    "standardized_difference": 0.5248327242079944
+                  },
+                  "recovery_bps": {
+                    "treated_mean": 4.190778391311407,
+                    "control_mean": 5.373350570566832,
+                    "difference": -1.1825721792554251,
+                    "standardized_difference": -0.46326392210014494
+                  }
+                }
+              },
+              "strong_standalone_count": 45,
+              "strong_standalone_net_bps": -58.599298722143175,
+              "strong_standalone_before_fee_and_slippage_bps": 1.4549328681068285,
+              "pressure_standalone_count": 347,
+              "pressure_standalone_net_bps": -60.10246127063649,
+              "pressure_standalone_before_fee_and_slippage_bps": -0.042232028816258094
+            }
+          }
+        }
+      }
+    }
+  }
+}

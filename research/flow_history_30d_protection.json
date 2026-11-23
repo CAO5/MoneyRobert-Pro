@@ -1,0 +1,204 @@
+{
+  "doge_original/0.001": {
+    "pairs": 10,
+    "armed": 4,
+    "changed": 4,
+    "original_usdt": -0.5516679599999748,
+    "protected_usdt": -0.6384011399999814,
+    "saved_usdt": 0.019230749999994856,
+    "forgone_usdt": 0.10596393000000148,
+    "ledger": [
+      {
+        "signal_utc_sec": 1793304120,
+        "original_exit": 1793304721,
+        "protected_exit": 1793304721,
+        "armed": false,
+        "original_net_usdt": -0.16652580000000228,
+        "protected_net_usdt": -0.16652580000000228,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1793306490,
+        "original_exit": 1793307091,
+        "protected_exit": 1793307091,
+        "armed": false,
+        "original_net_usdt": -0.2871571799999977,
+        "protected_net_usdt": -0.2871571799999977,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1793892270,
+        "original_exit": 1793892872,
+        "protected_exit": 1793892778,
+        "armed": true,
+        "original_net_usdt": 0.10305958000000359,
+        "protected_net_usdt": 0.05916351999999847,
+        "delta_usdt": -0.04389606000000512
+      },
+      {
+        "signal_utc_sec": 1794317460,
+        "original_exit": 1794318061,
+        "protected_exit": 1794317643,
+        "armed": true,
+        "original_net_usdt": 0.08304177000000124,
+        "protected_net_usdt": 0.050943900000003595,
+        "delta_usdt": -0.03209786999999764
+      },
+      {
+        "signal_utc_sec": 1794437340,
+        "original_exit": 1794437941,
+        "protected_exit": 1794437941,
+        "armed": false,
+        "original_net_usdt": -0.01627328999999378,
+        "protected_net_usdt": -0.01627328999999378,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794489000,
+        "original_exit": 1794489601,
+        "protected_exit": 1794489254,
+        "armed": true,
+        "original_net_usdt": 0.0896137500000016,
+        "protected_net_usdt": 0.05964375000000288,
+        "delta_usdt": -0.02996999999999872
+      },
+      {
+        "signal_utc_sec": 1794541890,
+        "original_exit": 1794542491,
+        "protected_exit": 1794542491,
+        "armed": false,
+        "original_net_usdt": -0.09901044999999797,
+        "protected_net_usdt": -0.09901044999999797,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794549390,
+        "original_exit": 1794549991,
+        "protected_exit": 1794549542,
+        "armed": true,
+        "original_net_usdt": 0.03567410000000493,
+        "protected_net_usdt": 0.05490484999999978,
+        "delta_usdt": 0.019230749999994856
+      },
+      {
+        "signal_utc_sec": 1794622950,
+        "original_exit": 1794623551,
+        "protected_exit": 1794623551,
+        "armed": false,
+        "original_net_usdt": -0.2191039199999949,
+        "protected_net_usdt": -0.2191039199999949,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794704580,
+        "original_exit": 1794705181,
+        "protected_exit": 1794705181,
+        "armed": false,
+        "original_net_usdt": -0.0749865199999995,
+        "protected_net_usdt": -0.0749865199999995,
+        "delta_usdt": 0.0
+      }
+    ]
+  },
+  "doge_original/0.002": {
+    "pairs": 10,
+    "armed": 4,
+    "changed": 4,
+    "original_usdt": -1.0409759200000117,
+    "protected_usdt": -1.1276222800000149,
+    "saved_usdt": 0.01921149999999372,
+    "forgone_usdt": 0.10585785999999686,
+    "ledger": [
+      {
+        "signal_utc_sec": 1793304120,
+        "original_exit": 1793304721,
+        "protected_exit": 1793304721,
+        "armed": false,
+        "original_net_usdt": -0.21525160000000554,
+        "protected_net_usdt": -0.21525160000000554,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1793306490,
+        "original_exit": 1793307091,
+        "protected_exit": 1793307091,
+        "armed": false,
+        "original_net_usdt": -0.3358143600000041,
+        "protected_net_usdt": -0.3358143600000041,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1793892270,
+        "original_exit": 1793892872,
+        "protected_exit": 1793892778,
+        "armed": true,
+        "original_net_usdt": 0.05401916000000284,
+        "protected_net_usdt": 0.010167039999998906,
+        "delta_usdt": -0.043852120000003936
+      },
+      {
+        "signal_utc_sec": 1794317460,
+        "original_exit": 1794318061,
+        "protected_exit": 1794317643,
+        "armed": true,
+        "original_net_usdt": 0.033993539999997324,
+        "protected_net_usdt": 0.0019278000000042539,
+        "delta_usdt": -0.03206573999999307
+      },
+      {
+        "signal_utc_sec": 1794437340,
+        "original_exit": 1794437941,
+        "protected_exit": 1794437941,
+        "armed": false,
+        "original_net_usdt": -0.06521657999999775,
+        "protected_net_usdt": -0.06521657999999775,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794489000,
+        "original_exit": 1794489601,
+        "protected_exit": 1794489254,
+        "armed": true,
+        "original_net_usdt": 0.040477499999997946,
+        "protected_net_usdt": 0.01053749999999809,
+        "delta_usdt": -0.029939999999999856
+      },
+      {
+        "signal_utc_sec": 1794541890,
+        "original_exit": 1794542491,
+        "protected_exit": 1794542491,
+        "armed": false,
+        "original_net_usdt": -0.14797090000000424,
+        "protected_net_usdt": -0.14797090000000424,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794549390,
+        "original_exit": 1794549991,
+        "protected_exit": 1794549542,
+        "armed": true,
+        "original_net_usdt": -0.013351799999998804,
+        "protected_net_usdt": 0.005859699999994916,
+        "delta_usdt": 0.01921149999999372
+      },
+      {
+        "signal_utc_sec": 1794622950,
+        "original_exit": 1794623551,
+        "protected_exit": 1794623551,
+        "armed": false,
+        "original_net_usdt": -0.2679278399999987,
+        "protected_net_usdt": -0.2679278399999987,
+        "delta_usdt": 0.0
+      },
+      {
+        "signal_utc_sec": 1794704580,
+        "original_exit": 1794705181,
+        "protected_exit": 1794705181,
+        "armed": false,
+        "original_net_usdt": -0.12393304000000072,
+        "protected_net_usdt": -0.12393304000000072,
+        "delta_usdt": 0.0
+      }
+    ]
+  }
+}

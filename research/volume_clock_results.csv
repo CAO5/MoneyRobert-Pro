@@ -1,0 +1,7 @@
+month,rule,fee,trades,wins,net_usdt,drawdown_pct
+2024-09,inventory,0,13,7,0.2148,0.3804
+2024-09,inventory,0.001,13,4,-0.43446,0.8
+2024-09,inventory,0.002,13,2,-1.08371,1.349
+2024-09,resilience,0,41,23,1.37343,0.7515
+2024-09,resilience,0.001,41,13,-0.67338,1.2257
+2024-09,resilience,0.002,41,7,-2.72019,2.9844

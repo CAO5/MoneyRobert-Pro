@@ -1,0 +1,16 @@
+{
+  "instrument": "DOGE-USDT-SWAP",
+  "vendor_sha256": "d154bf7ab48fabd5986efc1058addf15e22c5b3f8451f8e0e6671427bad65122",
+  "official_rows_sha256": "5d3509de84fab56d8730da4f55901bf714392374caa6ccfa6e2a2c7cdcdc83dd",
+  "before_trade_id": 1386481777,
+  "after_trade_id": 1386481849,
+  "vendor_receipt_before_utc": "2026-11-18T03:03:19.609877+00:00",
+  "vendor_receipt_after_utc": "2026-11-18T03:03:42.729959+00:00",
+  "anchor_matches": 2,
+  "expected_missing_ids": 71,
+  "confirmed_missing_ids": 71,
+  "first_missing_exchange_ms": 1794971001876,
+  "last_missing_exchange_ms": 1794971020672,
+  "backfilled_receipts": false,
+  "gap_retained": true
+}

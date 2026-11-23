@@ -1,0 +1,63 @@
+{
+  "source": "CryptoHFTData OKX archive",
+  "diagnostic_only": true,
+  "note": "Complete hours are reconstructed independently with fresh clock warmup. Missing hours are not scored.",
+  "start_utc_second": 1794787200,
+  "end_utc_second": 1794960000,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "2026-11-16": {
+        "hours_missing_files": 15,
+        "hours_hash_verified": 9,
+        "fresh_seconds": 31846,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 0,
+        "hours_with_90_percent_fresh": 9
+      },
+      "2026-11-17": {
+        "hours_missing_files": 15,
+        "hours_hash_verified": 9,
+        "fresh_seconds": 21226,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 5,
+        "hours_with_90_percent_fresh": 6
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "2026-11-16": {
+        "hours_missing_files": 15,
+        "hours_hash_verified": 9,
+        "fresh_seconds": 28299,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 1,
+        "hours_with_90_percent_fresh": 8
+      },
+      "2026-11-17": {
+        "hours_missing_files": 16,
+        "hours_hash_verified": 8,
+        "fresh_seconds": 21226,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 5,
+        "hours_with_90_percent_fresh": 6
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "2026-11-16": {
+        "hours_hash_verified": 5,
+        "fresh_seconds": 10614,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 2,
+        "hours_with_90_percent_fresh": 3,
+        "hours_missing_files": 19
+      },
+      "2026-11-17": {
+        "hours_missing_files": 14,
+        "hours_hash_verified": 10,
+        "fresh_seconds": 28304,
+        "book_sequence_breaks": 0,
+        "trade_sequence_breaks": 4,
+        "hours_with_90_percent_fresh": 8
+      }
+    }
+  }
+}

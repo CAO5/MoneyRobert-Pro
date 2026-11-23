@@ -1,0 +1,183 @@
+{
+  "historical_diagnostic_only": true,
+  "promotion_allowed": false,
+  "weeks": 145,
+  "tail_weeks_removed": [
+    "2026-08-17T00:00:00+00:00",
+    "2025-07-14T00:00:00+00:00",
+    "2025-08-04T00:00:00+00:00"
+  ],
+  "starting_account_units": 100.0,
+  "ledger_sha256": "b95702b45795f8c7942b7ed35b3a17dcdb46f731500eae901cc45cfb77666e67",
+  "weekly_book_sha256": "0c07cdd62a063498d0b5f754bd6363ae954ac1faed346e6d3e5e5052e81458ad",
+  "execution_minutes_sha256": {
+    "binance": "c55599feedf10b920d122e331cd158f9888c0e680dc5017abcfa9ff306762ee5",
+    "bitstamp": "770f507f2a53cb208bda33467e3a874a65822577ec2d3c770991613bd151ee0f"
+  },
+  "historical": {
+    "binance/immediate/base": {
+      "full": {
+        "net": 13.72894697374224,
+        "drawdown": 3.4412194372581126,
+        "net_minus_drawdown": 10.287727536484127,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 4.51937845138373,
+        "drawdown": 3.4412194372581126,
+        "net_minus_drawdown": 1.0781590141256174,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    },
+    "binance/immediate/stress": {
+      "full": {
+        "net": 11.934170413980667,
+        "drawdown": 3.7212849893183915,
+        "net_minus_drawdown": 8.212885424662275,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 2.8447410395466477,
+        "drawdown": 4.102344172345184,
+        "net_minus_drawdown": -1.2576031327985362,
+        "under_eight_percent": true,
+        "passes": false
+      }
+    },
+    "binance/confirmed/base": {
+      "full": {
+        "net": 15.571028039645483,
+        "drawdown": 3.8570870073541386,
+        "net_minus_drawdown": 11.713941032291345,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 6.361459517286974,
+        "drawdown": 3.8570870073541386,
+        "net_minus_drawdown": 2.5043725099328356,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    },
+    "binance/confirmed/stress": {
+      "full": {
+        "net": 13.463629822869663,
+        "drawdown": 4.125169303716575,
+        "net_minus_drawdown": 9.338460519153088,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 4.374200448435644,
+        "drawdown": 4.125169303716589,
+        "net_minus_drawdown": 0.24903114471905496,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    },
+    "bitstamp/immediate/base": {
+      "full": {
+        "net": 13.63356075552224,
+        "drawdown": 3.4658799521234585,
+        "net_minus_drawdown": 10.167680803398781,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 4.410607713962236,
+        "drawdown": 3.4658799521234585,
+        "net_minus_drawdown": 0.9447277618387773,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    },
+    "bitstamp/immediate/stress": {
+      "full": {
+        "net": 11.844675550688464,
+        "drawdown": 3.734516101494009,
+        "net_minus_drawdown": 8.110159449194455,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 2.741880124448457,
+        "drawdown": 4.132961286176382,
+        "net_minus_drawdown": -1.391081161727925,
+        "under_eight_percent": true,
+        "passes": false
+      }
+    },
+    "bitstamp/confirmed/base": {
+      "full": {
+        "net": 15.452275662304643,
+        "drawdown": 3.894890684450985,
+        "net_minus_drawdown": 11.557384977853658,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 6.2293226207446395,
+        "drawdown": 3.894890684450985,
+        "net_minus_drawdown": 2.3344319362936545,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    },
+    "bitstamp/confirmed/stress": {
+      "full": {
+        "net": 13.34726677501807,
+        "drawdown": 4.162882995804011,
+        "net_minus_drawdown": 9.184383779214059,
+        "under_eight_percent": true,
+        "passes": true
+      },
+      "no_top_three": {
+        "net": 4.244471348778063,
+        "drawdown": 4.162882995804011,
+        "net_minus_drawdown": 0.08158835297405176,
+        "under_eight_percent": true,
+        "passes": true
+      }
+    }
+  },
+  "resamples": 5000,
+  "paired_block_sensitivity": {
+    "4": {
+      "immediate": {
+        "joint_pass_fraction": 0.8474,
+        "worst_lane_profit_minus_drawdown_95": [
+          -7.289129163499155,
+          24.03838718729891
+        ]
+      },
+      "confirmed": {
+        "joint_pass_fraction": 0.8874,
+        "worst_lane_profit_minus_drawdown_95": [
+          -5.813048108063896,
+          25.663308388398008
+        ]
+      }
+    },
+    "13": {
+      "immediate": {
+        "joint_pass_fraction": 0.8666,
+        "worst_lane_profit_minus_drawdown_95": [
+          -6.108743686291078,
+          22.185733104560484
+        ]
+      },
+      "confirmed": {
+        "joint_pass_fraction": 0.8988,
+        "worst_lane_profit_minus_drawdown_95": [
+          -5.314440293429939,
+          23.954685920889645
+        ]
+      }
+    }
+  },
+  "interpretation": "Same fixed weekly paths; not strategy reruns or forward probabilities. Each venue keeps its own quote currency."
+}
