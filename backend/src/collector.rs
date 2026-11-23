@@ -57,7 +57,7 @@ impl MarketCollector {
     }
 
     /// Get or create a reqwest::Client, rebuilding only when proxy config changes
-    async fn get_http_client(&self) -> reqwest::Client {
+    pub(crate) async fn get_http_client(&self) -> reqwest::Client {
         let proxy_url = crate::state::get_proxy_config_from_db(&self.db).await;
         let proxy_str = proxy_url.as_deref().unwrap_or("");
 
@@ -125,7 +125,7 @@ impl MarketCollector {
     }
 
     /// Send GET request: try direct first, fall back to proxy if direct fails
-    async fn http_get(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
+    pub(crate) async fn http_get(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
         // Try direct connection first (works in Docker without proxy for OKX)
         match self.direct_client.get(url).send().await {
             Ok(resp) => Ok(resp),
