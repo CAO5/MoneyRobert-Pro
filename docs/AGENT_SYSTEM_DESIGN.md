@@ -2444,6 +2444,27 @@ CREATE TABLE evolution_logs (
 - `trends_from_decisions` - 历史决策反馈获取
 - 交叉辩论逻辑（Agent 看到对手论据后重新评估）
 
+#### 前端展示一致性（SSE 事件字段对齐）
+
+为保证手动调用结果在前端页面（`AgentDebateViewer.vue`）的完整展示，SSE 事件已与后端数据结构完全对齐：
+
+| SSE 事件 | 字段 | 说明 |
+|---------|------|------|
+| `market_data` | `price`, `change_24h`, `funding_rate`, `long_short_ratio` | 基础市场数据 |
+| `market_data` | `trend`, `trend_strength`, `rsi_14`, `macd_signal`, `atr`, `ma5/10/20` | 技术指标 |
+| `market_data` | `bid_depth`, `ask_depth`, `bid_ask_imbalance` | 订单簿深度 |
+| `market_data` | `open_interest`, `oi_change_hint` | 持仓量 |
+| `market_data` | `multi_timeframe.{m5_trend, m15_trend, h1_trend, h4_trend, d1_trend, alignment, alignment_details}` | 多时间框架 |
+| `fund_manager` | `action`, `confidence`(增强后), `base_confidence`, `enhanced_confidence` | 增强置信度 |
+| `fund_manager` | `market_context.{trend, volatility, rsi_14, macd_signal, ...}` | 市场环境 |
+| `fund_manager` | `multi_timeframe.{...}` | 多时间框架（基金经理视角） |
+| `fund_manager` | `evidence_score`, `decision_status`, `model_action`, `llm_status` | 证据评分 |
+
+前端展示组件：
+- **市场数据栏**：展示价格、24h涨跌、资金费率、多空比、趋势、RSI、买卖力量
+- **扩展市场数据**：多时间框架分析（5m/15m/1H/4H/1D）、订单簿深度、持仓量
+- **基金经理决策**：增强置信度对比（原始 → 增强）、市场环境、多时间框架、证据评分
+
 ### 14.5 AI 模拟操盘自动执行循环
 
 ```

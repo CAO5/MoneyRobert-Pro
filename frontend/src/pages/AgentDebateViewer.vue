@@ -33,11 +33,51 @@ interface AgentState {
   } | null
 }
 
+interface MultiTimeframeData {
+  m5_trend: string
+  m15_trend: string
+  h1_trend: string
+  h4_trend: string
+  d1_trend: string
+  alignment: number
+  alignment_details: string
+}
+
 interface MarketData {
   price: number
   funding_rate: number
   long_short_ratio: number
   change_24h: number
+  // 扩展字段（与后端自动调用一致）
+  open_24h?: number
+  high_24h?: number
+  low_24h?: number
+  vol_24h?: number
+  long_pct?: number
+  short_pct?: number
+  // 技术指标
+  trend?: string
+  trend_strength?: number
+  rsi_14?: number
+  macd_signal?: string
+  atr?: number
+  ma5?: number
+  ma10?: number
+  ma20?: number
+  volatility?: string
+  volume_profile?: string
+  price_change_1h?: number
+  price_change_4h?: number
+  key_levels?: number[]
+  // 订单簿深度
+  bid_depth?: string
+  ask_depth?: string
+  bid_ask_imbalance?: number
+  // 持仓量
+  open_interest?: number | null
+  oi_change_hint?: string
+  // 多时间框架
+  multi_timeframe?: MultiTimeframeData
 }
 
 interface DeptReport {
@@ -76,6 +116,25 @@ interface FundManagerDecision {
     reliability_agents?: number
   }
   trade_plan_status?: string
+  // 增强字段（与后端自动调用一致）
+  base_confidence?: number
+  enhanced_confidence?: number
+  market_context?: {
+    trend: string
+    trend_strength: number
+    volatility: string
+    volume_profile: string
+    rsi_14: number
+    macd_signal: string
+    atr: number
+    ma5: number
+    ma10: number
+    ma20: number
+    price_change_1h: number
+    price_change_4h: number
+    key_levels: number[]
+  }
+  multi_timeframe?: MultiTimeframeData
 }
 
 interface DebateHistoryItem {
@@ -202,6 +261,22 @@ function getDeptColor(d: string): string {
   if (d === 'capital') return 'var(--warning)'
   if (d === 'news') return 'var(--info)'
   return 'var(--text-muted)'
+}
+
+// 获取趋势颜色（与后端趋势判断一致）
+function getTrendColor(trend?: string): string {
+  if (!trend) return 'var(--text-muted)'
+  const t = trend.toLowerCase()
+  if (t.includes('up') || t.includes('bull') || t.includes('多') || t.includes('涨')) return 'var(--profit)'
+  if (t.includes('down') || t.includes('bear') || t.includes('空') || t.includes('跌')) return 'var(--loss)'
+  return 'var(--text-muted)'
+}
+
+// 获取多时间框架一致性颜色
+function getAlignmentColor(alignment: number): string {
+  if (alignment >= 0.8) return 'var(--profit)'
+  if (alignment >= 0.5) return 'var(--warning)'
+  return 'var(--loss)'
 }
 
 function formatDateTime(s: string): string {
@@ -375,14 +450,47 @@ async function loadDebateSession(sid: string) {
       departmentReports.value = data.department_reports
     }
     if (data.fund_manager_decision) {
-      fundManagerDecision.value = data.fund_manager_decision
+      // 历史加载时，fund_manager_decision 已是增强决策（包含 enhanced_confidence、market_context、multi_timeframe）
+      const fmd = data.fund_manager_decision
+      // 兼容处理：如果没有 base_confidence 但有 confidence，则用 confidence 作为 base_confidence
+      if (fmd.confidence != null && fmd.base_confidence == null && fmd.enhanced_confidence != null) {
+        fmd.base_confidence = fmd.confidence
+        fmd.confidence = fmd.enhanced_confidence
+      }
+      fundManagerDecision.value = fmd
     }
     if (data.market_snapshot) {
+      // 历史加载时，从 market_snapshot 恢复完整的市场数据（与SSE一致）
+      const ms = data.market_snapshot
       marketData.value = {
-        price: data.market_snapshot.current_price || data.market_snapshot.price,
-        funding_rate: data.market_snapshot.funding_rate,
-        long_short_ratio: data.market_snapshot.long_short_ratio,
-        change_24h: data.market_snapshot.change_24h,
+        price: ms.current_price || ms.price,
+        funding_rate: ms.funding_rate,
+        long_short_ratio: ms.long_short_ratio,
+        change_24h: ms.change_24h || (ms.open_24h && ms.current_price ? (ms.current_price - ms.open_24h) / ms.open_24h * 100 : 0),
+        // 扩展字段（与SSE market_data 事件一致）
+        open_24h: ms.open_24h,
+        high_24h: ms.high_24h,
+        low_24h: ms.low_24h,
+        vol_24h: ms.vol_24h,
+        long_pct: ms.long_pct,
+        short_pct: ms.short_pct,
+        // 技术指标
+        trend: ms.trend,
+        trend_strength: ms.trend_strength,
+        rsi_14: ms.rsi_14,
+        macd_signal: ms.macd_signal,
+        atr: ms.atr,
+        ma5: ms.ma5,
+        ma10: ms.ma10,
+        ma20: ms.ma20,
+        volatility: ms.volatility,
+        volume_profile: ms.volume_profile,
+        // 订单簿深度
+        bid_ask_imbalance: ms.bid_ask_imbalance,
+        // 持仓量
+        open_interest: ms.open_interest,
+        // 多时间框架（从 fund_manager_decision 补充，因为 market_snapshot 可能未保存）
+        multi_timeframe: data.fund_manager_decision?.multi_timeframe,
       }
     }
     debateStatus.value = data.status === 'completed' ? 'completed' : 'idle'
@@ -471,6 +579,89 @@ onUnmounted(() => {})
         <div class="market-item">
           <span class="market-label">多空比</span>
           <span class="market-value font-mono">{{ marketData.long_short_ratio?.toFixed(4) }}</span>
+        </div>
+        <div class="market-divider"></div>
+        <div class="market-item">
+          <span class="market-label">趋势</span>
+          <span class="market-value font-mono" :style="{ color: getTrendColor(marketData.trend) }">
+            {{ marketData.trend || '-' }} ({{ (marketData.trend_strength ? marketData.trend_strength * 100 : 0).toFixed(1) }}%)
+          </span>
+        </div>
+        <div class="market-divider"></div>
+        <div class="market-item">
+          <span class="market-label">RSI</span>
+          <span class="market-value font-mono">{{ marketData.rsi_14?.toFixed(1) }}</span>
+        </div>
+        <div class="market-divider"></div>
+        <div class="market-item">
+          <span class="market-label">买卖力量</span>
+          <span class="market-value font-mono" :style="{ color: (marketData.bid_ask_imbalance || 0) >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+            {{ (marketData.bid_ask_imbalance || 0).toFixed(4) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 扩展市场数据：多时间框架 + 订单簿 + 持仓量 -->
+      <div v-if="marketData?.multi_timeframe || marketData?.bid_depth || marketData?.oi_change_hint" class="market-extended">
+        <!-- 多时间框架分析 -->
+        <div v-if="marketData.multi_timeframe" class="mtf-section">
+          <div class="mtf-header">
+            <BarChart3 class="w-4 h-4" style="color: var(--primary)" />
+            <span>多时间框架分析</span>
+            <span class="mtf-alignment" :style="{ color: getAlignmentColor(marketData.multi_timeframe.alignment) }">
+              一致性: {{ (marketData.multi_timeframe.alignment * 100).toFixed(1) }}%
+            </span>
+          </div>
+          <div class="mtf-grid">
+            <div class="mtf-item">
+              <span class="mtf-label">5m</span>
+              <span class="mtf-value" :style="{ color: getTrendColor(marketData.multi_timeframe.m5_trend) }">{{ marketData.multi_timeframe.m5_trend }}</span>
+            </div>
+            <div class="mtf-item">
+              <span class="mtf-label">15m</span>
+              <span class="mtf-value" :style="{ color: getTrendColor(marketData.multi_timeframe.m15_trend) }">{{ marketData.multi_timeframe.m15_trend }}</span>
+            </div>
+            <div class="mtf-item">
+              <span class="mtf-label">1H</span>
+              <span class="mtf-value" :style="{ color: getTrendColor(marketData.multi_timeframe.h1_trend) }">{{ marketData.multi_timeframe.h1_trend }}</span>
+            </div>
+            <div class="mtf-item">
+              <span class="mtf-label">4H</span>
+              <span class="mtf-value" :style="{ color: getTrendColor(marketData.multi_timeframe.h4_trend) }">{{ marketData.multi_timeframe.h4_trend }}</span>
+            </div>
+            <div class="mtf-item">
+              <span class="mtf-label">1D</span>
+              <span class="mtf-value" :style="{ color: getTrendColor(marketData.multi_timeframe.d1_trend) }">{{ marketData.multi_timeframe.d1_trend }}</span>
+            </div>
+          </div>
+          <div class="mtf-details">{{ marketData.multi_timeframe.alignment_details }}</div>
+        </div>
+
+        <!-- 订单簿深度 -->
+        <div v-if="marketData.bid_depth && marketData.ask_depth" class="orderbook-section">
+          <div class="ob-header">
+            <Activity class="w-4 h-4" style="color: var(--primary)" />
+            <span>订单簿深度（前5档）</span>
+          </div>
+          <div class="ob-grid">
+            <div class="ob-col">
+              <div class="ob-col-header" style="color: var(--profit)">买盘</div>
+              <div class="ob-text">{{ marketData.bid_depth }}</div>
+            </div>
+            <div class="ob-col">
+              <div class="ob-col-header" style="color: var(--loss)">卖盘</div>
+              <div class="ob-text">{{ marketData.ask_depth }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 持仓量 -->
+        <div v-if="marketData.oi_change_hint" class="oi-section">
+          <div class="oi-header">
+            <DollarSign class="w-4 h-4" style="color: var(--primary)" />
+            <span>持仓量</span>
+          </div>
+          <div class="oi-text">{{ marketData.oi_change_hint }}</div>
         </div>
       </div>
     </div>
@@ -641,6 +832,92 @@ onUnmounted(() => {})
             <span>{{ getActionText(fundManagerDecision.action) }}</span>
             <span class="fund-confidence">{{ (fundManagerDecision.confidence * 100).toFixed(0) }}%</span>
           </div>
+        </div>
+
+        <!-- 增强置信度展示（与自动调用一致） -->
+        <div v-if="fundManagerDecision.enhanced_confidence != null && fundManagerDecision.base_confidence != null && fundManagerDecision.enhanced_confidence !== fundManagerDecision.base_confidence" class="enhanced-confidence-panel">
+          <div class="ec-header">
+            <Shield class="w-4 h-4" style="color: var(--primary)" />
+            <span>增强置信度（基于市场环境校准）</span>
+          </div>
+          <div class="ec-grid">
+            <div class="ec-item">
+              <span class="ec-label">原始置信度</span>
+              <span class="ec-value">{{ (fundManagerDecision.base_confidence * 100).toFixed(1) }}%</span>
+            </div>
+            <div class="ec-arrow">→</div>
+            <div class="ec-item">
+              <span class="ec-label">增强置信度</span>
+              <span class="ec-value" :style="{ color: fundManagerDecision.enhanced_confidence > fundManagerDecision.base_confidence ? 'var(--profit)' : 'var(--loss)' }">
+                {{ (fundManagerDecision.enhanced_confidence * 100).toFixed(1) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 市场环境信息（与自动调用一致） -->
+        <div v-if="fundManagerDecision.market_context" class="market-context-panel">
+          <div class="mc-header">
+            <Activity class="w-4 h-4" style="color: var(--primary)" />
+            <span>市场环境</span>
+          </div>
+          <div class="mc-grid">
+            <div class="mc-item">
+              <span class="mc-label">趋势</span>
+              <span class="mc-value" :style="{ color: getTrendColor(fundManagerDecision.market_context.trend) }">
+                {{ fundManagerDecision.market_context.trend }} ({{ (fundManagerDecision.market_context.trend_strength * 100).toFixed(1) }}%)
+              </span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">波动性</span>
+              <span class="mc-value">{{ fundManagerDecision.market_context.volatility }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">成交量</span>
+              <span class="mc-value">{{ fundManagerDecision.market_context.volume_profile }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">RSI</span>
+              <span class="mc-value">{{ fundManagerDecision.market_context.rsi_14.toFixed(1) }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">MACD</span>
+              <span class="mc-value">{{ fundManagerDecision.market_context.macd_signal }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">ATR</span>
+              <span class="mc-value font-mono">{{ fundManagerDecision.market_context.atr.toFixed(6) }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">MA5/10/20</span>
+              <span class="mc-value font-mono">{{ fundManagerDecision.market_context.ma5.toFixed(6) }} / {{ fundManagerDecision.market_context.ma10.toFixed(6) }} / {{ fundManagerDecision.market_context.ma20.toFixed(6) }}</span>
+            </div>
+            <div class="mc-item">
+              <span class="mc-label">1h/4h涨跌</span>
+              <span class="mc-value font-mono" :style="{ color: fundManagerDecision.market_context.price_change_1h >= 0 ? 'var(--profit)' : 'var(--loss)' }">
+                {{ fundManagerDecision.market_context.price_change_1h.toFixed(4) }}% / {{ fundManagerDecision.market_context.price_change_4h.toFixed(4) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 多时间框架分析（基金经理视角） -->
+        <div v-if="fundManagerDecision.multi_timeframe" class="mtf-panel">
+          <div class="mtf-panel-header">
+            <BarChart3 class="w-4 h-4" style="color: var(--primary)" />
+            <span>多时间框架分析</span>
+            <span class="mtf-alignment" :style="{ color: getAlignmentColor(fundManagerDecision.multi_timeframe.alignment) }">
+              一致性: {{ (fundManagerDecision.multi_timeframe.alignment * 100).toFixed(1) }}%
+            </span>
+          </div>
+          <div class="mtf-panel-grid">
+            <div class="mtf-panel-item"><span>5m</span><strong :style="{ color: getTrendColor(fundManagerDecision.multi_timeframe.m5_trend) }">{{ fundManagerDecision.multi_timeframe.m5_trend }}</strong></div>
+            <div class="mtf-panel-item"><span>15m</span><strong :style="{ color: getTrendColor(fundManagerDecision.multi_timeframe.m15_trend) }">{{ fundManagerDecision.multi_timeframe.m15_trend }}</strong></div>
+            <div class="mtf-panel-item"><span>1H</span><strong :style="{ color: getTrendColor(fundManagerDecision.multi_timeframe.h1_trend) }">{{ fundManagerDecision.multi_timeframe.h1_trend }}</strong></div>
+            <div class="mtf-panel-item"><span>4H</span><strong :style="{ color: getTrendColor(fundManagerDecision.multi_timeframe.h4_trend) }">{{ fundManagerDecision.multi_timeframe.h4_trend }}</strong></div>
+            <div class="mtf-panel-item"><span>1D</span><strong :style="{ color: getTrendColor(fundManagerDecision.multi_timeframe.d1_trend) }">{{ fundManagerDecision.multi_timeframe.d1_trend }}</strong></div>
+          </div>
+          <div class="mtf-panel-details">{{ fundManagerDecision.multi_timeframe.alignment_details }}</div>
         </div>
 
         <div v-if="fundManagerDecision.evidence_score" class="evidence-panel">
@@ -1501,5 +1778,242 @@ onUnmounted(() => {})
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* === 扩展市场数据样式 === */
+.market-extended {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.mtf-section,
+.orderbook-section,
+.oi-section {
+  flex: 1;
+  min-width: 280px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.mtf-header,
+.ob-header,
+.oi-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.mtf-alignment {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mtf-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mtf-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.mtf-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.mtf-value {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mtf-details {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ob-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ob-col-header {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.ob-text {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-secondary);
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.oi-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* === 增强置信度面板 === */
+.enhanced-confidence-panel {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.ec-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.ec-grid {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ec-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.ec-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.ec-arrow {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+/* === 市场环境面板 === */
+.market-context-panel {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.mc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.mc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.mc-item {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.mc-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.mc-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* === 多时间框架面板（基金经理决策内） === */
+.mtf-panel {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.mtf-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.mtf-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mtf-panel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mtf-panel-item strong {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.mtf-panel-details {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
 }
 </style>
