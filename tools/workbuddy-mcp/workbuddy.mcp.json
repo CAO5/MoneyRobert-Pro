@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "moneyrobert-test-executor": {
+      "type": "stdio",
+      "command": "D:/wan_workspase/MoneyRobert-Pro/tools/workbuddy-mcp/.venv/Scripts/python.exe",
+      "args": [
+        "D:/wan_workspase/MoneyRobert-Pro/tools/workbuddy-mcp/server.py",
+        "--role", "executor",
+        "--db", "D:/wan_workspase/MoneyRobert-Pro/data/workbuddy-mcp/tasks.sqlite3"
+      ]
+    }
+  }
+}
