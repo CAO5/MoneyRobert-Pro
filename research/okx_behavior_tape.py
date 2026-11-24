@@ -53,9 +53,12 @@ class BookWatch:
 
 
 async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
-                  instruments=INSTRUMENTS, ws_compression=False):
+                  instruments=INSTRUMENTS, ws_compression=False, channels=CHANNELS,
+                  observer=None, receive_timeout=5):
     tape = Tape(root)
     url = PUBLIC_ENDPOINTS[endpoint]
+    if channels == ('trades-all',):
+        url = url.removesuffix('/public') + '/business'
     started = time.monotonic()
     deadline = started + seconds
     first_seal = started + 15
@@ -65,12 +68,20 @@ async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
     stopped = None
     next_connect = 0.
     connect_lock = asyncio.Lock()
-    options = [{'channel':channel,'instId':instrument} for instrument in instruments for channel in CHANNELS]
-    tape.record('okx','configuration',dict(url=url,channels=options,seconds=seconds,max_bytes=cap,
+    options = [{'channel':channel,'instId':instrument} for instrument in instruments for channel in channels]
+
+    def record(kind, payload, wall=None, mono=None, *, observed=None):
+        wall = time.time_ns() if wall is None else wall
+        mono = time.monotonic_ns() if mono is None else mono
+        tape.record('okx', kind, payload, wall, mono)
+        if observer is not None:
+            observer(kind, payload if observed is None else observed, wall, mono)
+
+    record('configuration',dict(url=url,channels=options,seconds=seconds,max_bytes=cap,
                                           book_stall_seconds=BOOK_STALL_SECONDS,
                                           max_excess_delay_ms=MAX_EXCESS_DELAY_MS,
                                           stall_grace_seconds=STALL_GRACE_SECONDS,split_streams=split_streams,
-                                          ws_compression=ws_compression))
+                                          ws_compression=ws_compression,receive_timeout=receive_timeout))
 
     def check():
         nonlocal next_check, stopped
@@ -92,7 +103,7 @@ async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
     async def capture(client, instruments):
         nonlocal stopped, next_connect
         scope = {'instruments':instruments} if split_streams or instruments!=INSTRUMENTS else {}
-        watchdog = BookWatch(instruments)
+        watchdog = BookWatch(instruments if 'books' in channels else ())
         subscriptions = [item for item in options if item['instId'] in instruments]
         while not (stop := check()):
             sequence = {}
@@ -104,26 +115,26 @@ async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
                     return
                 async with client.ws_connect(url,heartbeat=10,compress=15 if ws_compression else 0,
                                              timeout=aiohttp.ClientWSTimeout(ws_close=1)) as socket:
-                    tape.record('okx','connect',dict(compression_window=socket.compress,**scope))
+                    record('connect',dict(compression_window=socket.compress,**scope))
                     watchdog.reconnect(time.monotonic_ns())
                     await socket.send_json({'op':'subscribe','args':subscriptions})
                     while not (stop := check()):
                         try:
-                            msg = await socket.receive(timeout=5)
+                            msg = await socket.receive(timeout=receive_timeout)
                         except TimeoutError:
                             await socket.send_str('ping')
-                            msg = await socket.receive(timeout=5)
+                            msg = await socket.receive(timeout=receive_timeout)
                         wall,mono = time.time_ns(),time.monotonic_ns()
                         if msg.type != aiohttp.WSMsgType.TEXT:
-                            tape.record('okx','disconnect',dict(type=msg.type.name,**scope),wall,mono)
+                            record('disconnect',dict(type=msg.type.name,**scope),wall,mono)
                             break
                         if msg.data == 'pong':
-                            tape.record('okx','pong','pong',wall,mono)
+                            record('pong',scope if observer is not None else 'pong',wall,mono)
                         else:
                             packet = json.loads(msg.data)
                             arg = packet.get('arg',{})
                             channel,inst = arg.get('channel'),arg.get('instId')
-                            tape.record('okx',channel or 'control',msg.data,wall,mono)
+                            record(channel or 'control',msg.data,wall,mono,observed=packet)
                             if packet.get('event') == 'error':
                                 stopped = 'subscription-error'
                                 return
@@ -137,17 +148,17 @@ async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
                                         action == 'update' and sequence.get(inst) == previous):
                                     sequence[inst] = current
                                 else:
-                                    tape.record('okx','sequence_gap',dict(instrument=inst,expected=sequence.get(inst),
+                                    record('sequence_gap',dict(instrument=inst,expected=sequence.get(inst),
                                                                         previous=previous,current=current,**scope),wall,mono)
                                     break
                                 if update['asks'] or update['bids']:
                                     watchdog.book(inst,mono,int(update['ts']))
                         stale = watchdog.check(mono)
                         if stale:
-                            tape.record('okx','disconnect',dict(type='stale-book',**stale,**scope),wall,mono)
+                            record('disconnect',dict(type='stale-book',**stale,**scope),wall,mono)
                             break
             except (TimeoutError,aiohttp.ClientError,OSError) as error:
-                tape.record('okx','disconnect',dict(type=type(error).__name__,detail=str(error),**scope))
+                record('disconnect',dict(type=type(error).__name__,detail=str(error),**scope))
             if stop:
                 break
             await asyncio.sleep(1)
@@ -162,6 +173,7 @@ async def collect(root, seconds, cap, *, split_streams=False, endpoint='global',
         tape.catalog.close()
         (root/'summary.json').write_text(json.dumps(dict(reason=reason, files=tape.shard, bytes=tape.sealed,
                                                   counts=tape.counts),indent=2),encoding='utf-8')
+    return reason
 
 
 if __name__ == '__main__':

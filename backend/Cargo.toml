@@ -2,6 +2,7 @@
 name = "moneyrobert-rs"
 version = "1.0.0"
 edition = "2021"
+default-run = "moneyrobert"
 authors = ["MoneyRobert Team <team@moneyrobert.com>"]
 description = "MoneyRobert - Rust backend for investment strategy generation and execution system"
 license = "MIT"
@@ -44,6 +45,7 @@ futures = "0.3"
 bcrypt = "0.17"
 tokio-cron-scheduler = "0.13"
 tokio-stream = "0.1"
+tokio-tungstenite = { version = "0.29", features = ["native-tls"] }
 aes-gcm = "0.10"
 utoipa = { version = "5", features = ["axum_extras"] }
 dashmap = "6"

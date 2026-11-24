@@ -2,6 +2,7 @@ pub mod agents;
 pub mod auth;
 pub mod backfill;
 pub mod backtest;
+pub mod cdfp;
 pub mod collector;
 pub mod config;
 pub mod data_quality;

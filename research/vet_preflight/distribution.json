@@ -1,0 +1,978 @@
+{
+  "factor": "VET v0.1 raw data preflight",
+  "factor_step_seconds": 10,
+  "receipt_grace_seconds": 5,
+  "historical_tick_unit_reference": "live REST snapshot; historical grid checked",
+  "sources": {
+    "historical": {
+      "source": "Tardis OKX native books + trades",
+      "receiver": "Tardis UTC receiver clock",
+      "utc_start": "2026-11-01T00:00:00+00:00",
+      "utc_end": "2026-11-01T02:00:00+00:00",
+      "window_seconds": 7200.0,
+      "slice_sha256": {
+        "F:\\temp\\okx-tardis-native-20261101-audit-complete": {
+          "0000.ndjson.gz": "41db36094d47b18d9d8275997779eae6342d74d744d924efb42f2e48d569a501",
+          "0010.ndjson.gz": "9c333eb98540c40be7db6f5d8abb77415b7cf1b7abc2476b561f0539c1468db2",
+          "0020.ndjson.gz": "a2246518b08bd059eb323971a9f2a63d56004be4e212e035d589cc38824c42de",
+          "0030.ndjson.gz": "90bb4230b9dfd1b87fde538d8802da0cf352040bc1eb54ddacb71e2757e532d3",
+          "0040.ndjson.gz": "4b5eae2113278defb7aae2f3771adb00fbc4bb378727f85058c41d19e7cae9db",
+          "0050.ndjson.gz": "f746f7473cbdea2c2cdd7c458c0f49a0d41b1b7ca7b5687660b60837a9b80033",
+          "0060.ndjson.gz": "edd80d1d85de65b6f4c17d671a73908e2f2a5b35418fec48dce5dd0b614c450a",
+          "0070.ndjson.gz": "d420f81c3cbff55973952bf6f4f317d6ff78d07fc0fee28719a041fca3eb41b1",
+          "0080.ndjson.gz": "ae77486cabdb33fb28aefb48fc9300f0faac3992a0001135f5cb61fbc0a66065",
+          "0090.ndjson.gz": "0c70fe8ea4249eb56ccec1eeca4be7e20383bfd5e3ec90ce49d36230fc68e4ca",
+          "0100.ndjson.gz": "829a03ca7e081b54793a101e2dcb9ede59a7cca059344ddd1f27ad286e3d0185",
+          "0110.ndjson.gz": "568ac93ebbd92732754990e05b8de194217b51e23db0412df20e173481edb61d"
+        },
+        "F:\\temp\\vet-tardis-sol-20261101": {
+          "0000.ndjson.gz": "ec7b48207f2c395ef20a5b8064f7ec0663ec9c78d486ef2b73ff18f49308c9bf",
+          "0010.ndjson.gz": "4639f7726f096b55dd41d87c0e160dc529cd9df257e88ac6dc2fc2dc38431c63",
+          "0020.ndjson.gz": "a6faaa3ed896c385f1049718b0f000dc41672811c4ca5eaf9c6a4e0cda66cdce",
+          "0030.ndjson.gz": "47e8129b5296ed60edd79815bd2b995531a2936fd982050a877edd44af548d9c",
+          "0040.ndjson.gz": "6c5ceab4d719a6fb18567f44a466b2466476a95f3b926426d2e4ca1dc3052b98",
+          "0050.ndjson.gz": "8a3b3a35f5e45d2f488fa37fb9d0d0c111a5a563b8f4301f43f69ab98e06ab49",
+          "0060.ndjson.gz": "00c74d43e1669a52a1925c2c3a07a3ab9a31008833f99336701c4d7561617cc5",
+          "0070.ndjson.gz": "f2107c6290118919ceaae954503c4385805904cd0a2fe0949e85c514c535bdc9",
+          "0080.ndjson.gz": "e1ecba73eb8eff54b7fd7af82748d2afe41ef1aaf4f8165805206a57a7138bf0",
+          "0090.ndjson.gz": "0f84435bb6a9cf83bdde30e7d36a2ac44d3ca4194d4c4958d24a3005fd8f173f",
+          "0100.ndjson.gz": "f418bca47b22a105be78d84a2a685904ad59e5b820ab4648c33ae56f90bfe147",
+          "0110.ndjson.gz": "5bfeed5a99d15f2e4deb02d8a53408c2c0b9df98274963d936a7d683c7109855"
+        }
+      },
+      "markets": {
+        "BTC-USDT-SWAP": {
+          "tick_size": 0.1,
+          "expected_10s_bins": 720,
+          "quote_missing_10s_bins": 2,
+          "trade_missing_10s_bins": 2,
+          "spread_tick_duration_ms": {
+            "1": 7179600,
+            "2": 200,
+            "4": 100,
+            "5": 100
+          },
+          "one_tick_fraction": 0.9999442896935933,
+          "spread_bp": {
+            "p50": 0.013,
+            "p90": 0.013,
+            "p99": 0.013
+          },
+          "a_valid": 653,
+          "l_valid": 654,
+          "joint_valid": 653,
+          "trade_events_per_60s": {
+            "p50": 151.0,
+            "p90": 390.0,
+            "p99": 846.0
+          },
+          "a_positive_fraction": 0.33690658499234305,
+          "l_positive_fraction": 0.0,
+          "vet_positive_fraction": 0.0,
+          "joint_a_positive_fraction": 0.33690658499234305,
+          "joint_l_positive_fraction": 0.0,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 23417,
+          "trade_count_sum": 45112,
+          "aggregated_message_fraction": 0.2714694452748004,
+          "mean_fills_per_message": 1.9264636802323098,
+          "delay_ms": {
+            "quotes": {
+              "p50": 3.0,
+              "p90": 4.0,
+              "p99": 5.0,
+              "min": 3,
+              "max": 132,
+              "n": 69606,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 4.0,
+              "p90": 5.0,
+              "p99": 12.0,
+              "min": 2,
+              "max": 139,
+              "n": 23417,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "unanchored_book": 1,
+            "subscription_unsubscribe_quotes": 1,
+            "subscription_subscribe_quotes": 1,
+            "quote_recovery": 1,
+            "trade_messages": 23417,
+            "trade_count_sum": 45112,
+            "messages_with_count_gt_1": 6357
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 1.0212504719524946,
+                "p90": 2.46085566087119,
+                "p99": 4.914224117494389
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 3.235601974907889,
+                "p90": 5.2962631299722425,
+                "p99": 5.781241035201612
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 538,
+              "baseline_percentiles_bp": {
+                "p50": 8.546129619377595,
+                "p90": 9.457742097018643,
+                "p99": 9.80117184802588
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        },
+        "ETH-USDT-SWAP": {
+          "tick_size": 0.01,
+          "expected_10s_bins": 720,
+          "quote_missing_10s_bins": 2,
+          "trade_missing_10s_bins": 2,
+          "spread_tick_duration_ms": {
+            "1": 7179600,
+            "2": 300,
+            "9": 100
+          },
+          "one_tick_fraction": 0.9999442896935933,
+          "spread_bp": {
+            "p50": 0.044,
+            "p90": 0.044,
+            "p99": 0.044
+          },
+          "a_valid": 653,
+          "l_valid": 654,
+          "joint_valid": 653,
+          "trade_events_per_60s": {
+            "p50": 351.0,
+            "p90": 854.0,
+            "p99": 2622.0
+          },
+          "a_positive_fraction": 0.35222052067381315,
+          "l_positive_fraction": 0.0,
+          "vet_positive_fraction": 0.0,
+          "joint_a_positive_fraction": 0.35222052067381315,
+          "joint_l_positive_fraction": 0.0,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 53236,
+          "trade_count_sum": 119749,
+          "aggregated_message_fraction": 0.32987076414456384,
+          "mean_fills_per_message": 2.2493989029979713,
+          "delay_ms": {
+            "quotes": {
+              "p50": 5.0,
+              "p90": 5.0,
+              "p99": 7.0,
+              "min": 4,
+              "max": 131,
+              "n": 71169,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 5.0,
+              "p90": 7.0,
+              "p99": 22.0,
+              "min": 4,
+              "max": 144,
+              "n": 53236,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "unanchored_book": 1,
+            "subscription_unsubscribe_quotes": 1,
+            "subscription_subscribe_quotes": 1,
+            "quote_recovery": 1,
+            "trade_messages": 53236,
+            "trade_count_sum": 119749,
+            "messages_with_count_gt_1": 17561
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 2.2636535253279857,
+                "p90": 4.650717683247864,
+                "p99": 7.654696177237182
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 5.73202438622347,
+                "p90": 9.096983994844912,
+                "p99": 12.608795770700826
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 538,
+              "baseline_percentiles_bp": {
+                "p50": 16.50922560779879,
+                "p90": 19.25040856883437,
+                "p99": 20.154005899877276
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        },
+        "SOL-USDT-SWAP": {
+          "tick_size": 0.01,
+          "expected_10s_bins": 720,
+          "quote_missing_10s_bins": 2,
+          "trade_missing_10s_bins": 2,
+          "spread_tick_duration_ms": {
+            "1": 7180000
+          },
+          "one_tick_fraction": 1.0,
+          "spread_bp": {
+            "p50": 1.046,
+            "p90": 1.049,
+            "p99": 1.049
+          },
+          "a_valid": 653,
+          "l_valid": 654,
+          "joint_valid": 653,
+          "trade_events_per_60s": {
+            "p50": 45.0,
+            "p90": 78.0,
+            "p99": 254.0
+          },
+          "a_positive_fraction": 0.40428790199081166,
+          "l_positive_fraction": 0.0,
+          "vet_positive_fraction": 0.0,
+          "joint_a_positive_fraction": 0.40428790199081166,
+          "joint_l_positive_fraction": 0.0,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 6503,
+          "trade_count_sum": 22045,
+          "aggregated_message_fraction": 0.23635245271413194,
+          "mean_fills_per_message": 3.3899738582192835,
+          "delay_ms": {
+            "quotes": {
+              "p50": 4.0,
+              "p90": 5.0,
+              "p99": 7.0,
+              "min": 3,
+              "max": 46,
+              "n": 67394,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 3.0,
+              "p90": 4.0,
+              "p99": 8.0,
+              "min": 2,
+              "max": 22,
+              "n": 6503,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "unanchored_book": 1,
+            "trade_messages": 6503,
+            "trade_count_sum": 22045,
+            "messages_with_count_gt_1": 1537,
+            "subscription_unsubscribe_quotes": 1,
+            "subscription_subscribe_quotes": 1,
+            "quote_recovery": 1
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 2.7664888751728527,
+                "p90": 4.4304936526931415,
+                "p99": 5.549640354809249
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 653,
+              "baseline_percentiles_bp": {
+                "p50": 6.769946684193756,
+                "p90": 8.297512294462804,
+                "p99": 9.115965566475147
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 538,
+              "baseline_percentiles_bp": {
+                "p50": 16.876232468130425,
+                "p90": 17.758137367504663,
+                "p99": 18.14006848742109
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        }
+      }
+    },
+    "direct_first_two_hours": {
+      "source": "OKX direct bbo-tbt + trades",
+      "receiver": "local UTC and monotonic clock",
+      "utc_start": "2026-11-23T15:09:20+00:00",
+      "utc_end": "2026-11-23T15:14:20+00:00",
+      "window_seconds": 300.0,
+      "raw_archive": "F:\\temp\\vet-preflight-20261123-230914",
+      "capture_stop_reason": null,
+      "sealed_segments_at_read": 2,
+      "markets": {
+        "BTC-USDT-SWAP": {
+          "tick_size": 0.1,
+          "expected_10s_bins": 30,
+          "quote_missing_10s_bins": 0,
+          "trade_missing_10s_bins": 0,
+          "spread_tick_duration_ms": {
+            "1": 299570,
+            "2": 100,
+            "3": 80,
+            "4": 30,
+            "5": 40,
+            "6": 20,
+            "7": 20,
+            "8": 10,
+            "9": 40,
+            "10": 20,
+            "11": 10,
+            "14": 10,
+            "18": 10,
+            "20": 10,
+            "30": 10,
+            "32": 10,
+            "81": 10
+          },
+          "one_tick_fraction": 0.9985666666666667,
+          "spread_bp": {
+            "p50": 0.016,
+            "p90": 0.016,
+            "p99": 0.016
+          },
+          "a_valid": 0,
+          "l_valid": 0,
+          "joint_valid": 0,
+          "trade_events_per_60s": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "a_positive_fraction": null,
+          "l_positive_fraction": null,
+          "vet_positive_fraction": null,
+          "joint_a_positive_fraction": null,
+          "joint_l_positive_fraction": null,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 25191,
+          "trade_count_sum": 45034,
+          "aggregated_message_fraction": 0.34361478305744114,
+          "mean_fills_per_message": 1.787701957048152,
+          "delay_ms": {
+            "quotes": {
+              "p50": 510.0,
+              "p90": 1141.0,
+              "p99": 2658.0,
+              "min": 505,
+              "max": 3976,
+              "n": 24052,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 512.0,
+              "p90": 1028.0,
+              "p99": 2261.0,
+              "min": 505,
+              "max": 3879,
+              "n": 25191,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "connect_quotes": 1,
+            "connect_trades": 1,
+            "subscription_subscribe_trades": 1,
+            "subscription_subscribe_quotes": 1,
+            "trade_recovery": 1,
+            "quote_recovery": 1,
+            "trade_messages": 25191,
+            "trade_count_sum": 45034,
+            "messages_with_count_gt_1": 8656
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        },
+        "ETH-USDT-SWAP": {
+          "tick_size": 0.01,
+          "expected_10s_bins": 30,
+          "quote_missing_10s_bins": 0,
+          "trade_missing_10s_bins": 0,
+          "spread_tick_duration_ms": {
+            "1": 299740,
+            "2": 100,
+            "3": 50,
+            "4": 20,
+            "6": 30,
+            "10": 10,
+            "13": 10,
+            "14": 20,
+            "19": 10,
+            "49": 10
+          },
+          "one_tick_fraction": 0.9991333333333333,
+          "spread_bp": {
+            "p50": 0.056,
+            "p90": 0.056,
+            "p99": 0.056
+          },
+          "a_valid": 0,
+          "l_valid": 0,
+          "joint_valid": 0,
+          "trade_events_per_60s": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "a_positive_fraction": null,
+          "l_positive_fraction": null,
+          "vet_positive_fraction": null,
+          "joint_a_positive_fraction": null,
+          "joint_l_positive_fraction": null,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 23699,
+          "trade_count_sum": 53191,
+          "aggregated_message_fraction": 0.4516646271994599,
+          "mean_fills_per_message": 2.244440693700156,
+          "delay_ms": {
+            "quotes": {
+              "p50": 512.0,
+              "p90": 1149.0,
+              "p99": 2128.0,
+              "min": 506,
+              "max": 2755,
+              "n": 23666,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 514.0,
+              "p90": 1079.0,
+              "p99": 2353.0,
+              "min": 506,
+              "max": 2753,
+              "n": 23699,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "connect_quotes": 1,
+            "connect_trades": 1,
+            "subscription_subscribe_trades": 1,
+            "subscription_subscribe_quotes": 1,
+            "trade_recovery": 1,
+            "quote_recovery": 1,
+            "trade_messages": 23699,
+            "trade_count_sum": 53191,
+            "messages_with_count_gt_1": 10704
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        },
+        "SOL-USDT-SWAP": {
+          "tick_size": 0.01,
+          "expected_10s_bins": 30,
+          "quote_missing_10s_bins": 0,
+          "trade_missing_10s_bins": 0,
+          "spread_tick_duration_ms": {
+            "1": 299980,
+            "2": 20
+          },
+          "one_tick_fraction": 0.9999333333333333,
+          "spread_bp": {
+            "p50": 1.316,
+            "p90": 1.317,
+            "p99": 1.318
+          },
+          "a_valid": 0,
+          "l_valid": 0,
+          "joint_valid": 0,
+          "trade_events_per_60s": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "a_positive_fraction": null,
+          "l_positive_fraction": null,
+          "vet_positive_fraction": null,
+          "joint_a_positive_fraction": null,
+          "joint_l_positive_fraction": null,
+          "vet_nonzero_n": 0,
+          "vet_nonzero": {
+            "p50": null,
+            "p90": null,
+            "p99": null
+          },
+          "trade_messages": 6100,
+          "trade_count_sum": 20065,
+          "aggregated_message_fraction": 0.2640983606557377,
+          "mean_fills_per_message": 3.289344262295082,
+          "delay_ms": {
+            "quotes": {
+              "p50": 515.0,
+              "p90": 1158.0,
+              "p99": 2167.0,
+              "min": 507,
+              "max": 3321,
+              "n": 21253,
+              "negative_delay_n": 0
+            },
+            "trades": {
+              "p50": 516.0,
+              "p90": 1121.0,
+              "p99": 2164.0,
+              "min": 508,
+              "max": 3234,
+              "n": 6100,
+              "negative_delay_n": 0
+            }
+          },
+          "quality_counters": {
+            "connect_quotes": 1,
+            "connect_trades": 1,
+            "subscription_subscribe_trades": 1,
+            "subscription_subscribe_quotes": 1,
+            "quote_recovery": 1,
+            "trade_recovery": 1,
+            "trade_messages": 6100,
+            "trade_count_sum": 20065,
+            "messages_with_count_gt_1": 1611
+          },
+          "past_realized_volatility": {
+            "1": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "5": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            },
+            "30": {
+              "baseline_n": 0,
+              "baseline_percentiles_bp": {
+                "p50": null,
+                "p90": null,
+                "p99": null
+              },
+              "vet_positive": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              },
+              "vet_top_nonzero_decile": {
+                "n": 0,
+                "percentiles_bp": {
+                  "p50": null,
+                  "p90": null,
+                  "p99": null
+                },
+                "above_baseline_p90_fraction": null
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

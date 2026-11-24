@@ -28,6 +28,7 @@ const router = createRouter({
       { path: 'features/lineage', name: 'feature-lineage', component: () => import('@/pages/FeatureLineagePage.vue') },
       { path: 'microstructure', name: 'microstructure', component: () => import('@/pages/MicrostructurePage.vue') },
       { path: 'data-quality', name: 'data-quality', component: () => import('@/pages/DataQualityPage.vue') },
+      { path: 'research/cdfp', name: 'cdfp-research', component: () => import('@/pages/CdfpPage.vue') },
       { path: 'trading', name: 'trading', component: () => import('@/pages/TradingPage.vue') },
       { path: 'strategies', name: 'strategies', component: () => import('@/pages/StrategiesPage.vue') },
       { path: 'auto-trading', name: 'auto-trading', component: () => import('@/pages/AutoTradingPage.vue') },

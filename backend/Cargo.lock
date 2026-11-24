@@ -1709,6 +1709,7 @@ dependencies = [
  "tokio-cron-scheduler",
  "tokio-stream",
  "tokio-test",
+ "tokio-tungstenite",
  "tower",
  "tower-http",
  "tracing",
@@ -3264,7 +3265,9 @@ checksum = "8f72a05e828585856dacd553fba484c242c46e391fb0e58917c942ee9202915c"
 dependencies = [
  "futures-util",
  "log",
+ "native-tls",
  "tokio",
+ "tokio-native-tls",
  "tungstenite",
 ]
 
@@ -3453,6 +3456,7 @@ dependencies = [
  "http",
  "httparse",
  "log",
+ "native-tls",
  "rand 0.9.4",
  "sha1",
  "thiserror",

@@ -31,6 +31,7 @@ services:
       - APP_RATE_LIMIT__REQUESTS_PER_MINUTE=100
       - APP_RATE_LIMIT__REQUESTS_PER_HOUR=1000
       - NEWS_FETCH_INTERVAL_MINUTES=${NEWS_FETCH_INTERVAL_MINUTES:-15}
+      - CDFP_ENABLED=${CDFP_ENABLED:-false}
       - HTTP_PROXY=http://host.docker.internal:7890
       - HTTPS_PROXY=http://host.docker.internal:7890
       - ALL_PROXY=http://host.docker.internal:7890

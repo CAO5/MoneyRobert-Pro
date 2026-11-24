@@ -11,6 +11,7 @@ pub mod auto_trading;
 pub mod backfill_api;
 pub mod backtest_api;
 pub mod billing;
+pub mod cdfp_api;
 pub mod cross_exchange_api;
 pub mod dashboard;
 pub mod data_quality_api;
@@ -70,6 +71,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/signals", signals_api::router())
         .nest("/microstructure", microstructure_api::router())
         .nest("/data-quality", data_quality_api::router())
+        .nest("/research/cdfp", cdfp_api::router())
         .nest("/backfill", backfill_api::router())
         .nest("/cross-exchange", cross_exchange_api::router())
         .nest("/model-cards", model_cards_api::router())
