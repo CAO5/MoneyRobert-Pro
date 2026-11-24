@@ -68,6 +68,7 @@ const navigation = [
   {
     group: '数据监控',
     items: [
+      { name: 'LLF 实时研究', path: '/research/llf', icon: Activity },
       { name: '微结构数据', path: '/microstructure', icon: Microscope },
       { name: '数据质量', path: '/data-quality', icon: Database },
       { name: 'CDFP 研究', path: '/research/cdfp', icon: Activity },

@@ -25,3 +25,5 @@ check-cdp.js
 check-workbench.js
 test-real.js
 wb-test.js
+.workbuddy/
+mobile/ui-before.png

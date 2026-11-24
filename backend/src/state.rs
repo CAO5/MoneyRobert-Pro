@@ -96,9 +96,11 @@ pub async fn create_db_pool(database_url: &str, pool_size: u32) -> Result<PgPool
 pub async fn create_redis_client(redis_url: &str) -> Result<ConnectionManager> {
     let client = redis::Client::open(redis_url).map_err(|e| AppError::Redis(e))?;
 
-    let manager = ConnectionManager::new(client)
+    // Redis 是可选缓存。限制首次连接，避免缓存无响应时阻塞数据库迁移和 HTTP 启动。
+    let manager = tokio::time::timeout(std::time::Duration::from_secs(5), ConnectionManager::new(client))
         .await
-        .map_err(|e| AppError::Redis(e))?;
+        .map_err(|_| AppError::Internal("Redis startup connection timed out".to_string()))?
+        .map_err(AppError::Redis)?;
 
     tracing::info!("Redis connection established");
 

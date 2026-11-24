@@ -26,6 +26,7 @@ const router = createRouter({
       { path: 'backtest/portfolio-risk', name: 'portfolio-risk', component: () => import('@/pages/PortfolioRiskPage.vue') },
       { path: 'backtest/position-sizing', name: 'position-sizing', component: () => import('@/pages/PositionSizingPage.vue') },
       { path: 'features/lineage', name: 'feature-lineage', component: () => import('@/pages/FeatureLineagePage.vue') },
+      { path: 'research/llf', name: 'llf-research', component: () => import('@/pages/LlfResearchPage.vue') },
       { path: 'microstructure', name: 'microstructure', component: () => import('@/pages/MicrostructurePage.vue') },
       { path: 'data-quality', name: 'data-quality', component: () => import('@/pages/DataQualityPage.vue') },
       { path: 'research/cdfp', name: 'cdfp-research', component: () => import('@/pages/CdfpPage.vue') },

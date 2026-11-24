@@ -2026,6 +2026,37 @@ async fn start_debate_stream(
         "long_pct": long_pct,
         "short_pct": short_pct,
         "change_24h": if open_24h > 0.0 { (current_price - open_24h) / open_24h * 100.0 } else { 0.0 },
+        // 技术指标（与自动调用一致）
+        "trend": ctx.trend,
+        "trend_strength": ctx.trend_strength,
+        "rsi_14": ctx.rsi_14,
+        "macd_signal": ctx.macd_signal,
+        "atr": ctx.atr,
+        "ma5": ctx.ma5,
+        "ma10": ctx.ma10,
+        "ma20": ctx.ma20,
+        "volatility": ctx.volatility,
+        "volume_profile": ctx.volume_profile,
+        "price_change_1h": ctx.price_change_1h,
+        "price_change_4h": ctx.price_change_4h,
+        "key_levels": [ctx.key_levels.0, ctx.key_levels.1, ctx.key_levels.2],
+        // 订单簿深度（与自动调用一致）
+        "bid_depth": bid_depth_info,
+        "ask_depth": ask_depth_info,
+        "bid_ask_imbalance": bid_ask_imbalance,
+        // 持仓量（与自动调用一致）
+        "open_interest": open_interest,
+        "oi_change_hint": oi_change_hint,
+        // 多时间框架（与自动调用一致）
+        "multi_timeframe": {
+            "m5_trend": multi_timeframe_data.m5_trend,
+            "m15_trend": multi_timeframe_data.m15_trend,
+            "h1_trend": multi_timeframe_data.h1_trend,
+            "h4_trend": multi_timeframe_data.h4_trend,
+            "d1_trend": multi_timeframe_data.d1_trend,
+            "alignment": multi_timeframe_data.alignment,
+            "alignment_details": multi_timeframe_data.alignment_details,
+        },
     })).unwrap_or_default());
 
     let session_event = Event::default().data(
@@ -2562,28 +2593,9 @@ async fn start_debate_stream(
                     "trade_plan_status": if decision_score.action == "hold" { "not_applicable" } else { "validated" },
                 })
             }
-        }; // Send fund_manager event
-        let fm_event = Event::default().data(
-            serde_json::to_string(&json!({
-            "type": "fund_manager",
-            "action": fund_manager_decision.get("action"),
-            "confidence": fund_manager_decision.get("confidence"),
-            "entry_range": fund_manager_decision.get("entry_range"),
-            "stop_loss": fund_manager_decision.get("stop_loss"),
-            "take_profit": fund_manager_decision.get("take_profit"),
-            "leverage": fund_manager_decision.get("leverage"),
-            "reasoning": fund_manager_decision.get("reasoning"),
-                "decision_status": fund_manager_decision.get("decision_status"),
-                "model_action": fund_manager_decision.get("model_action"),
-                "llm_status": fund_manager_decision.get("llm_status"),
-                "evidence_score": fund_manager_decision.get("evidence_score"),
-                "trade_plan_status": fund_manager_decision.get("trade_plan_status"),
-            }))
-            .unwrap_or_default(),
-        );
-        let _ = tx.send(Ok(fm_event)).await;
+        };
 
-        // 9. 计算增强置信度（与自动调用一致）
+        // 9. 计算增强置信度（与自动调用一致，在发送SSE事件前完成）
         let action = fund_manager_decision.get("action").and_then(|v| v.as_str()).unwrap_or("hold").to_string();
         let base_confidence = fund_manager_decision.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.4);
         let stop_loss = fund_manager_decision.get("stop_loss").and_then(|v| v.as_f64()).unwrap_or(current_price * 0.97);
@@ -2613,6 +2625,54 @@ async fn start_debate_stream(
             multi_timeframe_data.alignment * 100.0,
             multi_timeframe_data.alignment_details,
         );
+
+        // 发送 fund_manager SSE 事件（包含增强置信度和市场环境，与自动调用一致）
+        let fm_event = Event::default().data(
+            serde_json::to_string(&json!({
+            "type": "fund_manager",
+            "action": fund_manager_decision.get("action"),
+            "confidence": enhanced_confidence,
+            "base_confidence": base_confidence,
+            "entry_range": fund_manager_decision.get("entry_range"),
+            "stop_loss": fund_manager_decision.get("stop_loss"),
+            "take_profit": fund_manager_decision.get("take_profit"),
+            "leverage": fund_manager_decision.get("leverage"),
+            "reasoning": enhanced_reasoning,
+                "decision_status": fund_manager_decision.get("decision_status"),
+                "model_action": fund_manager_decision.get("model_action"),
+                "llm_status": fund_manager_decision.get("llm_status"),
+                "evidence_score": fund_manager_decision.get("evidence_score"),
+                "trade_plan_status": fund_manager_decision.get("trade_plan_status"),
+                // 增强字段（与自动调用一致，确保前端展示完整信息）
+                "enhanced_confidence": enhanced_confidence,
+                "market_context": {
+                    "trend": ctx.trend,
+                    "trend_strength": ctx.trend_strength,
+                    "volatility": ctx.volatility,
+                    "volume_profile": ctx.volume_profile,
+                    "rsi_14": ctx.rsi_14,
+                    "macd_signal": ctx.macd_signal,
+                    "atr": ctx.atr,
+                    "ma5": ctx.ma5,
+                    "ma10": ctx.ma10,
+                    "ma20": ctx.ma20,
+                    "price_change_1h": ctx.price_change_1h,
+                    "price_change_4h": ctx.price_change_4h,
+                    "key_levels": [ctx.key_levels.0, ctx.key_levels.1, ctx.key_levels.2],
+                },
+                "multi_timeframe": {
+                    "m5_trend": multi_timeframe_data.m5_trend,
+                    "m15_trend": multi_timeframe_data.m15_trend,
+                    "h1_trend": multi_timeframe_data.h1_trend,
+                    "h4_trend": multi_timeframe_data.h4_trend,
+                    "d1_trend": multi_timeframe_data.d1_trend,
+                    "alignment": multi_timeframe_data.alignment,
+                    "alignment_details": multi_timeframe_data.alignment_details,
+                },
+            }))
+            .unwrap_or_default(),
+        );
+        let _ = tx.send(Ok(fm_event)).await;
 
         // 构建增强决策JSON（与自动调用一致）
         let enhanced_decision = json!({

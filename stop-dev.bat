@@ -1,5 +1,5 @@
 @echo off
-chcp 65001 >nul
+setlocal enabledelayedexpansion
 
 echo ================================================================
 echo   MoneyRobert Pro - 停止本地开发服务
@@ -8,14 +8,14 @@ echo.
 
 echo [STOP] 停止后端服务...
 
-:: 通过端口 8001 查找并杀死后端进程树
+REM Kill backend process by port 8001
 echo        检查端口 8001...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8001" ^| findstr "LISTENING"') do (
     echo        杀死端口 8001 的进程 PID: %%a
     taskkill /F /T /PID %%a
 )
 
-:: 杀死后端相关进程（兜底）
+REM Kill backend related processes (fallback)
 echo        杀死 moneyrobert.exe...
 taskkill /F /T /IM moneyrobert.exe 2>nul && echo        [OK] 已杀死 moneyrobert.exe || echo        [INFO] 无 moneyrobert.exe 进程
 
@@ -28,7 +28,7 @@ taskkill /F /T /IM rustc.exe 2>nul && echo        [OK] 已杀死 rustc.exe || ec
 echo.
 echo [STOP] 停止前端服务...
 
-:: 通过端口 3000 查找并杀死前端进程树
+REM Kill frontend process by port 3000
 echo        检查端口 3000...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000" ^| findstr "LISTENING"') do (
     echo        杀死端口 3000 的进程 PID: %%a
@@ -38,7 +38,7 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000" ^| findstr "LISTENING
 echo.
 echo [STOP] 验证端口状态...
 
-:: 检查端口 8001
+REM Check port 8001
 netstat -ano | findstr ":8001" | findstr "LISTENING" >nul 2>&1
 if errorlevel 1 (
     echo        [OK] 端口 8001 已释放
@@ -47,7 +47,7 @@ if errorlevel 1 (
     netstat -ano | findstr ":8001" | findstr "LISTENING"
 )
 
-:: 检查端口 3000
+REM Check port 3000
 netstat -ano | findstr ":3000" | findstr "LISTENING" >nul 2>&1
 if errorlevel 1 (
     echo        [OK] 端口 3000 已释放

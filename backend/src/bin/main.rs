@@ -30,6 +30,7 @@ async fn main() -> anyhow::Result<()> {
         state.db_pool.clone(),
         state.ws_manager.clone(),
     ));
+    moneyrobert_rs::llf::start(&state, collector.clone());
     collector.start().await;
     moneyrobert_rs::cdfp::start(state.db_pool.clone());
 

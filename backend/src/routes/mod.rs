@@ -68,6 +68,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/system", system_settings::router())
         .nest("/backtest", backtest_api::router())
         .nest("/features", features_api::router())
+        .nest("/llf", crate::llf::router())
         .nest("/signals", signals_api::router())
         .nest("/microstructure", microstructure_api::router())
         .nest("/data-quality", data_quality_api::router())
